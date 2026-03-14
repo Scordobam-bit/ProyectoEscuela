@@ -58,7 +58,7 @@ text = "f(x) = "
 [node name="FormulaInput" type="LineEdit" parent="HUD/HUDPanel/VBox/FormulaRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "e.g.  exp(x) - 2 - 4"
+placeholder_text = "e.g.  log(x + 2)"
 
 [node name="PlotButton" type="Button" parent="HUD/HUDPanel/VBox/FormulaRow"]
 layout_mode = 2
