@@ -1,23 +1,23 @@
 ## Sector3PulsarTuner.gd
 ## ======================
-## Sector 3: Pulsar Tuner — Function Types, Transformations (Shifts, Scaling, Reflections)
+## Sector 3: Sintonizador de Púlsares — Tipos de Funciones, Transformaciones (Desplazamientos, Escala, Reflexiones)
 ##
-## Pedagogy
+## Pedagogía
 ## ---------
-## Transformations of functions are algebraic operations that systematically
-## translate, scale, or reflect a base function:
-##   Vertical shift   :  g(x) = f(x) + k
-##   Horizontal shift :  g(x) = f(x − h)
-##   Vertical scale   :  g(x) = a·f(x)
-##   Horizontal scale :  g(x) = f(b·x)
-##   X-axis reflect   :  g(x) = −f(x)
-##   Y-axis reflect   :  g(x) = f(−x)
+## Las transformaciones de funciones son operaciones algebraicas que trasladan,
+## escalan o reflejan sistemáticamente una función base:
+##   Desplazamiento vertical  :  g(x) = f(x) + k
+##   Desplazamiento horizontal:  g(x) = f(x − h)
+##   Escala vertical          :  g(x) = a·f(x)
+##   Escala horizontal        :  g(x) = f(b·x)
+##   Reflexión sobre eje X    :  g(x) = −f(x)
+##   Reflexión sobre eje Y    :  g(x) = f(−x)
 ##
-## Challenges
-## ----------
-## 1. Shift sin(x) right by π and up by 2.
-## 2. Vertically compress cos(x) by factor 0.5 and reflect over x-axis.
-## 3. BOSS: Match a mystery waveform by applying the correct transformation chain.
+## Desafíos
+## --------
+## 1. Desplazar sin(x) a la derecha por π y hacia arriba por 2.
+## 2. Comprimir cos(x) verticalmente por el factor 0.5 y reflejar sobre el eje x.
+## 3. JEFE: Igualar una forma de onda misteriosa aplicando la cadena de transformaciones correcta.
 class_name Sector3PulsarTuner
 extends SectorBase
 
@@ -33,33 +33,33 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
-			"instruction": "Challenge 1: Shift sin(x) RIGHT by π and UP by 2.\n" +
-				"Recall: f(x−h)+k shifts right by h and up by k.",
+			"instruction": "Desafío 1: Desplaza sin(x) a la DERECHA por π y hacia ARRIBA por 2.\n" +
+				"Recuerda: f(x−h)+k desplaza a la derecha en h y hacia arriba en k.",
 			"hint": "sin(x - PI) + 2",
 			"expected_formula": "sin(x - PI) + 2",
-			"feedback_correct": "Pulsar frequency locked! Perfect phase shift.",
-			"feedback_wrong": "Check your shift. Horizontal shifts use (x − h) inside the function.",
+			"feedback_correct": "¡Frecuencia del púlsar bloqueada! Cambio de fase perfecto.",
+			"feedback_wrong": "Verifica tu desplazamiento. Los desplazamientos horizontales usan (x − h) dentro de la función.",
 			"solution_hint": "sin(x − π) + 2",
 			"score": 200,
 		},
 		{
-			"instruction": "Challenge 2: Take cos(x), compress it vertically by 0.5, then reflect over the x-axis.\n" +
+			"instruction": "Desafío 2: Toma cos(x), comprímelo verticalmente por 0.5 y luego refléjalo sobre el eje x.\n" +
 				"g(x) = −(0.5·cos(x))",
 			"hint": "-0.5 * cos(x)",
 			"expected_formula": "-0.5 * cos(x)",
-			"feedback_correct": "Signal inverted and compressed. Pulsar tuned!",
-			"feedback_wrong": "Vertical scale: multiply by 0.5. Reflection: negate the whole thing.",
+			"feedback_correct": "¡Señal invertida y comprimida. ¡Púlsar sintonizado!",
+			"feedback_wrong": "Escala vertical: multiplica por 0.5. Reflexión: niega todo el resultado.",
 			"solution_hint": "g(x) = −0.5·cos(x)",
 			"score": 200,
 		},
 		{
-			"instruction": "BOSS: Match the mystery pulsar waveform shown in purple!\n" +
-				"It's a transformed sin function. Analyse its amplitude, period and shift.",
+			"instruction": "JEFE: ¡Iguala la forma de onda del púlsar misterioso mostrada en morado!\n" +
+				"Es una función seno transformada. Analiza su amplitud, período y desplazamiento.",
 			"hint": "2 * sin(2*x) - 1",
 			"expected_formula": "2 * sin(2*x) - 1",
-			"feedback_correct": "PULSAR SYNCHRONISED! Sector 3 complete!",
-			"feedback_wrong": "Study the purple waveform: amplitude, period (2π/b), and vertical shift.",
-			"solution_hint": "Amplitude=2, period=π (b=2), vertical shift=−1",
+			"feedback_correct": "¡PÚLSAR SINCRONIZADO! ¡Sector 3 completado!",
+			"feedback_wrong": "Estudia la forma de onda morada: amplitud, período (2π/b) y desplazamiento vertical.",
+			"solution_hint": "Amplitud=2, período=π (b=2), desplazamiento vertical=−1",
 			"score": 400,
 		},
 	]
@@ -85,11 +85,11 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 func _on_formula_submitted_sector(formula: String) -> void:
 	if _hud and MathEngine.is_valid_formula(formula):
-		# Show evaluated comparison at a test point
+		# Mostrar comparación evaluada en un punto de prueba
 		var sample_x: float = 1.0
 		var player_y: float = MathEngine.evaluate(formula, sample_x)
 		_hud.show_feedback(
-			"At x=1: your f(1) = %s" % MathEngine.format_float(player_y), "info"
+			"En x=1: tu f(1) = %s" % MathEngine.format_float(player_y), "info"
 		)
 	_validate_formula_against_current(formula)
 

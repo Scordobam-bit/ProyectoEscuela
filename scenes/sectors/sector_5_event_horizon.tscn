@@ -58,18 +58,18 @@ text = "f(x) = "
 [node name="FormulaInput" type="LineEdit" parent="HUD/HUDPanel/VBox/FormulaRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "e.g.  log(x + 2)"
+placeholder_text = "ej.  log(x + 2)"
 
 [node name="PlotButton" type="Button" parent="HUD/HUDPanel/VBox/FormulaRow"]
 layout_mode = 2
-text = "PLOT"
+text = "GRAFICAR"
 
 [node name="DomainRow" type="HBoxContainer" parent="HUD/HUDPanel/VBox"]
 layout_mode = 2
 
 [node name="DomainLabel" type="Label" parent="HUD/HUDPanel/VBox/DomainRow"]
 layout_mode = 2
-text = "Domain: ["
+text = "Dominio: ["
 
 [node name="DomainMinSpin" type="SpinBox" parent="HUD/HUDPanel/VBox/DomainRow"]
 layout_mode = 2
@@ -98,11 +98,11 @@ layout_mode = 2
 
 [node name="TheoryButton" type="Button" parent="HUD/HUDPanel/VBox/ButtonRow"]
 layout_mode = 2
-text = "📖 Theory"
+text = "📖 Teoría"
 
 [node name="HintButton" type="Button" parent="HUD/HUDPanel/VBox/ButtonRow"]
 layout_mode = 2
-text = "💡 Hint"
+text = "💡 Pista"
 
 [node name="TopBar" type="HBoxContainer" parent="HUD"]
 offset_bottom = 30.0
@@ -111,11 +111,11 @@ offset_right = 1280.0
 [node name="SectorLabel" type="Label" parent="HUD/TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Sector 5: Event Horizon"
+text = "Sector 5: Horizonte de Sucesos"
 
 [node name="ScoreLabel" type="Label" parent="HUD/TopBar"]
 layout_mode = 2
-text = "Score: 0"
+text = "Puntuación: 0"
 
 [node name="FeedbackLabel" type="Label" parent="HUD"]
 anchor_left = 0.5
@@ -150,7 +150,7 @@ anchor_bottom = 1.0
 
 [node name="TitleLabel" type="Label" parent="HUD/TheoryPanel/VBox"]
 layout_mode = 2
-text = "Theory"
+text = "Teoría"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HUD/TheoryPanel/VBox"]
 layout_mode = 2
@@ -167,7 +167,7 @@ layout_mode = 2
 
 [node name="PrevButton" type="Button" parent="HUD/TheoryPanel/VBox/NavRow"]
 layout_mode = 2
-text = "◀ Prev"
+text = "◀ Anterior"
 
 [node name="PageLabel" type="Label" parent="HUD/TheoryPanel/VBox/NavRow"]
 layout_mode = 2
@@ -177,8 +177,8 @@ text = "1 / 1"
 
 [node name="NextButton" type="Button" parent="HUD/TheoryPanel/VBox/NavRow"]
 layout_mode = 2
-text = "Next ▶"
+text = "Siguiente ▶"
 
 [node name="CloseButton" type="Button" parent="HUD/TheoryPanel/VBox"]
 layout_mode = 2
-text = "✕ Close"
+text = "✕ Cerrar"

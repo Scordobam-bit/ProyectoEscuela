@@ -1,18 +1,18 @@
 ## TheoryPanel.gd
 ## ===============
-## Displays university-level mathematical theory for each sector topic.
-## Uses a RichTextLabel with BBCode for formatting.
+## Muestra teoría matemática a nivel universitario para cada tema de sector.
+## Usa un RichTextLabel con BBCode para el formato.
 class_name TheoryPanel
 extends PanelContainer
 
 # ---------------------------------------------------------------------------
-# Signals
+# Señales
 # ---------------------------------------------------------------------------
 
 signal panel_closed
 
 # ---------------------------------------------------------------------------
-# Node References
+# Referencias de Nodos
 # ---------------------------------------------------------------------------
 
 @onready var _title_label: Label = $VBox/TitleLabel
@@ -23,337 +23,337 @@ signal panel_closed
 @onready var _page_label: Label = $VBox/NavRow/PageLabel
 
 # ---------------------------------------------------------------------------
-# Theory Database
-## Each entry: { "title": String, "content": String (BBCode) }
+# Base de Datos de Teoría
+## Cada entrada: { "title": String, "content": String (BBCode) }
 # ---------------------------------------------------------------------------
 
 const THEORY: Dictionary = {
 	# ── Sector 1 ──────────────────────────────────────────────────────────
 	"intro_functions": {
-		"title": "What is a Function?",
-		"content": """[b]Definition[/b]
-A [color=#00ffcc]function[/color] [b]f : D → ℝ[/b] is a rule that assigns to each element [b]x[/b] in the domain [b]D[/b] exactly one value [b]f(x)[/b] in the codomain.
+		"title": "¿Qué es una Función?",
+		"content": """[b]Definición[/b]
+Una [color=#00ffcc]función[/color] [b]f : D → ℝ[/b] es una regla que asigna a cada elemento [b]x[/b] del dominio [b]D[/b] exactamente un valor [b]f(x)[/b] en el codominio.
 
-[b]Formal notation:[/b]
-  [color=#ffcc00]f(x) = expression involving x[/color]
+[b]Notación formal:[/b]
+  [color=#ffcc00]f(x) = expresión en términos de x[/color]
 
-[b]Vertical Line Test:[/b] A curve in the plane is the graph of a function iff every vertical line intersects it at most once.
+[b]Prueba de la Línea Vertical:[/b] Una curva en el plano es la gráfica de una función sii toda línea vertical la intersecta a lo sumo una vez.
 
-[b]Example:[/b]
-  f(x) = 2x + 3  → for x = 5,  f(5) = 13
+[b]Ejemplo:[/b]
+  f(x) = 2x + 3  → para x = 5,  f(5) = 13
 
-[b]In Planet Waves:[/b] Enter the formula in the HUD input. The Line2D will trace your function across the current domain."""
+[b]En Planet Waves:[/b] Ingresa la fórmula en el campo de entrada del HUD. La Line2D trazará tu función a lo largo del dominio actual."""
 	},
 
 	"linear_functions": {
-		"title": "Linear Functions  y = mx + b",
-		"content": """[b]General Form:[/b]  [color=#ffcc00]f(x) = mx + b[/color]
+		"title": "Funciones Lineales  y = mx + b",
+		"content": """[b]Forma General:[/b]  [color=#ffcc00]f(x) = mx + b[/color]
 
-[b]Parameters:[/b]
-• [b]m[/b] = slope = rise/run = (y₂ − y₁) / (x₂ − x₁)
-• [b]b[/b] = y-intercept (value when x = 0)
+[b]Parámetros:[/b]
+• [b]m[/b] = pendiente = incremento/avance = (y₂ − y₁) / (x₂ − x₁)
+• [b]b[/b] = ordenada al origen (valor cuando x = 0)
 
-[b]Slope sign:[/b]
-• m > 0 → increasing
-• m < 0 → decreasing
-• m = 0 → constant (horizontal line)
+[b]Signo de la pendiente:[/b]
+• m > 0 → creciente
+• m < 0 → decreciente
+• m = 0 → constante (línea horizontal)
 
-[b]Point-Slope Form:[/b]  y − y₁ = m(x − x₁)
+[b]Forma Punto-Pendiente:[/b]  y − y₁ = m(x − x₁)
 
-[b]Challenge:[/b] Navigate through the asteroid belt by plotting a line that passes through two given waypoints."""
+[b]Desafío:[/b] Navega por el cinturón de asteroides trazando una línea que pase por dos puntos de referencia dados."""
 	},
 
 	"domain_range": {
-		"title": "Domain & Range",
-		"content": """[b]Domain D(f)[/b]
-The set of all valid inputs x. Restrictions arise from:
-• Division by zero  →  x ≠ 0  for  f(x) = 1/x
-• Even roots        →  x ≥ 0  for  f(x) = √x
-• Logarithms        →  x > 0  for  f(x) = ln(x)
+		"title": "Dominio y Rango",
+		"content": """[b]Dominio D(f)[/b]
+El conjunto de todas las entradas válidas x. Las restricciones surgen de:
+• División por cero  →  x ≠ 0  para  f(x) = 1/x
+• Raíces de índice par →  x ≥ 0  para  f(x) = √x
+• Logaritmos          →  x > 0  para  f(x) = ln(x)
 
-[b]Range R(f)[/b]
-The set of all achievable outputs. To find it, analyse the function's behaviour as x varies over its domain.
+[b]Rango R(f)[/b]
+El conjunto de todas las salidas alcanzables. Para encontrarlo, analiza el comportamiento de la función cuando x varía sobre su dominio.
 
-[b]Interval Notation:[/b]
-• [a, b]  closed (includes endpoints)
-• (a, b)  open   (excludes endpoints)
-• [a, ∞)  unbounded above
+[b]Notación de Intervalos:[/b]
+• [a, b]  cerrado (incluye extremos)
+• (a, b)  abierto  (excluye extremos)
+• [a, ∞)  no acotado superiormente
 
-[b]Example:[/b]  f(x) = x²
-• Domain: (−∞, ∞)
-• Range:  [0, ∞)"""
+[b]Ejemplo:[/b]  f(x) = x²
+• Dominio: (−∞, ∞)
+• Rango:   [0, ∞)"""
 	},
 
 	# ── Sector 2 ──────────────────────────────────────────────────────────
 	"quadratics": {
-		"title": "Quadratic Functions  ax² + bx + c",
-		"content": """[b]Standard Form:[/b]  [color=#ffcc00]f(x) = ax² + bx + c[/color]  (a ≠ 0)
+		"title": "Funciones Cuadráticas  ax² + bx + c",
+		"content": """[b]Forma Estándar:[/b]  [color=#ffcc00]f(x) = ax² + bx + c[/color]  (a ≠ 0)
 
-[b]Shape:[/b] Parabola
-• a > 0 → opens upward  (minimum)
-• a < 0 → opens downward (maximum)
+[b]Forma:[/b] Parábola
+• a > 0 → se abre hacia arriba  (mínimo)
+• a < 0 → se abre hacia abajo  (máximo)
 
-[b]Vertex Form:[/b]  f(x) = a(x − h)² + k
+[b]Forma Vértice:[/b]  f(x) = a(x − h)² + k
 • h = −b / (2a)
 • k = f(h) = c − b²/(4a)
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   f(x) = x² − 4x + 3
-  Vertex: h = 2,  k = f(2) = −1  →  V(2, −1)"""
+  Vértice: h = 2,  k = f(2) = −1  →  V(2, −1)"""
 	},
 
 	"vertex_form": {
-		"title": "Vertex & Axis of Symmetry",
-		"content": """[b]Vertex[/b]  V = (h, k)
-The turning point of the parabola.
+		"title": "Vértice y Eje de Simetría",
+		"content": """[b]Vértice[/b]  V = (h, k)
+El punto de inflexión de la parábola.
 
-[b]Axis of Symmetry:[/b]  x = h = −b / (2a)
+[b]Eje de Simetría:[/b]  x = h = −b / (2a)
 
-[b]Completing the Square:[/b]
+[b]Completar el Cuadrado:[/b]
   ax² + bx + c
   = a(x² + (b/a)x) + c
   = a(x + b/(2a))² − b²/(4a) + c
 
-[b]Significance:[/b] The vertex gives the maximum or minimum value of the quadratic. This is the gravitational equilibrium point in Sector 2."""
+[b]Importancia:[/b] El vértice proporciona el valor máximo o mínimo de la cuadrática. Representa el punto de equilibrio gravitacional en el Sector 2."""
 	},
 
 	"roots_discriminant": {
-		"title": "Roots & the Discriminant",
-		"content": """[b]Quadratic Formula:[/b]
+		"title": "Raíces y el Discriminante",
+		"content": """[b]Fórmula Cuadrática:[/b]
   [color=#ffcc00]x = (−b ± √Δ) / (2a)[/color]
-  where  Δ = b² − 4ac
+  donde  Δ = b² − 4ac
 
-[b]Discriminant Analysis:[/b]
-• Δ > 0 → two distinct real roots
-• Δ = 0 → one repeated root (tangent to x-axis)
-• Δ < 0 → no real roots (complex conjugate pair)
+[b]Análisis del Discriminante:[/b]
+• Δ > 0 → dos raíces reales distintas
+• Δ = 0 → una raíz repetida (tangente al eje x)
+• Δ < 0 → sin raíces reales (par conjugado complejo)
 
-[b]Boss Battle:[/b] To escape the gravity well, find the roots of the gravitational potential function. These are the escape coordinates!"""
+[b]Batalla Final:[/b] Para escapar del pozo gravitatorio, encuentra las raíces de la función de potencial gravitacional. ¡Esas son las coordenadas de escape!"""
 	},
 
 	# ── Sector 3 ──────────────────────────────────────────────────────────
 	"function_types": {
-		"title": "Types of Functions",
-		"content": """[b]Constant:[/b]   f(x) = c       → horizontal line
-[b]Linear:[/b]     f(x) = mx + b  → straight line
-[b]Quadratic:[/b]  f(x) = ax²+bx+c → parabola
-[b]Polynomial:[/b] f(x) = aₙxⁿ + … + a₀
-[b]Rational:[/b]   f(x) = p(x)/q(x), q(x) ≠ 0
-[b]Radical:[/b]    f(x) = ⁿ√(g(x))
-[b]Exponential:[/b] f(x) = aˣ
-[b]Logarithmic:[/b] f(x) = logₐ(x)
-[b]Trigonometric:[/b] sin, cos, tan, …
+		"title": "Tipos de Funciones",
+		"content": """[b]Constante:[/b]    f(x) = c       → línea horizontal
+[b]Lineal:[/b]       f(x) = mx + b  → línea recta
+[b]Cuadrática:[/b]   f(x) = ax²+bx+c → parábola
+[b]Polinomial:[/b]   f(x) = aₙxⁿ + … + a₀
+[b]Racional:[/b]     f(x) = p(x)/q(x), q(x) ≠ 0
+[b]Radical:[/b]      f(x) = ⁿ√(g(x))
+[b]Exponencial:[/b]  f(x) = aˣ
+[b]Logarítmica:[/b]  f(x) = logₐ(x)
+[b]Trigonométrica:[/b] sen, cos, tan, …
 
-[b]Piecewise:[/b]
-  f(x) = { x²   if x < 0
-           { 2x   if x ≥ 0"""
+[b]A Trozos (Piecewise):[/b]
+  f(x) = { x²   si x < 0
+           { 2x   si x ≥ 0"""
 	},
 
 	"shifts": {
-		"title": "Shifts (Translations)",
-		"content": """[b]Vertical Shift:[/b]   g(x) = f(x) + k
-• k > 0 → up by k units
-• k < 0 → down by |k| units
+		"title": "Desplazamientos (Traslaciones)",
+		"content": """[b]Desplazamiento Vertical:[/b]   g(x) = f(x) + k
+• k > 0 → sube k unidades
+• k < 0 → baja |k| unidades
 
-[b]Horizontal Shift:[/b]  g(x) = f(x − h)
-• h > 0 → right by h units  (counter-intuitive!)
-• h < 0 → left by |h| units
+[b]Desplazamiento Horizontal:[/b]  g(x) = f(x − h)
+• h > 0 → desplaza a la derecha h unidades  (¡contra-intuitivo!)
+• h < 0 → desplaza a la izquierda |h| unidades
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   Base: f(x) = x²
-  g(x) = (x − 3)² + 2  →  right 3, up 2
+  g(x) = (x − 3)² + 2  →  3 unidades a la derecha, 2 arriba
 
-[b]Challenge:[/b] Tune the pulsar frequency by applying the correct shift to the base waveform."""
+[b]Desafío:[/b] Ajusta la frecuencia del púlsar aplicando el desplazamiento correcto a la forma de onda base."""
 	},
 
 	"scaling": {
-		"title": "Scaling (Stretches & Compressions)",
-		"content": """[b]Vertical Scale:[/b]    g(x) = a·f(x)
-• |a| > 1 → vertical stretch
-• 0 < |a| < 1 → vertical compression
+		"title": "Escalado (Estiramiento y Compresión)",
+		"content": """[b]Escala Vertical:[/b]    g(x) = a·f(x)
+• |a| > 1 → estiramiento vertical
+• 0 < |a| < 1 → compresión vertical
 
-[b]Horizontal Scale:[/b]  g(x) = f(b·x)
-• |b| > 1 → horizontal compression
-• 0 < |b| < 1 → horizontal stretch
-• Note: b acts inversely on the x-axis
+[b]Escala Horizontal:[/b]  g(x) = f(b·x)
+• |b| > 1 → compresión horizontal
+• 0 < |b| < 1 → estiramiento horizontal
+• Nota: b actúa de forma inversa sobre el eje x
 
-[b]Combined:[/b]  g(x) = a·f(b·x) + k"""
+[b]Combinado:[/b]  g(x) = a·f(b·x) + k"""
 	},
 
 	"reflections": {
-		"title": "Reflections",
-		"content": """[b]Reflection over X-axis:[/b]  g(x) = −f(x)
-Every y-value changes sign: peaks become valleys.
+		"title": "Reflexiones",
+		"content": """[b]Reflexión sobre el eje X:[/b]  g(x) = −f(x)
+Cada valor y cambia de signo: los máximos se vuelven mínimos.
 
-[b]Reflection over Y-axis:[/b]  g(x) = f(−x)
-The graph is mirrored left-right.
+[b]Reflexión sobre el eje Y:[/b]  g(x) = f(−x)
+La gráfica se refleja de izquierda a derecha.
 
-[b]Combined:[/b]  g(x) = −f(−x)  →  180° rotation
+[b]Combinada:[/b]  g(x) = −f(−x)  →  rotación de 180°
 
-[b]Symmetry:[/b]
-• Even function:  f(−x) =  f(x)  (symmetric about y-axis)
-• Odd  function:  f(−x) = −f(x)  (symmetric about origin)"""
+[b]Simetría:[/b]
+• Función par:   f(−x) =  f(x)  (simétrica respecto al eje y)
+• Función impar: f(−x) = −f(x)  (simétrica respecto al origen)"""
 	},
 
 	# ── Sector 4 ──────────────────────────────────────────────────────────
 	"sum_difference": {
-		"title": "Sum & Difference of Functions",
-		"content": """Given f and g with domains D_f and D_g:
+		"title": "Suma y Diferencia de Funciones",
+		"content": """Dadas f y g con dominios D_f y D_g:
 
-[b]Sum:[/b]        (f + g)(x) = f(x) + g(x)
-[b]Difference:[/b] (f − g)(x) = f(x) − g(x)
-[b]Domain:[/b]     D_f ∩ D_g
+[b]Suma:[/b]       (f + g)(x) = f(x) + g(x)
+[b]Diferencia:[/b] (f − g)(x) = f(x) − g(x)
+[b]Dominio:[/b]    D_f ∩ D_g
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   f(x) = x²,  g(x) = 3x − 1
   (f + g)(x) = x² + 3x − 1
 
-[b]Application:[/b] Superimpose two waveforms to create the docking approach vector."""
+[b]Aplicación:[/b] Superpone dos formas de onda para crear el vector de aproximación de acoplamiento."""
 	},
 
 	"product_quotient": {
-		"title": "Product & Quotient of Functions",
-		"content": """[b]Product:[/b]  (f·g)(x) = f(x)·g(x)
-[b]Quotient:[/b] (f/g)(x) = f(x)/g(x),  g(x) ≠ 0
+		"title": "Producto y Cociente de Funciones",
+		"content": """[b]Producto:[/b]  (f·g)(x) = f(x)·g(x)
+[b]Cociente:[/b] (f/g)(x) = f(x)/g(x),  g(x) ≠ 0
 
-[b]Quotient Domain:[/b]  D_f ∩ D_g \\ {x : g(x) = 0}
+[b]Dominio del Cociente:[/b]  D_f ∩ D_g \\ {x : g(x) = 0}
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   f(x) = x + 1,  g(x) = x − 1
   (f/g)(x) = (x+1)/(x−1),  x ≠ 1
 
-Vertical asymptote at x = 1."""
+Asíntota vertical en x = 1."""
 	},
 
 	"composition": {
-		"title": "Function Composition  (f∘g)(x)",
-		"content": """[b]Definition:[/b]
+		"title": "Composición de Funciones  (f∘g)(x)",
+		"content": """[b]Definición:[/b]
   [color=#ffcc00](f∘g)(x) = f(g(x))[/color]
 
-Read as "f composed with g" or "f of g of x".
+Se lee "f compuesta con g" o "f de g de x".
 
-[b]Order matters:[/b]  f∘g ≠ g∘f  in general
+[b]El orden importa:[/b]  f∘g ≠ g∘f  en general
 
-[b]Domain of f∘g:[/b]
+[b]Dominio de f∘g:[/b]
   {x ∈ D_g : g(x) ∈ D_f}
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   f(x) = √x,  g(x) = x² − 4
-  (f∘g)(x) = √(x² − 4),  domain: |x| ≥ 2
+  (f∘g)(x) = √(x² − 4),  dominio: |x| ≥ 2
 
-[b]Boss Battle:[/b] The docking computer requires you to reverse-engineer a composite function to align the airlock."""
+[b]Batalla Final:[/b] La computadora de acoplamiento requiere que deduzcas la función compuesta inversa para alinear la esclusa de aire."""
 	},
 
 	# ── Sector 5 ──────────────────────────────────────────────────────────
 	"injectivity": {
-		"title": "Injectivity (One-to-One Functions)",
-		"content": """[b]Definition:[/b]
-f is [color=#00ffcc]injective[/color] (one-to-one) iff:
+		"title": "Inyectividad (Funciones Uno a Uno)",
+		"content": """[b]Definición:[/b]
+f es [color=#00ffcc]inyectiva[/color] (uno a uno) sii:
   f(x₁) = f(x₂)  ⟹  x₁ = x₂
 
-Equivalently: x₁ ≠ x₂  ⟹  f(x₁) ≠ f(x₂)
+Equivalentemente: x₁ ≠ x₂  ⟹  f(x₁) ≠ f(x₂)
 
-[b]Horizontal Line Test:[/b]
-A function is injective iff every horizontal line intersects its graph at most once.
+[b]Prueba de la Línea Horizontal:[/b]
+Una función es inyectiva sii toda línea horizontal intersecta su gráfica a lo sumo una vez.
 
-[b]Examples:[/b]
-• f(x) = 2x + 1  → injective
-• f(x) = x²       → NOT injective (f(2) = f(−2) = 4)
-• f(x) = x³       → injective
+[b]Ejemplos:[/b]
+• f(x) = 2x + 1  → inyectiva
+• f(x) = x²       → NO inyectiva (f(2) = f(−2) = 4)
+• f(x) = x³       → inyectiva
 
-[b]Why it matters:[/b] Only injective functions have inverses defined on their full domain."""
+[b]¿Por qué importa?[/b] Solo las funciones inyectivas tienen inversas definidas en todo su dominio."""
 	},
 
 	"inverses": {
-		"title": "Inverse Functions  f⁻¹",
-		"content": """[b]Definition:[/b]
-If f is injective, its [color=#ffcc00]inverse[/color] f⁻¹ satisfies:
-  f⁻¹(f(x)) = x  and  f(f⁻¹(y)) = y
+		"title": "Funciones Inversas  f⁻¹",
+		"content": """[b]Definición:[/b]
+Si f es inyectiva, su [color=#ffcc00]inversa[/color] f⁻¹ satisface:
+  f⁻¹(f(x)) = x  y  f(f⁻¹(y)) = y
 
-[b]Finding f⁻¹ analytically:[/b]
-  1. Write y = f(x)
-  2. Solve for x in terms of y
-  3. Swap x and y (optional, for standard notation)
+[b]Encontrar f⁻¹ analíticamente:[/b]
+  1. Escribir y = f(x)
+  2. Despejar x en términos de y
+  3. Intercambiar x e y (opcional, para notación estándar)
 
-[b]Example:[/b]
+[b]Ejemplo:[/b]
   f(x) = 3x − 2
   y = 3x − 2  →  x = (y + 2)/3
   f⁻¹(x) = (x + 2)/3
 
-[b]Graph relationship:[/b]
-The graph of f⁻¹ is the reflection of f over the line y = x.
+[b]Relación gráfica:[/b]
+La gráfica de f⁻¹ es el reflejo de f sobre la recta y = x.
 
-[b]Boss Battle:[/b] The black hole's event horizon is defined by a function. To escape, input its inverse!"""
+[b]Batalla Final:[/b] El horizonte de sucesos del agujero negro está definido por una función. ¡Para escapar, ingresa su inversa!"""
 	},
 
 	"exponentials": {
-		"title": "Exponential Functions  aˣ",
-		"content": """[b]Natural Exponential:[/b]  [color=#ffcc00]f(x) = eˣ[/color]
-where  e ≈ 2.71828… (Euler's number)
+		"title": "Funciones Exponenciales  aˣ",
+		"content": """[b]Exponencial Natural:[/b]  [color=#ffcc00]f(x) = eˣ[/color]
+donde  e ≈ 2.71828… (número de Euler)
 
-[b]Properties:[/b]
-• Domain: (−∞, ∞)
-• Range:  (0, ∞)
+[b]Propiedades:[/b]
+• Dominio: (−∞, ∞)
+• Rango:   (0, ∞)
 • f(0) = 1,  f(1) = e
-• Always positive, always increasing
-• Horizontal asymptote: y = 0 as x → −∞
+• Siempre positiva, siempre creciente
+• Asíntota horizontal: y = 0 cuando x → −∞
 
-[b]Growth rate:[/b]
-  (d/dx) eˣ = eˣ   (the exponential is its own derivative!)
+[b]Tasa de crecimiento:[/b]
+  (d/dx) eˣ = eˣ   (¡la exponencial es su propia derivada!)
 
-[b]General base:[/b]  aˣ = eˣ·ln(a)"""
+[b]Base general:[/b]  aˣ = eˣ·ln(a)"""
 	},
 
 	"logarithms": {
-		"title": "Logarithms  log & ln",
-		"content": """[b]Natural Logarithm:[/b]  [color=#ffcc00]y = ln(x)  ⟺  eʸ = x[/color]
+		"title": "Logaritmos  log y ln",
+		"content": """[b]Logaritmo Natural:[/b]  [color=#ffcc00]y = ln(x)  ⟺  eʸ = x[/color]
 
-[b]Properties:[/b]
-• Domain: (0, ∞)
-• Range:  (−∞, ∞)
+[b]Propiedades:[/b]
+• Dominio: (0, ∞)
+• Rango:   (−∞, ∞)
 • ln(1) = 0,  ln(e) = 1
 • ln(ab) = ln(a) + ln(b)
 • ln(aᵇ) = b·ln(a)
-• ln is the inverse of eˣ
+• ln es la inversa de eˣ
 
-[b]Change of base:[/b]
+[b]Cambio de base:[/b]
   logₐ(x) = ln(x) / ln(a)
 
-[b]Derivative:[/b]
+[b]Derivada:[/b]
   (d/dx) ln(x) = 1/x
 
-[b]In Godot:[/b]  Use [color=#ffcc00]log(x)[/color] for natural log."""
+[b]En Godot:[/b]  Usa [color=#ffcc00]log(x)[/color] para el logaritmo natural."""
 	},
 
 	"inverse_trig": {
-		"title": "Inverse Trigonometric Functions",
-		"content": """[b]arcsin:[/b]  y = arcsin(x)  ⟺  x = sin(y),  y ∈ [−π/2, π/2]
+		"title": "Funciones Trigonométricas Inversas",
+		"content": """[b]arcsen:[/b]  y = arcsen(x)  ⟺  x = sen(y),  y ∈ [−π/2, π/2]
 [b]arccos:[/b]  y = arccos(x)  ⟺  x = cos(y),  y ∈ [0, π]
 [b]arctan:[/b]  y = arctan(x)  ⟺  x = tan(y),  y ∈ (−π/2, π/2)
 
-[b]Domains:[/b]
-• arcsin, arccos: [−1, 1]
+[b]Dominios:[/b]
+• arcsen, arccos: [−1, 1]
 • arctan: (−∞, ∞)
 
-[b]Ranges:[/b] Restricted principal values above.
+[b]Rangos:[/b] Valores principales restringidos indicados arriba.
 
-[b]In Godot:[/b]
-• asin(x), acos(x), atan(x) — result in radians
-• atan2(y, x) — full-circle arctangent
+[b]En Godot:[/b]
+• asin(x), acos(x), atan(x) — resultado en radianes
+• atan2(y, x) — arcotangente de círculo completo
 
-[b]Application:[/b] Calculate precise orbital insertion angles for the final boss battle."""
+[b]Aplicación:[/b] Calcula ángulos precisos de inserción orbital para la batalla final."""
 	},
 }
 
 # ---------------------------------------------------------------------------
-# Private State
+# Estado Privado
 # ---------------------------------------------------------------------------
 
 var _topic_keys: Array[String] = []
 var _current_page: int = 0
 
 # ---------------------------------------------------------------------------
-# Lifecycle
+# Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
@@ -364,10 +364,10 @@ func _ready() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Public API
+# API Pública
 # ---------------------------------------------------------------------------
 
-## Shows theory for the given sector index (loads all topics for that sector).
+## Muestra la teoría para el índice de sector dado (carga todos los temas de ese sector).
 func show_sector_theory(sector_index: int) -> void:
 	if sector_index < 1 or sector_index > GameManager.SECTORS.size():
 		return
@@ -379,10 +379,10 @@ func show_sector_theory(sector_index: int) -> void:
 	visible = true
 
 
-## Shows a specific theory topic by its key.
+## Muestra un tema de teoría específico por su clave.
 func show_topic(topic_key: String) -> void:
 	if not THEORY.has(topic_key):
-		push_warning("TheoryPanel: unknown topic key '%s'" % topic_key)
+		push_warning("TheoryPanel: clave de tema desconocida '%s'" % topic_key)
 		return
 	_topic_keys = [topic_key]
 	_current_page = 0
@@ -390,13 +390,13 @@ func show_topic(topic_key: String) -> void:
 	visible = true
 
 
-## Hides the theory panel.
+## Oculta el panel de teoría.
 func hide_panel() -> void:
 	visible = false
 
 
 # ---------------------------------------------------------------------------
-# Private Helpers
+# Auxiliares Privados
 # ---------------------------------------------------------------------------
 
 func _update_display() -> void:

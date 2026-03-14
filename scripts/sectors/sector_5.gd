@@ -1,22 +1,22 @@
 ## Sector5EventHorizon.gd
 ## =======================
-## Sector 5: Event Horizon — Injectivity, Inverses (f⁻¹), Exponentials (e),
-##           Logarithms (ln), and Inverse Trigonometry
+## Sector 5: Horizonte de Sucesos — Inyectividad, Inversas (f⁻¹), Exponenciales (e),
+##           Logaritmos (ln) y Trigonometría Inversa
 ##
-## Pedagogy
+## Pedagogía
 ## ---------
-## The Event Horizon is the boundary of no return for a black hole — mathematically
-## analogous to the domain boundary where a function loses injectivity. To escape,
-## students must master:
-##   1. Injectivity (horizontal line test)
-##   2. Finding inverse functions analytically
-##   3. Properties of eˣ and ln(x) as mutual inverses
-##   4. Inverse trig: arcsin, arccos, arctan and their principal value ranges
+## El Horizonte de Sucesos es el límite de no retorno de un agujero negro — matemáticamente
+## análogo al límite de dominio donde una función pierde su inyectividad. Para escapar,
+## los estudiantes deben dominar:
+##   1. Inyectividad (prueba de la línea horizontal)
+##   2. Hallar funciones inversas analíticamente
+##   3. Propiedades de eˣ y ln(x) como inversas mutuas
+##   4. Trig inversa: arcsen, arccos, arctan y sus rangos de valores principales
 ##
-## Boss Battle
-## -----------
-## The black hole's gravitational formula is f(x) = eˣ − 2.
-## To escape: input its inverse f⁻¹(x) = ln(x + 2).
+## Batalla Final
+## -------------
+## La fórmula gravitacional del agujero negro es f(x) = eˣ − 2.
+## Para escapar: ingresa su inversa f⁻¹(x) = ln(x + 2).
 class_name Sector5EventHorizon
 extends SectorBase
 
@@ -31,41 +31,41 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
-			"instruction": "Challenge 1: Is f(x) = x³ injective? Enter '1' for Yes or '0' for No.",
+			"instruction": "Desafío 1: ¿Es f(x) = x³ inyectiva? Ingresa '1' para Sí o '0' para No.",
 			"hint": "1",
 			"expected_formula": "1",
-			"feedback_correct": "Correct! x³ is strictly increasing → injective.",
-			"feedback_wrong": "Recall the horizontal line test. Does every horizontal line hit x³ at most once?",
-			"solution_hint": "Yes (1). x³ is monotone increasing everywhere.",
+			"feedback_correct": "¡Correcto! x³ es estrictamente creciente → inyectiva.",
+			"feedback_wrong": "Recuerda la prueba de la línea horizontal. ¿Toda línea horizontal intersecta x³ a lo sumo una vez?",
+			"solution_hint": "Sí (1). x³ es monótonamente creciente en todo su dominio.",
 			"score": 150,
 		},
 		{
-			"instruction": "Challenge 2: Find the inverse of f(x) = 2x + 4.\n" +
-				"Steps: y = 2x+4 → x = (y−4)/2 → f⁻¹(x) = (x−4)/2",
+			"instruction": "Desafío 2: Halla la inversa de f(x) = 2x + 4.\n" +
+				"Pasos: y = 2x+4 → x = (y−4)/2 → f⁻¹(x) = (x−4)/2",
 			"hint": "(x - 4) / 2",
 			"expected_formula": "(x - 4) / 2",
-			"feedback_correct": "Inverse found! f⁻¹(x) = (x−4)/2",
-			"feedback_wrong": "Swap x and y: if y = 2x+4, solve for x in terms of y.",
+			"feedback_correct": "¡Inversa encontrada! f⁻¹(x) = (x−4)/2",
+			"feedback_wrong": "Intercambia x e y: si y = 2x+4, despeja x en términos de y.",
 			"solution_hint": "f⁻¹(x) = (x − 4) / 2",
 			"score": 250,
 		},
 		{
-			"instruction": "Challenge 3: Enter the natural logarithm of (x + 2).\n" +
-				"This is the inverse of eˣ − 2.",
+			"instruction": "Desafío 3: Ingresa el logaritmo natural de (x + 2).\n" +
+				"Esta es la inversa de eˣ − 2.",
 			"hint": "log(x + 2)",
 			"expected_formula": "log(x + 2)",
-			"feedback_correct": "ln(x+2) confirmed. Exponential and log are perfect inverses!",
-			"feedback_wrong": "ln is the inverse of eˣ. If f(x) = eˣ−2, then f⁻¹(x) = ln(x+2).",
-			"solution_hint": "ln(x+2) → in Godot: log(x+2)",
+			"feedback_correct": "¡ln(x+2) confirmado. La exponencial y el logaritmo son inversas perfectas!",
+			"feedback_wrong": "ln es la inversa de eˣ. Si f(x) = eˣ−2, entonces f⁻¹(x) = ln(x+2).",
+			"solution_hint": "ln(x+2) → en Godot: log(x+2)",
 			"score": 300,
 		},
 		{
-			"instruction": "⚡ FINAL BOSS: The black hole gravity formula is f(x) = eˣ − 2.\n" +
-				"INPUT ITS INVERSE to break free from the Event Horizon!",
+			"instruction": "⚡ BATALLA FINAL: La fórmula gravitacional del agujero negro es f(x) = eˣ − 2.\n" +
+				"¡INGRESA SU INVERSA para liberarte del Horizonte de Sucesos!",
 			"hint": "log(x + 2)",
 			"expected_formula": "log(x + 2)",
-			"feedback_correct": "🌟 EVENT HORIZON ESCAPED! Planet Waves complete! 🌟",
-			"feedback_wrong": "If f(x) = eˣ − 2, reverse it: y = eˣ−2 → x = ln(y+2) → f⁻¹(y) = ln(y+2)",
+			"feedback_correct": "🌟 ¡HORIZONTE DE SUCESOS ESCAPADO! ¡Planet Waves completado! 🌟",
+			"feedback_wrong": "Si f(x) = eˣ − 2, invierte: y = eˣ−2 → x = ln(y+2) → f⁻¹(y) = ln(y+2)",
 			"solution_hint": "f⁻¹(x) = ln(x + 2)  → Godot: log(x + 2)",
 			"score": 500,
 		},
@@ -89,11 +89,11 @@ func _on_challenge_begin(challenge_index: int) -> void:
 			_show_reference("2*x + 4", Color(0.6, 0.8, 1.0, 0.5))
 			_show_symmetry_line()
 		2:
-			# Show eˣ − 2 and its inverse log(x+2) separately
+			# Mostrar eˣ − 2 y su inversa log(x+2) por separado
 			_show_reference("exp(x) - 2", Color(1.0, 0.5, 0.2, 0.5))
 			_show_symmetry_line()
 		3:
-			# BOSS: show the gravitational formula
+			# JEFE: mostrar la fórmula gravitacional
 			_show_reference("exp(x) - 2", Color(1.0, 0.2, 0.2, 0.8))
 			_show_symmetry_line()
 			_spawn_event_horizon_ring()
@@ -103,15 +103,15 @@ func _on_formula_submitted_sector(formula: String) -> void:
 	if _hud and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
-				# Show injectivity check
+				# Mostrar verificación de inyectividad
 				var inj: Dictionary = MathEngine.check_injectivity("2*x + 4")
 				_hud.show_feedback(
-					"Injectivity of 2x+4: %s (increasing: %s)" % [
+					"Inyectividad de 2x+4: %s (creciente: %s)" % [
 						str(inj["injective"]), str(inj["monotone_increasing"])
 					], "info"
 				)
 			2, 3:
-				# Show the plotted inverse alongside f to confirm symmetry over y=x
+				# Mostrar la inversa graficada junto a f para confirmar simetría sobre y=x
 				if _inverse_plotter:
 					_inverse_plotter.queue_free()
 				_inverse_plotter = FunctionPlotter.new()
@@ -147,7 +147,7 @@ func _show_reference(ref_formula: String, color: Color) -> void:
 
 
 func _show_symmetry_line() -> void:
-	# Draw the line y=x to visualise inverse symmetry
+	# Dibujar la línea y=x para visualizar la simetría de la inversa
 	if _symmetry_line:
 		_symmetry_line.queue_free()
 	_symmetry_line = Line2D.new()
@@ -155,8 +155,8 @@ func _show_symmetry_line() -> void:
 	_symmetry_line.default_color = Color(0.8, 0.8, 0.8, 0.3)
 	var s: float = 55.0
 	var ext: float = 6.0
-	_symmetry_line.add_point(Vector2(-ext * s, ext * s))     # math (-6, -6) → screen
-	_symmetry_line.add_point(Vector2(ext * s, -ext * s))     # math (6, 6) → screen
+	_symmetry_line.add_point(Vector2(-ext * s, ext * s))     # math (-6, -6) → pantalla
+	_symmetry_line.add_point(Vector2(ext * s, -ext * s))     # math (6, 6) → pantalla
 	_symmetry_line.position = _plotter.position if _plotter else Vector2.ZERO
 	add_child(_symmetry_line)
 	_markers.append(_symmetry_line)

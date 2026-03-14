@@ -1,20 +1,20 @@
 ## Sector4DockingStation.gd
 ## =========================
-## Sector 4: Docking Station — Function Operations (Sum, Sub, Div) and Composition
+## Sector 4: Estación de Acoplamiento — Operaciones de Funciones (Suma, Resta, División) y Composición
 ##
-## Pedagogy
+## Pedagogía
 ## ---------
-## Two functions f and g can be combined:
-##   (f+g)(x) = f(x)+g(x)    domain: D_f ∩ D_g
-##   (f−g)(x) = f(x)−g(x)    domain: D_f ∩ D_g
-##   (f/g)(x) = f(x)/g(x)    domain: D_f ∩ D_g \ {g(x)=0}
-##   (f∘g)(x) = f(g(x))      domain: {x∈D_g : g(x)∈D_f}
+## Dos funciones f y g pueden combinarse:
+##   (f+g)(x) = f(x)+g(x)    dominio: D_f ∩ D_g
+##   (f−g)(x) = f(x)−g(x)    dominio: D_f ∩ D_g
+##   (f/g)(x) = f(x)/g(x)    dominio: D_f ∩ D_g \ {g(x)=0}
+##   (f∘g)(x) = f(g(x))      dominio: {x∈D_g : g(x)∈D_f}
 ##
-## Challenges
-## ----------
-## 1. Compute and plot (f+g)(x) where f(x)=x² and g(x)=3x−1.
-## 2. Compute (f/g)(x) and identify the asymptote.
-## 3. BOSS: Find the composition (f∘g)(x) and enter it to unlock the airlock.
+## Desafíos
+## --------
+## 1. Calcular y graficar (f+g)(x) donde f(x)=x² y g(x)=3x−1.
+## 2. Calcular (f/g)(x) e identificar la asíntota.
+## 3. JEFE: Hallar la composición (f∘g)(x) e ingresarla para desbloquear la esclusa de aire.
 class_name Sector4DockingStation
 extends SectorBase
 
@@ -28,33 +28,33 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
-			"instruction": "Challenge 1: f(x) = x²  and  g(x) = 3x − 1.\n" +
-				"Compute and plot (f + g)(x).",
+			"instruction": "Desafío 1: f(x) = x²  y  g(x) = 3x − 1.\n" +
+				"Calcula y grafica (f + g)(x).",
 			"hint": "x^2 + 3*x - 1",
 			"expected_formula": "x^2 + 3*x - 1",
-			"feedback_correct": "Sum computed correctly! Docking approach vector aligned.",
-			"feedback_wrong": "Sum: (f+g)(x) = f(x) + g(x) = x² + 3x − 1",
+			"feedback_correct": "¡Suma calculada correctamente! Vector de aproximación de acoplamiento alineado.",
+			"feedback_wrong": "Suma: (f+g)(x) = f(x) + g(x) = x² + 3x − 1",
 			"solution_hint": "(f+g)(x) = x² + (3x − 1) = x² + 3x − 1",
 			"score": 200,
 		},
 		{
-			"instruction": "Challenge 2: f(x) = x + 1  and  g(x) = x − 1.\n" +
-				"Enter (f/g)(x). Note: there is a vertical asymptote!",
+			"instruction": "Desafío 2: f(x) = x + 1  y  g(x) = x − 1.\n" +
+				"Ingresa (f/g)(x). ¡Nota: hay una asíntota vertical!",
 			"hint": "(x + 1) / (x - 1)",
 			"expected_formula": "(x + 1) / (x - 1)",
-			"feedback_correct": "Quotient correct! Asymptote at x=1 noted in navigation log.",
-			"feedback_wrong": "(f/g)(x) = (x+1)/(x−1). Beware division by zero at x=1.",
+			"feedback_correct": "¡Cociente correcto! Asíntota en x=1 registrada en el diario de navegación.",
+			"feedback_wrong": "(f/g)(x) = (x+1)/(x−1). Cuidado con la división por cero en x=1.",
 			"solution_hint": "(f/g)(x) = (x+1)/(x−1)",
 			"score": 250,
 		},
 		{
-			"instruction": "BOSS CHALLENGE: f(x) = √x  and  g(x) = x² − 4.\n" +
-				"Compute (f∘g)(x) = f(g(x)) and enter the composed formula.\n" +
-				"Remember the domain restriction: g(x) ≥ 0.",
+			"instruction": "DESAFÍO JEFE: f(x) = √x  y  g(x) = x² − 4.\n" +
+				"Calcula (f∘g)(x) = f(g(x)) e ingresa la fórmula compuesta.\n" +
+				"Recuerda la restricción de dominio: g(x) ≥ 0.",
 			"hint": "sqrt(x^2 - 4)",
 			"expected_formula": "sqrt(x^2 - 4)",
-			"feedback_correct": "AIRLOCK UNLOCKED! Composition mastered! Sector 4 complete!",
-			"feedback_wrong": "(f∘g)(x) = f(g(x)) = √(x²−4). Replace x in f(x)=√x with g(x).",
+			"feedback_correct": "¡ESCLUSA DE AIRE DESBLOQUEADA! ¡Composición dominada! ¡Sector 4 completado!",
+			"feedback_wrong": "(f∘g)(x) = f(g(x)) = √(x²−4). Reemplaza x en f(x)=√x con g(x).",
 			"solution_hint": "f(g(x)) = √(g(x)) = √(x² − 4)",
 			"score": 400,
 		},
@@ -73,7 +73,7 @@ func _on_challenge_begin(challenge_index: int) -> void:
 		0:
 			if _theory_panel:
 				_theory_panel.show_sector_theory(4)
-			# Show f and g reference curves
+			# Mostrar curvas de referencia f y g
 			_show_ref_curve(_f_formula, Color(0.2, 0.6, 1.0, 0.4))
 			_show_ref_curve(_g_formula, Color(1.0, 0.6, 0.2, 0.4))
 		1:
@@ -89,16 +89,16 @@ func _on_formula_submitted_sector(formula: String) -> void:
 			0:
 				var expected: String = MathEngine.operation_sum(_f_formula, _g_formula)
 				_hud.show_feedback(
-					"MathEngine sum: %s" % expected, "info"
+					"Suma (MathEngine): %s" % expected, "info"
 				)
 			1:
 				_hud.show_feedback(
-					"Quotient domain excludes x = 1 (division by zero)", "warning"
+					"El dominio del cociente excluye x = 1 (división por cero)", "warning"
 				)
 			2:
 				var composed: String = MathEngine.compose("sqrt(x)", "x^2 - 4")
 				_hud.show_feedback(
-					"Composition f∘g: %s" % composed, "info"
+					"Composición f∘g: %s" % composed, "info"
 				)
 	_validate_formula_against_current(formula)
 

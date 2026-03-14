@@ -1,30 +1,30 @@
 ## Sector1AsteroidBelt.gd
 ## =======================
-## Sector 1: Asteroid Belt — Introduction to Functions, Lines (y=mx+b), Domain & Range
+## Sector 1: Cinturón de Asteroides — Introducción a Funciones, Líneas (y=mx+b), Dominio y Rango
 ##
-## Pedagogy
+## Pedagogía
 ## ---------
-## Students learn that a function maps inputs to outputs. Linear functions are the
-## simplest non-trivial case: f(x) = mx + b. The slope m encodes rate of change
-## and b encodes the initial value. The asteroid belt challenges require the student
-## to navigate waypoints by specifying the correct linear trajectory.
+## Los estudiantes aprenden que una función mapea entradas a salidas. Las funciones lineales son el
+## caso no trivial más sencillo: f(x) = mx + b. La pendiente m codifica la tasa de cambio
+## y b codifica el valor inicial. Los desafíos del cinturón de asteroides requieren que el estudiante
+## navegue por puntos de referencia especificando la trayectoria lineal correcta.
 ##
-## Challenges
-## ----------
-## 1. Plot a line through two given asteroid waypoints.
-## 2. Identify and enter a function with a specific slope and y-intercept.
-## 3. Boss: Find the line that avoids all asteroid clusters (restricted domain).
+## Desafíos
+## --------
+## 1. Trazar una línea a través de dos puntos de referencia de asteroides dados.
+## 2. Identificar e ingresar una función con una pendiente y ordenada al origen específicas.
+## 3. Jefe: Encontrar la línea que evita todos los cúmulos de asteroides (dominio restringido).
 class_name Sector1AsteroidBelt
 extends SectorBase
 
 # ---------------------------------------------------------------------------
-# Waypoint Markers (created procedurally)
+# Marcadores de Puntos de Referencia (creados proceduralmente)
 # ---------------------------------------------------------------------------
 
 var _waypoint_markers: Array[Node2D] = []
 
 # ---------------------------------------------------------------------------
-# Override: Setup Challenges
+# Override: Configurar Desafíos
 # ---------------------------------------------------------------------------
 
 func _setup_challenges() -> void:
@@ -33,32 +33,32 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
-			"instruction": "Challenge 1: Plot the line through points A(−4, −3) and B(4, 5).\nHint: Find slope m = (y₂−y₁)/(x₂−x₁), then b = y₁ − m·x₁",
+			"instruction": "Desafío 1: Traza la línea que pasa por los puntos A(−4, −3) y B(4, 5).\nPista: Halla la pendiente m = (y₂−y₁)/(x₂−x₁), luego b = y₁ − m·x₁",
 			"hint": "y = m*x + b",
 			"expected_formula": "x + 1",
-			"feedback_correct": "Perfect trajectory! You cleared the asteroid belt!",
-			"feedback_wrong": "That line misses the waypoints. Recalculate slope and intercept.",
-			"solution_hint": "slope = (5−(−3))/(4−(−4)) = 1,  b = −3 − 1·(−4) = 1",
+			"feedback_correct": "¡Trayectoria perfecta! ¡Superaste el cinturón de asteroides!",
+			"feedback_wrong": "Esa línea no pasa por los puntos. Recalcula la pendiente y la ordenada al origen.",
+			"solution_hint": "pendiente = (5−(−3))/(4−(−4)) = 1,  b = −3 − 1·(−4) = 1",
 			"score": 150,
 			"waypoints": [Vector2(-4, -3), Vector2(4, 5)],
 		},
 		{
-			"instruction": "Challenge 2: Enter a function with slope −2 and y-intercept 3.",
+			"instruction": "Desafío 2: Ingresa una función con pendiente −2 y ordenada al origen 3.",
 			"hint": "-2*x + 3",
 			"expected_formula": "-2*x + 3",
-			"feedback_correct": "Correct slope and intercept! Navigation locked.",
-			"feedback_wrong": "Check your slope (coefficient of x) and intercept (constant term).",
+			"feedback_correct": "¡Pendiente y ordenada al origen correctas! Navegación bloqueada.",
+			"feedback_wrong": "Verifica tu pendiente (coeficiente de x) y tu ordenada al origen (término constante).",
 			"solution_hint": "f(x) = −2x + 3",
 			"score": 100,
 			"waypoints": [],
 		},
 		{
-			"instruction": "BOSS: The escape vector passes through (0, −5) and has slope 3/2.\nEnter the complete linear function to exit the asteroid belt!",
+			"instruction": "JEFE: El vector de escape pasa por (0, −5) y tiene pendiente 3/2.\n¡Ingresa la función lineal completa para salir del cinturón de asteroides!",
 			"hint": "1.5*x - 5",
 			"expected_formula": "1.5*x - 5",
-			"feedback_correct": "SECTOR CLEARED! Warping to Gravity Wells…",
-			"feedback_wrong": "The trajectory is blocked. Slope = 3/2, passes through (0,−5).",
-			"solution_hint": "b = −5 (y-intercept), m = 3/2 = 1.5",
+			"feedback_correct": "¡SECTOR DESPEJADO! Saltando a los Pozos Gravitatorios…",
+			"feedback_wrong": "La trayectoria está bloqueada. Pendiente = 3/2, pasa por (0,−5).",
+			"solution_hint": "b = −5 (ordenada al origen), m = 3/2 = 1.5",
 			"score": 300,
 			"waypoints": [Vector2(0, -5), Vector2(4, 1)],
 		},
@@ -66,7 +66,7 @@ func _setup_challenges() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Override: Challenge Begin
+# Override: Inicio de Desafío
 # ---------------------------------------------------------------------------
 
 func _on_challenge_begin(challenge_index: int) -> void:
@@ -76,7 +76,7 @@ func _on_challenge_begin(challenge_index: int) -> void:
 	for wp in waypoints:
 		_spawn_waypoint_marker(wp)
 
-	# Set plotter domain and show theory for challenge 0
+	# Establecer dominio del graficador y mostrar teoría para el desafío 0
 	if _plotter:
 		_plotter.domain_min = -10.0
 		_plotter.domain_max = 10.0
@@ -87,23 +87,23 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Override: Formula Submission
+# Override: Envío de Fórmula
 # ---------------------------------------------------------------------------
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	# Analyse the student's formula before validating
+	# Analizar la fórmula del estudiante antes de validar
 	if _hud and MathEngine.is_valid_formula(formula):
 		var info: Dictionary = MathEngine.get_slope_and_intercept(formula)
 		var slope_str: String = MathEngine.format_float(info["slope"])
 		var intercept_str: String = MathEngine.format_float(info["intercept"])
 		_hud.show_feedback(
-			"Detected: slope = %s, y-intercept = %s" % [slope_str, intercept_str], "info"
+			"Detectado: pendiente = %s, ordenada al origen = %s" % [slope_str, intercept_str], "info"
 		)
 	_validate_formula_against_current(formula)
 
 
 # ---------------------------------------------------------------------------
-# Waypoint Helpers
+# Auxiliares de Puntos de Referencia
 # ---------------------------------------------------------------------------
 
 func _spawn_waypoint_marker(math_pos: Vector2) -> void:
@@ -112,7 +112,7 @@ func _spawn_waypoint_marker(math_pos: Vector2) -> void:
 	var marker: Node2D = Node2D.new()
 	marker.name = "Waypoint"
 
-	# Visual: small glowing circle using a Line2D approximation
+	# Visual: pequeño círculo luminoso usando una aproximación con Line2D
 	var circle: Line2D = Line2D.new()
 	circle.width = 3.0
 	circle.default_color = Color(1.0, 0.8, 0.0, 0.9)

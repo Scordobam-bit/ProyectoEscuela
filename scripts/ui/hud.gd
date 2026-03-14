@@ -1,28 +1,28 @@
 ## HUD.gd
 ## =======
-## Space-themed Heads-Up Display for Planet Waves.
-## Neon aesthetics with real-time formula input and sector info.
+## Heads-Up Display de temática espacial para Planet Waves.
+## Estética neón con entrada de fórmulas en tiempo real e información del sector.
 class_name HUD
 extends CanvasLayer
 
 # ---------------------------------------------------------------------------
-# Signals
+# Señales
 # ---------------------------------------------------------------------------
 
-## Emitted when the player submits a formula from the HUD input.
+## Emitida cuando el jugador envía una fórmula desde la entrada del HUD.
 signal formula_submitted(formula: String)
 
-## Emitted when the player changes the domain bounds.
+## Emitida cuando el jugador cambia los límites del dominio.
 signal domain_changed(min_x: float, max_x: float)
 
-## Emitted when the Theory button is pressed.
+## Emitida cuando se presiona el botón de Teoría.
 signal theory_requested
 
-## Emitted when the Hint button is pressed.
+## Emitida cuando se presiona el botón de Pista.
 signal hint_requested
 
 # ---------------------------------------------------------------------------
-# Node References (wired in _ready via $Path syntax)
+# Referencias de Nodos (enlazadas en _ready mediante la sintaxis $Ruta)
 # ---------------------------------------------------------------------------
 
 @onready var _formula_input: LineEdit = $HUDPanel/VBox/FormulaRow/FormulaInput
@@ -37,7 +37,7 @@ signal hint_requested
 @onready var _feedback_timer: Timer = $FeedbackTimer
 
 # ---------------------------------------------------------------------------
-# Exported Properties
+# Propiedades Exportadas
 # ---------------------------------------------------------------------------
 
 @export var neon_color: Color = Color(0.0, 1.0, 0.8, 1.0)
@@ -45,7 +45,7 @@ signal hint_requested
 @export var error_color: Color = Color(1.0, 0.2, 0.2, 1.0)
 
 # ---------------------------------------------------------------------------
-# Lifecycle
+# Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
@@ -66,15 +66,15 @@ func _ready() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Public API
+# API Pública
 # ---------------------------------------------------------------------------
 
-## Sets the formula text in the input box (e.g. to show a hint).
+## Establece el texto de fórmula en el cuadro de entrada (p. ej., para mostrar una pista).
 func set_formula_hint(text: String) -> void:
 	_formula_input.placeholder_text = text
 
 
-## Displays a temporary feedback message.
+## Muestra un mensaje de retroalimentación temporal.
 func show_feedback(message: String, feedback_type: String = "info") -> void:
 	_feedback_label.text = message
 	match feedback_type:
@@ -90,17 +90,17 @@ func show_feedback(message: String, feedback_type: String = "info") -> void:
 	_feedback_timer.start(3.0)
 
 
-## Returns the current formula string from the input box.
+## Devuelve la cadena de fórmula actual del cuadro de entrada.
 func get_formula() -> String:
 	return _formula_input.text.strip_edges()
 
 
-## Returns the current domain as [min, max].
+## Devuelve el dominio actual como [min, max].
 func get_domain() -> Array[float]:
 	return [_domain_min_spin.value, _domain_max_spin.value]
 
 
-## Locks or unlocks the input controls.
+## Bloquea o desbloquea los controles de entrada.
 func set_controls_enabled(enabled: bool) -> void:
 	_formula_input.editable = enabled
 	_plot_button.disabled = not enabled
@@ -109,13 +109,13 @@ func set_controls_enabled(enabled: bool) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Private Handlers
+# Manejadores Privados
 # ---------------------------------------------------------------------------
 
 func _on_plot_pressed() -> void:
 	var formula: String = get_formula()
 	if formula.is_empty():
-		show_feedback("Please enter a formula first.", "warning")
+		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
 	formula_submitted.emit(formula)
 
@@ -153,7 +153,7 @@ func _update_sector_display(sector_index: int) -> void:
 
 
 func _update_score_display() -> void:
-	_score_label.text = "Score: %d" % GameManager.get_score()
+	_score_label.text = "Puntuación: %d" % GameManager.get_score()
 
 
 func _clear_feedback() -> void:

@@ -1,6 +1,6 @@
 ## MainMenuController.gd
 ## ======================
-## Handles main menu button interactions.
+## Gestiona las interacciones de los botones del menú principal.
 extends Control
 
 @onready var _start_button: Button = $VBoxContainer/StartButton

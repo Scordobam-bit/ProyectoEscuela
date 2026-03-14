@@ -1,31 +1,31 @@
 ## Sector2GravityWells.gd
 ## =======================
-## Sector 2: Gravity Wells — Quadratic Functions, Vertices, and Roots
+## Sector 2: Pozos Gravitatorios — Funciones Cuadráticas, Vértices y Raíces
 ##
-## Pedagogy
+## Pedagogía
 ## ---------
-## A quadratic f(x) = ax² + bx + c is a second-degree polynomial whose graph
-## is a parabola. The vertex (h, k) = (−b/2a, f(−b/2a)) is the extremum.
-## Roots are found via the quadratic formula: x = (−b ± √Δ) / 2a, Δ = b²−4ac.
-## Gravity wells in the game represent parabolic gravitational potentials.
+## Una función cuadrática f(x) = ax² + bx + c es un polinomio de segundo grado cuya gráfica
+## es una parábola. El vértice (h, k) = (−b/2a, f(−b/2a)) es el extremo.
+## Las raíces se encuentran con la fórmula cuadrática: x = (−b ± √Δ) / 2a, Δ = b²−4ac.
+## Los pozos gravitatorios en el juego representan potenciales gravitacionales parabólicos.
 ##
-## Challenges
-## ----------
-## 1. Enter the parabola that passes through three given gravity points.
-## 2. Find the vertex of a given quadratic (enter it as x-value).
-## 3. BOSS: Find the roots of the gravitational potential to plot an escape.
+## Desafíos
+## --------
+## 1. Ingresar la parábola que pasa por tres puntos gravitacionales dados.
+## 2. Hallar el vértice de una cuadrática dada (ingresar la coordenada x).
+## 3. JEFE: Hallar las raíces del potencial gravitacional para trazar una trayectoria de escape.
 class_name Sector2GravityWells
 extends SectorBase
 
 # ---------------------------------------------------------------------------
-# Sector-specific state
+# Estado específico del sector
 # ---------------------------------------------------------------------------
 
-var _reference_plotter: FunctionPlotter = null   # shows the "reference" curve
+var _reference_plotter: FunctionPlotter = null   # muestra la curva de "referencia"
 var _particle_markers: Array[Node2D] = []
 
 # ---------------------------------------------------------------------------
-# Override: Setup Challenges
+# Override: Configurar Desafíos
 # ---------------------------------------------------------------------------
 
 func _setup_challenges() -> void:
@@ -34,37 +34,37 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
-			"instruction": "Challenge 1: A gravity well follows f(x) = x² − 4.\nPlot this function to reveal the well's curvature.",
+			"instruction": "Desafío 1: Un pozo gravitatorio sigue f(x) = x² − 4.\nGrafica esta función para revelar la curvatura del pozo.",
 			"hint": "x^2 - 4",
 			"expected_formula": "x^2 - 4",
-			"feedback_correct": "Well mapped! The parabola is locked in.",
-			"feedback_wrong": "Not quite. The well is quadratic: f(x) = ax² + c",
+			"feedback_correct": "¡Pozo mapeado! La parábola está bloqueada.",
+			"feedback_wrong": "No es correcto. El pozo es cuadrático: f(x) = ax² + c",
 			"solution_hint": "f(x) = x² − 4  (a=1, b=0, c=−4)",
 			"score": 150,
 		},
 		{
-			"instruction": "Challenge 2: Find the vertex x-coordinate of f(x) = 2x² − 8x + 5.\nEnter as a constant function: just the x-value (e.g., '2').",
+			"instruction": "Desafío 2: Halla la coordenada x del vértice de f(x) = 2x² − 8x + 5.\nIngresala como función constante: solo el valor x (p. ej. '2').",
 			"hint": "2",
 			"expected_formula": "2",
-			"feedback_correct": "Correct vertex! h = −b/(2a) = 8/4 = 2",
-			"feedback_wrong": "Use the vertex formula: h = −b / (2a)",
+			"feedback_correct": "¡Vértice correcto! h = −b/(2a) = 8/4 = 2",
+			"feedback_wrong": "Usa la fórmula del vértice: h = −b / (2a)",
 			"solution_hint": "h = −(−8) / (2·2) = 8/4 = 2",
 			"score": 200,
 		},
 		{
-			"instruction": "BOSS: The gravitational potential is g(x) = x² − 5x + 4.\nFind the escape roots! Enter the smaller root as a constant.",
+			"instruction": "JEFE: El potencial gravitacional es g(x) = x² − 5x + 4.\n¡Halla las raíces de escape! Ingresa la raíz menor como constante.",
 			"hint": "1",
 			"expected_formula": "1",
-			"feedback_correct": "ESCAPE VELOCITY ACHIEVED! Sector 2 cleared!",
-			"feedback_wrong": "Apply the quadratic formula: x = (−b ± √(b²−4ac)) / 2a",
-			"solution_hint": "Δ = 25−16 = 9, roots = (5±3)/2 → x=1 and x=4",
+			"feedback_correct": "¡VELOCIDAD DE ESCAPE ALCANZADA! ¡Sector 2 completado!",
+			"feedback_wrong": "Aplica la fórmula cuadrática: x = (−b ± √(b²−4ac)) / 2a",
+			"solution_hint": "Δ = 25−16 = 9, raíces = (5±3)/2 → x=1 y x=4",
 			"score": 350,
 		},
 	]
 
 
 # ---------------------------------------------------------------------------
-# Override: Challenge Begin
+# Override: Inicio de Desafío
 # ---------------------------------------------------------------------------
 
 func _on_challenge_begin(challenge_index: int) -> void:
@@ -80,7 +80,7 @@ func _on_challenge_begin(challenge_index: int) -> void:
 				_theory_panel.show_sector_theory(2)
 			_spawn_gravity_well_visual()
 		1:
-			# Show the reference parabola so students can visualise the vertex
+			# Mostrar la parábola de referencia para que los estudiantes visualicen el vértice
 			_show_reference_curve("2*x^2 - 8*x + 5")
 		2:
 			_show_reference_curve("x^2 - 5*x + 4")
@@ -88,26 +88,26 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Override: Formula Submission
+# Override: Envío de Fórmula
 # ---------------------------------------------------------------------------
 
 func _on_formula_submitted_sector(formula: String) -> void:
 	if _hud and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
-				# Show vertex info
+				# Mostrar información del vértice
 				var vertex: Vector2 = MathEngine.find_vertex("2*x^2 - 8*x + 5", -5.0, 10.0)
 				_hud.show_feedback(
-					"Reference vertex at x = %s, y = %s" % [
+					"Vértice de referencia en x = %s, y = %s" % [
 						MathEngine.format_float(vertex.x),
 						MathEngine.format_float(vertex.y)
 					], "info"
 				)
 			2:
-				# Show discriminant info
+				# Mostrar información del discriminante
 				var qf: Dictionary = MathEngine.quadratic_formula(1.0, -5.0, 4.0)
 				_hud.show_feedback(
-					"Δ = %s, roots: %s" % [
+					"Δ = %s, raíces: %s" % [
 						MathEngine.format_float(qf["discriminant"]),
 						str(qf["roots"])
 					], "info"
@@ -116,7 +116,7 @@ func _on_formula_submitted_sector(formula: String) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Auxiliares
 # ---------------------------------------------------------------------------
 
 func _show_reference_curve(ref_formula: String) -> void:
@@ -127,7 +127,7 @@ func _show_reference_curve(ref_formula: String) -> void:
 	_reference_plotter.domain_min = -6.0
 	_reference_plotter.domain_max = 6.0
 	_reference_plotter.scale_factor = 45.0
-	_reference_plotter.line_color = Color(0.8, 0.4, 1.0, 0.5)   # dim purple
+	_reference_plotter.line_color = Color(0.8, 0.4, 1.0, 0.5)   # morado tenue
 	_reference_plotter.line_width = 1.5
 	_reference_plotter.position = _plotter.position if _plotter else Vector2.ZERO
 	add_child(_reference_plotter)
@@ -135,7 +135,7 @@ func _show_reference_curve(ref_formula: String) -> void:
 
 
 func _spawn_gravity_well_visual() -> void:
-	# Draw a subtle radial "well" indicator at origin
+	# Dibujar un indicador radial sutil del "pozo" en el origen
 	var well: Line2D = Line2D.new()
 	well.width = 2.0
 	well.default_color = Color(0.5, 0.2, 1.0, 0.4)
@@ -151,7 +151,7 @@ func _spawn_gravity_well_visual() -> void:
 
 
 func _spawn_escape_markers() -> void:
-	# Mark the two roots at x=1 and x=4
+	# Marcar las dos raíces en x=1 y x=4
 	for root_x in [1.0, 4.0]:
 		_spawn_marker_at_math(Vector2(root_x, 0.0), Color(1.0, 0.3, 0.1, 0.9))
 

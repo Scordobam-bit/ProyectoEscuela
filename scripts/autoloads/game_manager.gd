@@ -1,66 +1,66 @@
-## GameManager.gd  (Autoload — accessible as GameManager from any script)
+## GameManager.gd  (Autoload — accesible como GameManager desde cualquier script)
 ## =========================================================================
-## Global state, progression, and event hub for Planet Waves.
+## Estado global, progresión y centro de eventos de Planet Waves.
 extends Node
 
 # ---------------------------------------------------------------------------
-# Signals
+# Señales
 # ---------------------------------------------------------------------------
 
-## Emitted when the player moves to a different sector.
+## Emitida cuando el jugador cambia a un sector diferente.
 signal sector_changed(sector_index: int)
 
-## Emitted when a challenge in the current sector is completed.
+## Emitida cuando se completa un desafío en el sector actual.
 signal challenge_completed(sector_index: int, challenge_index: int)
 
-## Emitted when the player's formula answer is validated.
+## Emitida cuando se valida la respuesta (fórmula) del jugador.
 signal answer_validated(correct: bool, feedback: String)
 
-## Emitted to request a theory panel update.
+## Emitida para solicitar la actualización del panel de teoría.
 signal theory_requested(sector_index: int, topic_key: String)
 
 # ---------------------------------------------------------------------------
-# Sector Definitions
+# Definición de Sectores
 # ---------------------------------------------------------------------------
 
-## Immutable data describing each curriculum sector.
+## Datos inmutables que describen cada sector del currículo.
 const SECTORS: Array[Dictionary] = [
 	{
 		"index": 1,
-		"name": "Asteroid Belt",
-		"subtitle": "Lines & Functions",
+		"name": "Cinturón de Asteroides",
+		"subtitle": "Líneas y Fundamentos",
 		"scene": "res://scenes/sectors/sector_1_asteroid_belt.tscn",
 		"color": Color(0.2, 0.8, 1.0),
 		"topics": ["intro_functions", "linear_functions", "domain_range"]
 	},
 	{
 		"index": 2,
-		"name": "Gravity Wells",
-		"subtitle": "Quadratic Functions",
+		"name": "Pozos Gravitatorios",
+		"subtitle": "Funciones Cuadráticas",
 		"scene": "res://scenes/sectors/sector_2_gravity_wells.tscn",
 		"color": Color(1.0, 0.6, 0.0),
 		"topics": ["quadratics", "vertex_form", "roots_discriminant"]
 	},
 	{
 		"index": 3,
-		"name": "Pulsar Tuner",
-		"subtitle": "Types & Transformations",
+		"name": "Sintonizador de Púlsares",
+		"subtitle": "Tipos y Transformaciones",
 		"scene": "res://scenes/sectors/sector_3_pulsar_tuner.tscn",
 		"color": Color(0.8, 0.2, 1.0),
 		"topics": ["function_types", "shifts", "scaling", "reflections"]
 	},
 	{
 		"index": 4,
-		"name": "Docking Station",
-		"subtitle": "Operations & Composition",
+		"name": "Estación de Acoplamiento",
+		"subtitle": "Operaciones y Composición",
 		"scene": "res://scenes/sectors/sector_4_docking_station.tscn",
 		"color": Color(0.2, 1.0, 0.4),
 		"topics": ["sum_difference", "product_quotient", "composition"]
 	},
 	{
 		"index": 5,
-		"name": "Event Horizon",
-		"subtitle": "Inverses, Logs & Trig",
+		"name": "Horizonte de Sucesos",
+		"subtitle": "Inversas, Logs y Trigonometría",
 		"scene": "res://scenes/sectors/sector_5_event_horizon.tscn",
 		"color": Color(1.0, 0.2, 0.4),
 		"topics": ["injectivity", "inverses", "exponentials", "logarithms", "inverse_trig"]
@@ -68,7 +68,7 @@ const SECTORS: Array[Dictionary] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Player State
+# Estado del Jugador
 # ---------------------------------------------------------------------------
 
 var current_sector: int = 1
@@ -78,7 +78,7 @@ var hints_used: int = 0
 var session_start_time: float = 0.0
 
 # ---------------------------------------------------------------------------
-# Lifecycle
+# Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
@@ -92,13 +92,13 @@ func _initialise_progress() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Navigation
+# Navegación
 # ---------------------------------------------------------------------------
 
-## Transitions to the specified sector scene.
+## Transiciona a la escena del sector especificado.
 func go_to_sector(sector_index: int) -> void:
 	if sector_index < 1 or sector_index > SECTORS.size():
-		push_warning("GameManager: invalid sector index %d" % sector_index)
+		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
@@ -106,23 +106,23 @@ func go_to_sector(sector_index: int) -> void:
 	get_tree().change_scene_to_file(scene_path)
 
 
-## Returns the data dictionary for the current sector.
+## Devuelve el diccionario de datos del sector actual.
 func get_current_sector_data() -> Dictionary:
 	return SECTORS[current_sector - 1]
 
 
-## Returns true if all challenges in a sector are completed.
+## Devuelve true si todos los desafíos de un sector están completados.
 func is_sector_complete(sector_index: int) -> bool:
 	if not completed_challenges.has(sector_index):
 		return false
-	return completed_challenges[sector_index].size() >= 3  # 3 challenges per sector
+	return completed_challenges[sector_index].size() >= 3  # 3 desafíos por sector
 
 
 # ---------------------------------------------------------------------------
-# Challenge Management
+# Gestión de Desafíos
 # ---------------------------------------------------------------------------
 
-## Records a completed challenge and emits the signal.
+## Registra un desafío completado y emite la señal correspondiente.
 func complete_challenge(sector_index: int, challenge_index: int, score: int = 100) -> void:
 	if not completed_challenges.has(sector_index):
 		completed_challenges[sector_index] = []
@@ -133,8 +133,8 @@ func complete_challenge(sector_index: int, challenge_index: int, score: int = 10
 	challenge_completed.emit(sector_index, challenge_index)
 
 
-## Validates a player's formula against an expected formula over a test range.
-## Tolerance is the maximum allowed absolute difference at each test point.
+## Valida la fórmula del jugador contra la fórmula esperada en un rango de prueba.
+## La tolerancia es la diferencia absoluta máxima permitida en cada punto de prueba.
 func validate_formula(player_formula: String, expected_formula: String,
 		x_min: float = -5.0, x_max: float = 5.0,
 		test_points: int = 20, tolerance: float = 0.01) -> bool:
@@ -150,10 +150,10 @@ func validate_formula(player_formula: String, expected_formula: String,
 	return true
 
 
-## Validates and emits feedback signal.
+## Valida y emite la señal de retroalimentación.
 func submit_answer(player_formula: String, expected_formula: String,
-		feedback_correct: String = "Correct! Well done.",
-		feedback_wrong: String = "Not quite. Try again.") -> bool:
+		feedback_correct: String = "¡Correcto! ¡Bien hecho!",
+		feedback_wrong: String = "No es correcto. Inténtalo de nuevo.") -> bool:
 	var correct: bool = validate_formula(player_formula, expected_formula)
 	answer_validated.emit(correct,
 		feedback_correct if correct else feedback_wrong)
@@ -161,14 +161,14 @@ func submit_answer(player_formula: String, expected_formula: String,
 
 
 # ---------------------------------------------------------------------------
-# Session Utilities
+# Utilidades de Sesión
 # ---------------------------------------------------------------------------
 
-## Returns elapsed session time in seconds.
+## Devuelve el tiempo transcurrido de la sesión en segundos.
 func get_elapsed_time() -> float:
 	return Time.get_ticks_msec() / 1000.0 - session_start_time
 
 
-## Returns the player's total score.
+## Devuelve la puntuación total del jugador.
 func get_score() -> int:
 	return total_score

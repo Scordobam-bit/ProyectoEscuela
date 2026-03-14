@@ -1,34 +1,34 @@
 ## SectorBase.gd
 ## ==============
-## Abstract base class for all Planet Waves sectors.
-## Each sector scene's root node should extend this class.
+## Clase base abstracta para todos los sectores de Planet Waves.
+## El nodo raíz de cada escena de sector debe extender esta clase.
 class_name SectorBase
 extends Node2D
 
 # ---------------------------------------------------------------------------
-# Signals
+# Señales
 # ---------------------------------------------------------------------------
 
-## Emitted when all challenges in this sector are completed.
+## Emitida cuando todos los desafíos de este sector se completan.
 signal sector_complete(sector_index: int)
 
-## Emitted when a single challenge is completed.
+## Emitida cuando un único desafío se completa.
 signal challenge_done(challenge_index: int)
 
-## Emitted when a new challenge starts.
+## Emitida cuando comienza un nuevo desafío.
 signal challenge_started(challenge_index: int)
 
 # ---------------------------------------------------------------------------
-# Exported Properties
+# Propiedades Exportadas
 # ---------------------------------------------------------------------------
 
 @export var sector_index: int = 1
 
-## Background color for the sector's space environment.
+## Color de fondo para el entorno espacial del sector.
 @export var background_color: Color = Color(0.02, 0.02, 0.1, 1.0)
 
 # ---------------------------------------------------------------------------
-# Node References (subclasses should have these in their scenes)
+# Referencias de Nodos (las subclases deben tenerlas en sus escenas)
 # ---------------------------------------------------------------------------
 
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
@@ -37,14 +37,14 @@ signal challenge_started(challenge_index: int)
 @onready var _theory_panel: TheoryPanel = $HUD/TheoryPanel
 
 # ---------------------------------------------------------------------------
-# Challenge State
+# Estado de Desafíos
 # ---------------------------------------------------------------------------
 
 var _current_challenge: int = 0
-var _challenges: Array = []   # Array of Dictionaries, populated by subclasses
+var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subclases
 
 # ---------------------------------------------------------------------------
-# Lifecycle
+# Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
@@ -56,27 +56,27 @@ func _ready() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Abstract Methods (override in subclasses)
+# Métodos Abstractos (sobrescribir en subclases)
 # ---------------------------------------------------------------------------
 
-## Populate _challenges array with challenge data.
+## Rellena el arreglo _challenges con los datos de los desafíos.
 func _setup_challenges() -> void:
-	push_warning("SectorBase: _setup_challenges() not overridden in %s" % name)
+	push_warning("SectorBase: _setup_challenges() no fue sobrescrito en %s" % name)
 
 
-## Called when a new challenge begins.  Override to set up visuals.
+## Llamado cuando comienza un nuevo desafío. Sobrescribir para configurar visuales.
 func _on_challenge_begin(challenge_index: int) -> void:
 	pass
 
 
-## Called when the player submits a formula.
-## Override to add sector-specific validation logic.
+## Llamado cuando el jugador envía una fórmula.
+## Sobrescribir para añadir lógica de validación específica del sector.
 func _on_formula_submitted_sector(formula: String) -> void:
 	_validate_formula_against_current(formula)
 
 
 # ---------------------------------------------------------------------------
-# Challenge Management
+# Gestión de Desafíos
 # ---------------------------------------------------------------------------
 
 func _start_challenge(index: int) -> void:
@@ -87,7 +87,7 @@ func _start_challenge(index: int) -> void:
 
 	if _hud:
 		var ch: Dictionary = _challenges[index]
-		_hud.set_formula_hint(ch.get("hint", "Enter formula…"))
+		_hud.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		_hud.show_feedback(ch.get("instruction", ""), "info")
 
 	_on_challenge_begin(index)
@@ -106,19 +106,19 @@ func _on_sector_complete() -> void:
 	GameManager.complete_challenge(sector_index, _current_challenge)
 	if _hud:
 		_hud.show_feedback(
-			"Sector %d Complete! Warping to next sector…" % sector_index, "success"
+			"¡Sector %d Completado! Saltando al siguiente sector…" % sector_index, "success"
 		)
 	await get_tree().create_timer(2.0).timeout
 	var next_sector: int = sector_index + 1
 	if next_sector <= GameManager.SECTORS.size():
 		GameManager.go_to_sector(next_sector)
 	else:
-		# Final sector done → go to main menu
+		# Sector final completado → volver al menú principal
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
 # ---------------------------------------------------------------------------
-# HUD & Plotter Connections
+# Conexiones HUD y Graficador
 # ---------------------------------------------------------------------------
 
 func _connect_hud() -> void:
@@ -152,7 +152,7 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 
 func _on_plot_failed(error_message: String) -> void:
 	if _hud:
-		_hud.show_feedback("Plot error: " + error_message, "error")
+		_hud.show_feedback("Error al graficar: " + error_message, "error")
 
 
 func _on_theory_requested() -> void:
@@ -162,14 +162,14 @@ func _on_theory_requested() -> void:
 
 func _on_hint_requested() -> void:
 	if _current_challenge < _challenges.size():
-		var hint: String = _challenges[_current_challenge].get("solution_hint", "No hint available.")
+		var hint: String = _challenges[_current_challenge].get("solution_hint", "Sin pista disponible.")
 		if _hud:
-			_hud.show_feedback("Hint: " + hint, "warning")
+			_hud.show_feedback("Pista: " + hint, "warning")
 		GameManager.hints_used += 1
 
 
 # ---------------------------------------------------------------------------
-# Formula Validation
+# Validación de Fórmulas
 # ---------------------------------------------------------------------------
 
 func _validate_formula_against_current(player_formula: String) -> void:
@@ -182,8 +182,8 @@ func _validate_formula_against_current(player_formula: String) -> void:
 
 	var correct: bool = GameManager.submit_answer(
 		player_formula, expected,
-		ch.get("feedback_correct", "Correct! Well done!"),
-		ch.get("feedback_wrong", "Not quite. Check your formula and try again.")
+		ch.get("feedback_correct", "¡Correcto! ¡Bien hecho!"),
+		ch.get("feedback_wrong", "No es correcto. Revisa tu fórmula e inténtalo de nuevo.")
 	)
 	if correct:
 		GameManager.complete_challenge(sector_index, _current_challenge, ch.get("score", 100))

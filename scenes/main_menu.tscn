@@ -46,7 +46,7 @@ theme_override_font_sizes/font_size = 36
 
 [node name="SubtitleLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "An Educational Space Mathematics Adventure"
+text = "Una Aventura Espacial Educativa de Matemáticas"
 horizontal_alignment = 1
 
 [node name="Spacer1" type="Control" parent="VBoxContainer"]
@@ -56,27 +56,27 @@ custom_minimum_size = Vector2(0, 30)
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 48)
-text = "BEGIN MISSION (Sector 1)"
+text = "INICIAR MISIÓN (Sector 1)"
 
 [node name="Sector2Button" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 40)
-text = "Sector 2: Gravity Wells"
+text = "Sector 2: Pozos Gravitatorios"
 
 [node name="Sector3Button" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 40)
-text = "Sector 3: Pulsar Tuner"
+text = "Sector 3: Sintonizador de Púlsares"
 
 [node name="Sector4Button" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 40)
-text = "Sector 4: Docking Station"
+text = "Sector 4: Estación de Acoplamiento"
 
 [node name="Sector5Button" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 40)
-text = "Sector 5: Event Horizon"
+text = "Sector 5: Horizonte de Sucesos"
 
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 layout_mode = 2
@@ -84,5 +84,5 @@ custom_minimum_size = Vector2(0, 20)
 
 [node name="VersionLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "v1.0  |  Godot 4.6  |  GDScript 2.0  |  5 Sectors"
+text = "v1.0  |  Godot 4.6  |  GDScript 2.0  |  5 Sectores"
 horizontal_alignment = 1
