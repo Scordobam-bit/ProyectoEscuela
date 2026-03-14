@@ -1,0 +1,186 @@
+## ShipController.gd
+## ==================
+## Mueve un sprite de nave a lo largo de una trayectoria de FunctionPlotter
+## mediante interpolación PathFollow2D o interpolación directa de puntos.
+##
+## La posición de la nave en el parámetro t ∈ [0, 1] corresponde al punto
+## path_points[floor(t * (N-1))] en la curva de la función graficada.
+class_name ShipController
+extends Node2D
+
+# ---------------------------------------------------------------------------
+# Señales
+# ---------------------------------------------------------------------------
+
+## Emitida cuando la nave llega al final de la trayectoria.
+signal trajectory_completed
+
+## Emitida cada fotograma con el progreso actual [0, 1].
+signal progress_updated(progress: float)
+
+# ---------------------------------------------------------------------------
+# Propiedades Exportadas
+# ---------------------------------------------------------------------------
+
+## El FunctionPlotter que sigue esta nave. Asigna en el inspector o por código.
+@export var plotter: FunctionPlotter = null
+
+## Velocidad de movimiento a lo largo de la trayectoria (unidades de progreso por segundo, escala 0–1).
+@export_range(0.01, 1.0, 0.01) var speed: float = 0.1
+
+## Si es true, la nave comienza a moverse automáticamente cuando se establece la trayectoria.
+@export var auto_start: bool = false
+
+## Si es true, la nave regresa al inicio al llegar al final.
+@export var loop: bool = false
+
+## Rotar la nave para que mire hacia su dirección de movimiento.
+@export var rotate_to_direction: bool = true
+
+## Velocidad de rotación suavizada (radianes por segundo). Establecer en 0 para instantáneo.
+@export var rotation_speed: float = 10.0
+
+## El nodo sprite a mover (si es null, mueve los hijos de este nodo).
+@export var ship_sprite: Node2D = null
+
+# ---------------------------------------------------------------------------
+# Estado Privado
+# ---------------------------------------------------------------------------
+
+var _progress: float = 0.0    # 0.0 → inicio, 1.0 → fin
+var _moving: bool = false
+var _points: PackedVector2Array = PackedVector2Array()
+var _target_rotation: float = 0.0
+var _last_delta: float = 0.016   # Delta en caché para uso en callbacks fuera de _process
+
+# ---------------------------------------------------------------------------
+# Ciclo de Vida
+# ---------------------------------------------------------------------------
+
+func _ready() -> void:
+	if plotter:
+		_connect_plotter(plotter)
+	if auto_start and _points.size() > 1:
+		start()
+
+
+func _process(delta: float) -> void:
+	_last_delta = delta
+	if not _moving or _points.size() < 2:
+		return
+
+	_progress += speed * delta
+	progress_updated.emit(_progress)
+
+	if _progress >= 1.0:
+		_progress = 1.0 if not loop else 0.0
+		_update_ship_position()
+		if not loop:
+			_moving = false
+			trajectory_completed.emit()
+		return
+
+	_update_ship_position()
+
+
+# ---------------------------------------------------------------------------
+# API Pública
+# ---------------------------------------------------------------------------
+
+## Conecta este controlador a un FunctionPlotter y carga sus puntos.
+func attach_to_plotter(new_plotter: FunctionPlotter) -> void:
+	if plotter:
+		_disconnect_plotter(plotter)
+	plotter = new_plotter
+	_connect_plotter(plotter)
+	_load_points()
+
+
+## Comienza a mover la nave a lo largo de la trayectoria desde el progreso actual.
+func start() -> void:
+	if _points.size() < 2:
+		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
+		return
+	_moving = true
+
+
+## Detiene el movimiento sin reiniciar el progreso.
+func stop() -> void:
+	_moving = false
+
+
+## Reinicia el progreso a 0 y opcionalmente vuelve a empezar.
+func reset(restart: bool = false) -> void:
+	_progress = 0.0
+	_moving = false
+	_update_ship_position()
+	if restart:
+		start()
+
+
+## Devuelve el progreso actual [0, 1].
+func get_progress() -> float:
+	return _progress
+
+
+## Devuelve la posición en el mundo para un valor de progreso dado.
+func get_position_at(t: float) -> Vector2:
+	if _points.is_empty():
+		return Vector2.ZERO
+	var clamped_t: float = clampf(t, 0.0, 1.0)
+	var float_index: float = clamped_t * float(_points.size() - 1)
+	var index_a: int = floori(float_index)
+	var index_b: int = mini(index_a + 1, _points.size() - 1)
+	var frac: float = float_index - float(index_a)
+	return _points[index_a].lerp(_points[index_b], frac)
+
+
+# ---------------------------------------------------------------------------
+# Auxiliares Privados
+# ---------------------------------------------------------------------------
+
+func _connect_plotter(p: FunctionPlotter) -> void:
+	if not p.plot_completed.is_connected(_on_plot_completed):
+		p.plot_completed.connect(_on_plot_completed)
+
+
+func _disconnect_plotter(p: FunctionPlotter) -> void:
+	if p.plot_completed.is_connected(_on_plot_completed):
+		p.plot_completed.disconnect(_on_plot_completed)
+
+
+func _load_points() -> void:
+	if plotter and plotter.is_plot_valid():
+		_points = plotter.get_screen_points()
+		_progress = 0.0
+		_update_ship_position()
+
+
+func _update_ship_position() -> void:
+	var world_pos: Vector2 = get_position_at(_progress)
+	# Desplazar por la posición global del graficador si es un nodo hermano
+	var target_node: Node2D = ship_sprite if ship_sprite else self
+	target_node.position = world_pos
+
+	if rotate_to_direction and _points.size() >= 2:
+		var ahead_t: float = clampf(_progress + 0.01, 0.0, 1.0)
+		var ahead_pos: Vector2 = get_position_at(ahead_t)
+		var dir: Vector2 = (ahead_pos - world_pos)
+		if dir.length_squared() > 0.001:
+			_target_rotation = dir.angle()
+
+	if rotation_speed > 0.0:
+		target_node.rotation = lerp_angle(
+			target_node.rotation, _target_rotation,
+			rotation_speed * _last_delta
+		)
+	else:
+		target_node.rotation = _target_rotation
+
+
+func _on_plot_completed(points: PackedVector2Array) -> void:
+	_points = points
+	_progress = 0.0
+	_update_ship_position()
+	if auto_start:
+		start()
