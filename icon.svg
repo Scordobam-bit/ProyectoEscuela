@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Space background -->
+  <rect width="128" height="128" rx="16" fill="#050510"/>
+  <!-- Stars -->
+  <circle cx="20" cy="15" r="1.5" fill="white" opacity="0.8"/>
+  <circle cx="100" cy="25" r="1" fill="white" opacity="0.6"/>
+  <circle cx="110" cy="10" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="15" cy="110" r="1" fill="white" opacity="0.7"/>
+  <circle cx="115" cy="100" r="1.5" fill="white" opacity="0.8"/>
+  <circle cx="50" cy="5" r="1" fill="white" opacity="0.5"/>
+  <!-- Planet -->
+  <circle cx="64" cy="64" r="30" fill="#1a1a4e" stroke="#00ffcc" stroke-width="2"/>
+  <ellipse cx="64" cy="64" rx="48" ry="14" fill="none" stroke="#ff6600" stroke-width="3" opacity="0.9"/>
+  <!-- Sine wave / function plot on planet -->
+  <path d="M 34 64 Q 44 50 54 64 Q 64 78 74 64 Q 84 50 94 64" 
+        fill="none" stroke="#00ffcc" stroke-width="3" stroke-linecap="round"/>
+  <!-- Ship -->
+  <polygon points="64,30 59,42 69,42" fill="#00ffcc" opacity="0.9"/>
+</svg>
