@@ -211,13 +211,17 @@ func clear_progress() -> void:
 	mastered_concepts  = []
 	tutorial_completed = false
 
-	# Eliminar el archivo de guardado anterior si existe
+	# Eliminar el archivo de guardado principal si existe
 	if FileAccess.file_exists(SAVE_FILE):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_FILE))
+		var err: Error = DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_FILE))
+		if err != OK:
+			push_warning("SaveSystem: no se pudo eliminar '%s' (error %d)." % [SAVE_FILE, err])
 
 	# También limpiar el archivo legado de GameManager si existe
 	var legacy_path: String = "user://planet_waves_save.cfg"
 	if FileAccess.file_exists(legacy_path):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_path))
+		var err2: Error = DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_path))
+		if err2 != OK:
+			push_warning("SaveSystem: no se pudo eliminar legado '%s' (error %d)." % [legacy_path, err2])
 
 	progress_cleared.emit()

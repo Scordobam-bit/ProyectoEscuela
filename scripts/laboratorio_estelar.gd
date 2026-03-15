@@ -23,7 +23,20 @@ const LABEL_COLORS: Array[Color] = [
 	Color(0.9,  0.2,  1.0,  1.0),
 ]
 
+## Colores tenues para las estelas (versiones oscurecidas de los colores neón).
+const TRAIL_COLORS: Array[Color] = [
+	Color(0.0,  0.55, 0.44, 0.45),   # Cian tenue
+	Color(0.55, 0.28, 0.0,  0.45),   # Naranja tenue
+	Color(0.45, 0.0,  0.55, 0.45),   # Magenta tenue
+	Color(0.15, 0.40, 0.75, 0.45),   # Azul tenue
+	Color(0.65, 0.55, 0.0,  0.45),   # Amarillo tenue
+	Color(0.0,  0.55, 0.25, 0.45),   # Verde tenue
+]
+
 const MAX_FUNCTIONS: int = 3
+
+## Máximo de estelas (trazos congelados) simultáneas.
+const MAX_TRAILS: int = 6
 
 ## Dominio por defecto del graficador.
 const DEFAULT_DOMAIN_MIN: float = -10.0
@@ -49,6 +62,13 @@ var _active_checks: Array[CheckBox] = []
 var _domain_min_spin: SpinBox = null
 var _domain_max_spin: SpinBox = null
 var _status_label: Label = null
+
+## Lista de graficadores de estela (trazos congelados).
+var _trail_plotters: Array[FunctionPlotter] = []
+## Índice que apunta al próximo color de estela disponible.
+var _trail_index: int = 0
+## Etiqueta que indica cuántas estelas hay activas.
+var _trails_count_label: Label = null
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -247,6 +267,13 @@ func _build_hud() -> void:
 		clear_btn.pressed.connect(_on_clear_single.bind(i))
 		row.add_child(clear_btn)
 
+		# Botón de estela: congela la curva actual como trazo de fondo
+		var trace_btn: Button = Button.new()
+		trace_btn.text = "📌 Mantener Trazo"
+		trace_btn.tooltip_text = "Congela f%d como estela tenue de fondo para comparar" % (i + 1)
+		trace_btn.pressed.connect(_on_keep_trace_pressed.bind(i))
+		row.add_child(trace_btn)
+
 	# ── Controles de dominio ────────────────────────────────────────────
 	var domain_row: HBoxContainer = HBoxContainer.new()
 	domain_row.add_theme_constant_override("separation", 8)
@@ -289,6 +316,20 @@ func _build_hud() -> void:
 	clear_all_btn.text = "🗑  Limpiar Todo"
 	clear_all_btn.pressed.connect(_on_clear_all)
 	domain_row.add_child(clear_all_btn)
+
+	var clear_trails_btn: Button = Button.new()
+	clear_trails_btn.text = "🌫  Borrar Estelas"
+	clear_trails_btn.tooltip_text = "Elimina todos los trazos congelados de fondo"
+	clear_trails_btn.pressed.connect(_on_clear_trails)
+	domain_row.add_child(clear_trails_btn)
+
+	# ── Contador de estelas ─────────────────────────────────────────────
+	_trails_count_label = Label.new()
+	_trails_count_label.name = "TrailsCountLabel"
+	_trails_count_label.add_theme_color_override("font_color", Color(0.55, 0.65, 0.9, 0.85))
+	_trails_count_label.add_theme_font_size_override("font_size", 11)
+	_trails_count_label.text = ""
+	domain_row.add_child(_trails_count_label)
 
 	# ── Barra de estado ──────────────────────────────────────────────────
 	_status_label = Label.new()
@@ -341,10 +382,85 @@ func _on_domain_changed(_value: float) -> void:
 		p.domain_max = d_max
 		if not p.formula.is_empty():
 			p.plot()
+	# Actualizar también las estelas congeladas para mantener consistencia visual
+	for t in _trail_plotters:
+		if is_instance_valid(t):
+			t.domain_min = d_min
+			t.domain_max = d_max
+			if not t.formula.is_empty():
+				t.plot()
 
 
 func _on_back_pressed() -> void:
 	SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
+
+
+# ---------------------------------------------------------------------------
+# Estelas (Trazos Congelados)
+# ---------------------------------------------------------------------------
+
+## Congela la curva activa del índice indicado como estela tenue de fondo.
+## Esto permite comparar una transformación (ej. f(x) vs f(x)+c) de forma visual.
+func _on_keep_trace_pressed(index: int) -> void:
+	var formula: String = _formula_inputs[index].text.strip_edges()
+	if formula.is_empty():
+		_set_status("f%d está vacía — grafique una función antes de congelar la estela." % (index + 1))
+		return
+
+	if not MathEngine.is_valid_formula(formula):
+		_set_status("f%d: fórmula inválida — corrija antes de congelar." % (index + 1))
+		return
+
+	if _trail_plotters.size() >= MAX_TRAILS:
+		_set_status("Máximo de %d estelas alcanzado. Use '🌫 Borrar Estelas' para liberar espacio." % MAX_TRAILS)
+		return
+
+	# Crear un nuevo FunctionPlotter para la estela con color tenue
+	var trail: FunctionPlotter = FunctionPlotter.new()
+	trail.name          = "Estela%d" % (_trail_plotters.size() + 1)
+	trail.position      = Vector2(640.0, 360.0)
+	trail.formula       = formula
+	trail.domain_min    = _domain_min_spin.value
+	trail.domain_max    = _domain_max_spin.value
+	trail.scale_factor  = DEFAULT_SCALE
+	trail.line_color    = TRAIL_COLORS[_trail_index % TRAIL_COLORS.size()]
+	trail.line_width    = 1.5
+	trail.show_axes     = false
+	trail.auto_plot     = true
+
+	# Insertar la estela ANTES de los plotters activos para que se dibuje detrás
+	add_child(trail)
+	move_child(trail, _plotters[0].get_index())
+
+	_trail_plotters.append(trail)
+	_trail_index += 1
+
+	_set_status(
+		"✓ Estela de f%d(x) = %s guardada (trazo tenue). Grafique una nueva función encima para comparar." \
+		% [index + 1, formula]
+	)
+	_update_trails_count_label()
+
+
+## Elimina todas las estelas congeladas de la escena.
+func _on_clear_trails() -> void:
+	for t in _trail_plotters:
+		if is_instance_valid(t):
+			t.queue_free()
+	_trail_plotters.clear()
+	_trail_index = 0
+	_set_status("Estelas borradas. La pizarra está limpia — ¡empiece una nueva comparación!")
+	_update_trails_count_label()
+
+
+## Actualiza la etiqueta de conteo de estelas activas.
+func _update_trails_count_label() -> void:
+	if not _trails_count_label:
+		return
+	if _trail_plotters.is_empty():
+		_trails_count_label.text = ""
+	else:
+		_trails_count_label.text = "  Estelas: %d/%d" % [_trail_plotters.size(), MAX_TRAILS]
 
 
 # ---------------------------------------------------------------------------

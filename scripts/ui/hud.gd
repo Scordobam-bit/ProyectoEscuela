@@ -60,6 +60,10 @@ var _detail_label: Label = null
 var _syntax_help_button: Button = null
 var _syntax_panel: PanelContainer = null
 
+# Teclado matemático virtual y su botón de alternancia.
+var _keyboard_panel: PanelContainer = null
+var _keyboard_button: Button = null
+
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
@@ -81,6 +85,7 @@ func _ready() -> void:
 	_update_score_display()
 	_build_detail_label()
 	_build_syntax_ui()
+	_build_virtual_keyboard()
 
 
 func _build_detail_label() -> void:
@@ -177,6 +182,136 @@ func _build_syntax_ui() -> void:
 
 
 # ---------------------------------------------------------------------------
+# Teclado Matemático Virtual
+# ---------------------------------------------------------------------------
+
+## Construye el teclado matemático virtual desplegable.
+## El botón ⌨ se añade a la fila de fórmulas; el panel aparece debajo del HUD.
+func _build_virtual_keyboard() -> void:
+	# ── Botón de alternancia ⌨ ────────────────────────────────────────────
+	_keyboard_button = Button.new()
+	_keyboard_button.name = "KeyboardButton"
+	_keyboard_button.text = "⌨"
+	_keyboard_button.tooltip_text = "Teclado matemático virtual"
+	_keyboard_button.custom_minimum_size = Vector2(36.0, 0.0)
+	_keyboard_button.pressed.connect(_toggle_keyboard_panel)
+	_formula_row.add_child(_keyboard_button)
+
+	# ── Panel del teclado ────────────────────────────────────────────────
+	_keyboard_panel = PanelContainer.new()
+	_keyboard_panel.name = "KeyboardPanel"
+	_keyboard_panel.anchor_left   = 0.0
+	_keyboard_panel.anchor_top    = 0.0
+	_keyboard_panel.anchor_right  = 0.0
+	_keyboard_panel.anchor_bottom = 0.0
+	_keyboard_panel.offset_left   = 5.0
+	_keyboard_panel.offset_top    = 128.0
+	_keyboard_panel.offset_right  = 690.0
+	_keyboard_panel.offset_bottom = 410.0
+	_keyboard_panel.visible = false
+
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.04, 0.14, 0.97)
+	style.border_color = Color(0.0, 0.9, 0.7, 0.9)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	_keyboard_panel.add_theme_stylebox_override("panel", style)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 5)
+	_keyboard_panel.add_child(vbox)
+
+	# Cabecera
+	var header_row: HBoxContainer = HBoxContainer.new()
+	vbox.add_child(header_row)
+
+	var title_lbl: Label = Label.new()
+	title_lbl.text = "⌨  Teclado Matemático Virtual"
+	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(title_lbl)
+
+	var close_btn: Button = Button.new()
+	close_btn.text = "✕"
+	close_btn.custom_minimum_size = Vector2(28.0, 0.0)
+	close_btn.pressed.connect(func() -> void: _keyboard_panel.visible = false)
+	header_row.add_child(close_btn)
+
+	vbox.add_child(HSeparator.new())
+
+	# Filas temáticas de botones
+	_add_keyboard_section(vbox, "Variables / Constantes", [
+		["x", "x"], ["PI", "PI"], ["E", "E"],
+	])
+	_add_keyboard_section(vbox, "Agrupación y Operadores", [
+		["(", "("], [")", ")"],
+		["+", "+"], ["−", "-"], ["×", "*"], ["÷", "/"], ["^", "^"],
+	])
+	_add_keyboard_section(vbox, "Funciones Básicas", [
+		["sqrt()", "sqrt("], ["abs()", "abs("],
+	])
+	_add_keyboard_section(vbox, "Transcendentes", [
+		["exp()", "exp("], ["log() [ln]", "log("], ["log10()", "log10("],
+	])
+	_add_keyboard_section(vbox, "Trigonométricas", [
+		["sin()", "sin("], ["cos()", "cos("], ["tan()", "tan("],
+	])
+	_add_keyboard_section(vbox, "Inversas Trigonométricas", [
+		["asin()", "asin("], ["acos()", "acos("], ["atan()", "atan("],
+	])
+
+	add_child(_keyboard_panel)
+
+
+## Agrega una fila de categoría al teclado virtual.
+## category_label : nombre visible de la categoría.
+## buttons        : arreglo de [texto_del_botón, texto_a_insertar].
+func _add_keyboard_section(parent: VBoxContainer, category_label: String, buttons: Array) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 5)
+	parent.add_child(row)
+
+	var cat_lbl: Label = Label.new()
+	cat_lbl.text = category_label + ":"
+	cat_lbl.add_theme_color_override("font_color", Color(0.65, 0.78, 1.0, 0.9))
+	cat_lbl.add_theme_font_size_override("font_size", 11)
+	cat_lbl.custom_minimum_size = Vector2(185.0, 0.0)
+	row.add_child(cat_lbl)
+
+	for btn_data: Array in buttons:
+		var btn: Button = Button.new()
+		btn.text      = btn_data[0]
+		var insert_text: String = btn_data[1]
+		btn.tooltip_text = "Insertar: %s" % insert_text
+		btn.custom_minimum_size = Vector2(66.0, 28.0)
+		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.8, 1.0))
+		btn.pressed.connect(_insert_at_cursor.bind(insert_text))
+		row.add_child(btn)
+
+
+## Inserta el texto dado en la posición actual del cursor del campo de fórmulas.
+## Deja el cursor justo después del texto insertado para que el estudiante
+## pueda seguir escribiendo sin mover el teclado.
+func _insert_at_cursor(text: String) -> void:
+	var pos: int        = _formula_input.caret_column
+	var current: String = _formula_input.text
+	_formula_input.text         = current.left(pos) + text + current.substr(pos)
+	_formula_input.caret_column = pos + text.length()
+	_formula_input.grab_focus()
+
+
+## Alterna la visibilidad del teclado matemático virtual.
+## Cierra el panel de sintaxis si está abierto.
+func _toggle_keyboard_panel() -> void:
+	if _keyboard_panel:
+		var new_visible: bool = not _keyboard_panel.visible
+		_keyboard_panel.visible = new_visible
+		if new_visible and _syntax_panel:
+			_syntax_panel.visible = false
+
+
+# ---------------------------------------------------------------------------
 # API Pública
 # ---------------------------------------------------------------------------
 
@@ -262,7 +397,11 @@ func hide_syntax_help() -> void:
 ## Alterna la visibilidad del panel de referencia de sintaxis.
 func _toggle_syntax_panel() -> void:
 	if _syntax_panel:
-		_syntax_panel.visible = not _syntax_panel.visible
+		var new_visible: bool = not _syntax_panel.visible
+		_syntax_panel.visible = new_visible
+		# Cerrar el teclado virtual si se abre el panel de sintaxis
+		if new_visible and _keyboard_panel:
+			_keyboard_panel.visible = false
 
 
 # ---------------------------------------------------------------------------

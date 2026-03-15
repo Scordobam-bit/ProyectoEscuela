@@ -397,15 +397,15 @@ func format_float(value: float, decimals: int = 3) -> String:
 ## Las claves son identificadores internos; los valores son los mensajes para el jugador.
 const FRIENDLY_ERRORS: Dictionary = {
 	"implicit_multiply":
-		"Error de coordenadas: Asegúrese de usar '*' para multiplicar (ej. 2*x en lugar de 2x).",
+		"Error de coordenadas: Asegúrese de usar '*' para multiplicar (ej. 2*x en lugar de 2x). Consejo: use el botón × del Teclado Virtual ⌨ para evitar este error.",
 	"unknown_function":
-		"Función desconocida: Verifique el nombre. Funciones válidas: sin(x), cos(x), tan(x), sqrt(x), log(x), exp(x), abs(x).",
+		"Función desconocida: Verifique el nombre. Use el Teclado Virtual ⌨ para insertar funciones como sin(), cos(), log(), exp(), asin() sin errores de escritura.",
 	"unbalanced_parens":
-		"Error de paréntesis: Revise que cada '(' tenga su ')' correspondiente.",
+		"Error de paréntesis: Revise que cada '(' tenga su ')' correspondiente. Use los botones ( y ) del Teclado Virtual ⌨.",
 	"empty_formula":
-		"Fórmula vacía: Ingrese una expresión matemática usando la variable 'x' (ej. 2*x + 1).",
+		"Fórmula vacía: Ingrese una expresión matemática usando la variable 'x' (ej. 2*x + 1). Puede usar el Teclado Virtual ⌨.",
 	"generic":
-		"Error de sintaxis: Revise la fórmula. Recuerde usar '*' para multiplicar y '/' para dividir. Ejemplo válido: 2*x + 1.",
+		"Error de sintaxis: Use el Teclado Virtual ⌨ para insertar operadores y funciones sin errores. Recuerde usar '*' para multiplicar y '/' para dividir.",
 }
 
 
