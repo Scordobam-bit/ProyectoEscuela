@@ -33,8 +33,8 @@ signal challenge_started(challenge_index: int)
 
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
 @onready var _ship: ShipController = $Ship
-@onready var _hud: HUD = $HUD
-@onready var _theory_panel: TheoryPanel = $HUD/TheoryPanel
+@onready var _hud: HUD = find_child("HUD", true, false)
+@onready var _theory_panel: TheoryPanel = find_child("TheoryPanel", true, false)
 
 # ---------------------------------------------------------------------------
 # Estado de Desafíos
