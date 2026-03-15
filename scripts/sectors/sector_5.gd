@@ -77,10 +77,10 @@ func _setup_challenges() -> void:
 			"hint": "x",
 			"expected_formula": "x",
 			"feedback_correct": "🌟 ¡HORIZONTE DE SUCESOS ESTABILIZADO! ¡Planet Waves completado! 🌟\n" +
-				"f(g(x)) = eˡⁿ⁽ˣ⁺²⁾ − 2 = (x+2) − 2 = x ✓",
+				"f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x ✓",
 			"feedback_wrong": "Sustituye g(x) en f: f(g(x)) = e^(ln(x+2)) − 2.\n" +
 				"Recuerda que e^(ln(u)) = u para u > 0.",
-			"solution_hint": "f(g(x)) = eˡⁿ⁽ˣ⁺²⁾ − 2 = (x+2) − 2 = x",
+			"solution_hint": "f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x",
 			"score": 750,
 		},
 	]

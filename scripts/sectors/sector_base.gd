@@ -96,6 +96,9 @@ func _setup_parallax_stars() -> void:
 	tween.tween_property(parallax_bg, "scroll_offset", Vector2(3000.0, 0.0), 120.0)
 
 
+## Crea una capa de estrellas (ParallaxLayer) con movimiento proporcional a [motion_scale].
+## Se generan [star_count] puntos distribuidos aleatoriamente con radio entre
+## [min_radius] y [max_radius] píxeles.
 func _create_star_layer(
 		parent: ParallaxBackground,
 		motion_scale: Vector2,

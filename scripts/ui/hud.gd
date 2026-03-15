@@ -110,7 +110,7 @@ func show_feedback(message: String, feedback_type: String = "info") -> void:
 		_:
 			_feedback_label.add_theme_color_override("font_color", Color.WHITE)
 	_feedback_label.visible = true
-	_feedback_timer.start(4.0)
+	_feedback_timer.start(5.0)
 
 
 ## Activa el estado de "Misión Fallida": muestra un banner rojo de advertencia

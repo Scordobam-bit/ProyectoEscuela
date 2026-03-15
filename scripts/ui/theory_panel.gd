@@ -362,8 +362,7 @@ donde  e ≈ 2.71828… (número de Euler)
   ¡Confirma que f y g son inversas mutuas!
 
 [b]Para estabilizar el Horizonte:[/b]
-  Ingresa la composición f(g(x)) = f(ln(x+2)) = eˣ⁺² - 2... 
-  No, ¡ingresa directamente la INVERSA: f⁻¹(x) = ln(x+2)!
+  Ingresa la composición simplificada: f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x
   La función compuesta f(f⁻¹(x)) = x representa la identidad — el punto de fuga."""
 	},
 }
@@ -673,7 +672,7 @@ Los físicos del Consejo Galáctico transmiten el protocolo definitivo:
 
 Para estabilizar el Horizonte de Sucesos, la computadora central necesita la [color=#ffcc00]función compuesta[/color]:
 
-[b][color=#ffcc00](f∘g)(x) = f(g(x)) = eˡⁿ⁽ˣ⁺²⁾ − 2 = x + 2 − 2 = x[/color][/b]
+[b][color=#ffcc00](f∘g)(x) = f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x[/color][/b]
 
 Esta composición da como resultado la [color=#00ffcc]función identidad[/color], lo que significa que f y g se cancelan perfectamente.
 
