@@ -189,6 +189,17 @@ func get_score() -> int:
 	return total_score
 
 
+## Reinicia todos los campos del GameManager a sus valores por defecto.
+## Debe llamarse junto con SaveSystem.clear_progress() para un borrado completo.
+func reset_to_defaults() -> void:
+	total_score        = 0
+	hints_used         = 0
+	tutorial_completed = false
+	current_sector     = 1
+	for sid: int in completed_challenges.keys():
+		completed_challenges[sid] = []
+
+
 # ---------------------------------------------------------------------------
 # Persistencia de Progreso
 # ---------------------------------------------------------------------------
@@ -243,8 +254,15 @@ func _sync_from_save_system() -> void:
 		total_score = SaveSystem.total_score
 	tutorial_completed = tutorial_completed or SaveSystem.tutorial_completed
 
-	# Reconstruir completed_challenges a partir de los sectores completados en SaveSystem
+	# Reconstruir completed_challenges a partir de los sectores completados en SaveSystem.
+	# Se usa is_sector_complete() para marcar el sector; los índices individuales de desafíos
+	# no se conocen aquí, así que sólo actualizamos sectores vacíos para evitar duplicados.
 	for sid: int in SaveSystem.completed_sectors:
 		if completed_challenges.has(sid) and completed_challenges[sid].is_empty():
-			# Marcar todos los desafíos esperados como completados para sectores acabados
-			completed_challenges[sid] = [0, 1, 2, 3, 4]
+			# Buscar el número de desafíos real del sector desde SECTORS
+			var sector_challenge_count: int = 5   # Valor por defecto
+			for s: Dictionary in SECTORS:
+				if s["index"] == sid:
+					sector_challenge_count = s.get("challenge_count", 5)
+					break
+			completed_challenges[sid] = Array(range(sector_challenge_count))

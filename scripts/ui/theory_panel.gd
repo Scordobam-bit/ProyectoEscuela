@@ -777,12 +777,23 @@ func hide_panel() -> void:
 # Auxiliares Privados
 # ---------------------------------------------------------------------------
 
+## Desplazamiento vertical (en píxeles) para la animación de deslizamiento del panel.
+## El panel comienza fuera de pantalla por esta distancia hacia arriba antes de deslizarse.
+const SLIDE_OFFSET: float = 560.0
+
+## Duración de la animación de deslizamiento de entrada en segundos.
+const SLIDE_DURATION: float = 0.35
+
+## Duración de la animación de fundido de entrada en segundos.
+const FADE_DURATION: float = 0.25
+
+
 ## Muestra el panel con una animación de deslizamiento desde la parte superior.
 ## Da un toque de tecnología espacial moderno a la interfaz educativa.
 func _show_animated() -> void:
 	# Posicionar el panel fuera de la pantalla hacia arriba antes de mostrarlo
 	var original_pos: Vector2 = position
-	position = Vector2(position.x, position.y - 560.0)
+	position = Vector2(position.x, position.y - SLIDE_OFFSET)
 	modulate.a = 0.0
 	visible = true
 
@@ -790,8 +801,8 @@ func _show_animated() -> void:
 	tween.set_parallel(true)
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_BACK)
-	tween.tween_property(self, "position", original_pos, 0.35)
-	tween.tween_property(self, "modulate:a", 1.0, 0.25)
+	tween.tween_property(self, "position", original_pos, SLIDE_DURATION)
+	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION)
 
 
 func _update_display() -> void:

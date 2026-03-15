@@ -70,13 +70,7 @@ func _on_clear_pressed() -> void:
 ## Borra todo el progreso y reinicia el menú al estado inicial.
 func _on_clear_confirmed() -> void:
 	SaveSystem.clear_progress()
-	# Sincronizar GameManager con el estado limpio
-	GameManager.total_score       = 0
-	GameManager.hints_used        = 0
-	GameManager.tutorial_completed = false
-	GameManager.current_sector    = 1
-	for sid: int in GameManager.completed_challenges.keys():
-		GameManager.completed_challenges[sid] = []
+	GameManager.reset_to_defaults()
 	_refresh_sector_states()
 
 

@@ -38,6 +38,9 @@ const SAVE_FILE: String = "user://save_data.cfg"
 ## Índice del primer sector (siempre desbloqueado).
 const FIRST_SECTOR: int = 1
 
+## Número total de sectores de Planet Waves. Actualizar si se agregan sectores futuros.
+const TOTAL_SECTORS: int = 5
+
 # ---------------------------------------------------------------------------
 # Estado del Jugador
 # ---------------------------------------------------------------------------
@@ -93,7 +96,7 @@ func mark_sector_complete(sector_index: int) -> void:
 		completed_sectors.sort()
 	# Desbloquear el sector siguiente automáticamente
 	var next: int = sector_index + 1
-	if next <= 5:   # Planet Waves tiene 5 sectores
+	if next <= TOTAL_SECTORS:
 		unlock_sector(next)
 	save()
 
