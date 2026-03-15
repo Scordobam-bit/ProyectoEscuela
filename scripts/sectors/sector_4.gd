@@ -110,20 +110,20 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	if _hud and MathEngine.is_valid_formula(formula):
+	if hud_node and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			0:
 				var expected: String = MathEngine.operation_sum(_f_formula, _g_formula)
-				_hud.show_feedback(
+				hud_node.show_feedback(
 					"Suma (MathEngine): %s" % expected, "info"
 				)
 			1:
-				_hud.show_feedback(
+				hud_node.show_feedback(
 					"El dominio del cociente excluye x = 1 (división por cero)", "warning"
 				)
 			2:
 				var composed: String = MathEngine.compose("sqrt(x)", "x^2 - 4")
-				_hud.show_feedback(
+				hud_node.show_feedback(
 					"Composición f∘g: %s" % composed, "info"
 				)
 	_validate_formula_against_current(formula)

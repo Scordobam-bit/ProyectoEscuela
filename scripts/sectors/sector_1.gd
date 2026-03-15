@@ -135,8 +135,8 @@ func _on_challenge_begin(challenge_index: int) -> void:
 	if challenge_index == 0 and not GameManager.tutorial_completed:
 		_setup_tutorial_manager()
 		# Mostrar la guía tras cerrar el panel de briefing
-		if _theory_panel and not _theory_panel.panel_closed.is_connected(_on_first_theory_closed):
-			_theory_panel.panel_closed.connect(_on_first_theory_closed, CONNECT_ONE_SHOT)
+		if theory_panel_node and not theory_panel_node.panel_closed.is_connected(_on_first_theory_closed):
+			theory_panel_node.panel_closed.connect(_on_first_theory_closed, CONNECT_ONE_SHOT)
 		else:
 			# Sin briefing: iniciar guía con pequeño retardo
 			get_tree().create_timer(0.3).timeout.connect(_on_first_theory_closed, CONNECT_ONE_SHOT)
@@ -192,11 +192,11 @@ func _on_formula_submitted_sector(formula: String) -> void:
 		return
 
 	# Para los desafíos 1-3: mostrar análisis de pendiente antes de validar
-	if _hud and MathEngine.is_valid_formula(formula):
+	if hud_node and MathEngine.is_valid_formula(formula):
 		var info: Dictionary = MathEngine.get_slope_and_intercept(formula)
 		var slope_str: String = MathEngine.format_float(info["slope"])
 		var intercept_str: String = MathEngine.format_float(info["intercept"])
-		_hud.show_feedback(
+		hud_node.show_feedback(
 			"Detectado: pendiente = %s, ordenada al origen = %s" % [slope_str, intercept_str],
 			"info"
 		)
@@ -213,8 +213,8 @@ func _setup_tutorial_manager() -> void:
 	_tutorial_manager = TutorialManager.new()
 	_tutorial_manager.name = "TutorialManager"
 	add_child(_tutorial_manager)
-	if _hud:
-		_tutorial_manager.setup(_hud)
+	if hud_node:
+		_tutorial_manager.setup(hud_node)
 	_tutorial_manager.guide_completed.connect(_on_tutorial_guide_finished)
 	_tutorial_manager.guide_skipped.connect(_on_tutorial_guide_finished)
 
