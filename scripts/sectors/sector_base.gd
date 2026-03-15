@@ -34,7 +34,7 @@ signal challenge_started(challenge_index: int)
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
 @onready var _ship: ShipController = $Ship
 @onready var _hud: HUD = find_child("HUD", true, false)
-@onready var _theory_panel: TheoryPanel = find_child("TheoryPanel", true, false)
+var _theory_panel: TheoryPanel = null
 
 # ---------------------------------------------------------------------------
 # Estado de Desafíos
@@ -51,6 +51,9 @@ var _obstacle_manager: GestorObstaculos = null
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	await get_tree().process_frame
+	if _hud:
+		_theory_panel = _hud.find_child("TheoryPanel", true, false)
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
 	_setup_parallax_stars()
