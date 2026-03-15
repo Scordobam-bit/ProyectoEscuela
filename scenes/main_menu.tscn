@@ -33,9 +33,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -220.0
-offset_top = -220.0
+offset_top = -260.0
 offset_right = 220.0
-offset_bottom = 220.0
+offset_bottom = 280.0
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="VBoxContainer"]
@@ -51,7 +51,7 @@ horizontal_alignment = 1
 
 [node name="Spacer1" type="Control" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 20)
 
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
@@ -89,9 +89,25 @@ text = "🔬  Laboratorio Estelar (Exploración Libre)"
 
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 12)
+
+[node name="ClearProgressButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(300, 36)
+text = "🗑  Borrar Progreso"
+
+[node name="Spacer4" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
 
 [node name="VersionLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "v1.0  |  Godot 4.6  |  GDScript 2.0  |  5 Sectores"
 horizontal_alignment = 1
+
+[node name="ConfirmClearDialog" type="ConfirmationDialog" parent="."]
+title = "Borrar Progreso"
+size = Vector2(420, 130)
+dialog_text = "¿Seguro que deseas borrar todo el progreso?\nEsta acción no se puede deshacer."
+ok_button_text = "Sí, Borrar Todo"
+cancel_button_text = "Cancelar"

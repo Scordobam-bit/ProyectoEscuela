@@ -97,6 +97,9 @@ func _ready() -> void:
 	_initialise_progress()
 	load_progress()   # Cargar progreso guardado al iniciar
 
+	# Sincronizar estado con SaveSystem
+	_sync_from_save_system()
+
 
 func _initialise_progress() -> void:
 	for s in SECTORS:
@@ -107,7 +110,7 @@ func _initialise_progress() -> void:
 # Navegación
 # ---------------------------------------------------------------------------
 
-## Transiciona a la escena del sector especificado.
+## Transiciona a la escena del sector especificado con fundido a negro.
 func go_to_sector(sector_index: int) -> void:
 	if sector_index < 1 or sector_index > SECTORS.size():
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
@@ -115,7 +118,7 @@ func go_to_sector(sector_index: int) -> void:
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
 	var scene_path: String = SECTORS[sector_index - 1]["scene"]
-	get_tree().change_scene_to_file(scene_path)
+	SceneTransition.fade_to_scene(scene_path)
 
 
 ## Devuelve el diccionario de datos del sector actual.
@@ -190,15 +193,20 @@ func get_score() -> int:
 # Persistencia de Progreso
 # ---------------------------------------------------------------------------
 
-## Guarda el progreso actual del jugador en disco.
+## Guarda el progreso actual del jugador en disco (GameManager + SaveSystem).
 func save_progress() -> void:
+	# Sincronizar puntuación con SaveSystem antes de guardar
+	SaveSystem.set_total_score(total_score)
+	SaveSystem.tutorial_completed = tutorial_completed
+	SaveSystem.save()
+
+	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntuacion_total", total_score)
 	config.set_value("jugador", "pistas_usadas", hints_used)
 	config.set_value("jugador", "tutorial_completado", tutorial_completed)
 
-	# Serializar desafíos completados (sector_index → arreglo de índices)
 	for sector_idx: int in completed_challenges.keys():
 		config.set_value("desafios", "sector_%d" % sector_idx,
 			completed_challenges[sector_idx])
@@ -220,9 +228,23 @@ func load_progress() -> void:
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
 	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
 
-	# Restaurar desafíos completados
 	for sector_data in SECTORS:
 		var sid: int = sector_data["index"]
 		var key: String = "sector_%d" % sid
 		if config.has_section_key("desafios", key):
 			completed_challenges[sid] = config.get_value("desafios", key, [])
+
+
+## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.
+## Se llama en _ready() después de load_progress().
+func _sync_from_save_system() -> void:
+	# Puntuación desde SaveSystem (tiene prioridad si es mayor)
+	if SaveSystem.total_score > total_score:
+		total_score = SaveSystem.total_score
+	tutorial_completed = tutorial_completed or SaveSystem.tutorial_completed
+
+	# Reconstruir completed_challenges a partir de los sectores completados en SaveSystem
+	for sid: int in SaveSystem.completed_sectors:
+		if completed_challenges.has(sid) and completed_challenges[sid].is_empty():
+			# Marcar todos los desafíos esperados como completados para sectores acabados
+			completed_challenges[sid] = [0, 1, 2, 3, 4]

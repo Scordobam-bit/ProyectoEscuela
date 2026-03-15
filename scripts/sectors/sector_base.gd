@@ -225,6 +225,9 @@ func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
 
+	# Registrar sector completado en SaveSystem (desbloquea el siguiente automáticamente)
+	SaveSystem.mark_sector_complete(sector_index)
+
 	# Guardar progreso automáticamente al completar cada sector
 	GameManager.save_progress()
 
@@ -251,8 +254,8 @@ func _on_sector_complete() -> void:
 	if next_sector <= GameManager.SECTORS.size():
 		GameManager.go_to_sector(next_sector)
 	else:
-		# Sector final completado → volver al menú principal
-		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+		# Sector final completado → volver al menú principal con fundido
+		SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
 
 
 # ---------------------------------------------------------------------------

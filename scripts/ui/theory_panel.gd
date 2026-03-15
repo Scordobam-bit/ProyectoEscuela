@@ -729,7 +729,7 @@ func _ready() -> void:
 # API Pública
 # ---------------------------------------------------------------------------
 
-## Muestra un briefing de misión lúdico antes de un desafío.
+## Muestra un briefing de misión lúdico antes de un desafío con animación de deslizamiento.
 ## briefing_key : clave del diccionario MISSION_BRIEFINGS (ej. "s1_c0").
 ## Si la clave no existe, no hace nada.
 func show_mission_briefing(briefing_key: String) -> void:
@@ -742,7 +742,7 @@ func show_mission_briefing(briefing_key: String) -> void:
 	_page_label.text = "Briefing"
 	_nav_prev.disabled = true
 	_nav_next.disabled = true
-	visible = true
+	_show_animated()
 
 
 ## Muestra la teoría para el índice de sector dado (carga todos los temas de ese sector).
@@ -754,7 +754,7 @@ func show_sector_theory(sector_index: int) -> void:
 	_topic_keys.assign(data["topics"])
 	_current_page = 0
 	_update_display()
-	visible = true
+	_show_animated()
 
 
 ## Muestra un tema de teoría específico por su clave.
@@ -765,7 +765,7 @@ func show_topic(topic_key: String) -> void:
 	_topic_keys = [topic_key]
 	_current_page = 0
 	_update_display()
-	visible = true
+	_show_animated()
 
 
 ## Oculta el panel de teoría.
@@ -776,6 +776,23 @@ func hide_panel() -> void:
 # ---------------------------------------------------------------------------
 # Auxiliares Privados
 # ---------------------------------------------------------------------------
+
+## Muestra el panel con una animación de deslizamiento desde la parte superior.
+## Da un toque de tecnología espacial moderno a la interfaz educativa.
+func _show_animated() -> void:
+	# Posicionar el panel fuera de la pantalla hacia arriba antes de mostrarlo
+	var original_pos: Vector2 = position
+	position = Vector2(position.x, position.y - 560.0)
+	modulate.a = 0.0
+	visible = true
+
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.tween_property(self, "position", original_pos, 0.35)
+	tween.tween_property(self, "modulate:a", 1.0, 0.25)
+
 
 func _update_display() -> void:
 	if _topic_keys.is_empty():
