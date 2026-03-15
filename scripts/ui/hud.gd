@@ -50,6 +50,9 @@ signal hint_requested
 @export var error_color: Color = Color(1.0, 0.2, 0.2, 1.0)
 @export var mission_failed_color: Color = Color(1.0, 0.05, 0.05, 1.0)
 
+## Duración en segundos del mensaje de retroalimentación visible en pantalla.
+const FEEDBACK_DURATION: float = 5.0
+
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
 
@@ -197,7 +200,7 @@ func show_feedback(message: String, feedback_type: String = "info") -> void:
 		_:
 			_feedback_label.add_theme_color_override("font_color", Color.WHITE)
 	_feedback_label.visible = true
-	_feedback_timer.start(5.0)
+	_feedback_timer.start(FEEDBACK_DURATION)
 
 
 ## Activa el estado de "Misión Fallida": muestra un banner rojo de advertencia
@@ -215,8 +218,8 @@ func show_error_detail(error_detail: String) -> void:
 	_detail_label.text = "🔍 " + error_detail
 	_detail_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 	_detail_label.visible = true
-	# Ocultar junto con el feedback principal al cabo de 5 segundos
-	_feedback_timer.start(5.0)
+	# Ocultar junto con el feedback principal al cabo de FEEDBACK_DURATION segundos
+	_feedback_timer.start(FEEDBACK_DURATION)
 
 
 ## Genera una explicación automática comparando la fórmula del jugador con la esperada.

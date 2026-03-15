@@ -31,6 +31,9 @@ const _STEP_TARGET_INPUT: String = "input"
 const _STEP_TARGET_PLOT: String = "plot_button"
 const _STEP_TARGET_DOMAIN: String = "domain"
 
+## Capa del CanvasLayer — debe ser mayor que la del HUD para renderizarse encima.
+const TUTORIAL_LAYER: int = 10
+
 # Definición de los tres pasos en orden de aparición.
 var _steps: Array = [
 	{
@@ -81,7 +84,7 @@ var _skip_btn: Button = null
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	layer = 10   # Por encima del HUD
+	layer = TUTORIAL_LAYER   # Por encima del HUD
 
 
 ## Configura el gestor y construye la interfaz gráfica.

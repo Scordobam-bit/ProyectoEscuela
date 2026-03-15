@@ -205,14 +205,10 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		return
 	# Permitir que cada desafío defina su propia clave de briefing, con la convención
 	# "s{sector}_c{challenge}" como valor por defecto.
-	var key: String
+	var default_key: String = "s%d_c%d" % [sector_index, challenge_index]
+	var key: String = default_key
 	if challenge_index < _challenges.size():
-		key = _challenges[challenge_index].get(
-			"briefing_key",
-			"s%d_c%d" % [sector_index, challenge_index]
-		)
-	else:
-		key = "s%d_c%d" % [sector_index, challenge_index]
+		key = _challenges[challenge_index].get("briefing_key", default_key)
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
 		_theory_panel.show_mission_briefing(key)
 
