@@ -30,6 +30,13 @@ const DEFAULT_DOMAIN_MIN: float = -10.0
 const DEFAULT_DOMAIN_MAX: float = 10.0
 const DEFAULT_SCALE: float = 40.0
 
+## Multiplicador de escala para dispersar las semillas del generador de estrellas
+## por capa de paralaje, evitando distribuciones idénticas entre capas.
+const SEED_SCALE_FACTOR: int = 2000
+## Desplazamiento adicional de semilla para evitar colisiones entre capas
+## que compartan la misma cantidad de estrellas.
+const SEED_OFFSET: int = 99
+
 # ---------------------------------------------------------------------------
 # Nodos Dinámicos
 # ---------------------------------------------------------------------------
@@ -98,7 +105,7 @@ func _create_star_layer(
 	layer.add_child(stars_node)
 
 	var rng := RandomNumberGenerator.new()
-	rng.seed = int(motion_scale.x * 2000) + star_count + 99
+	rng.seed = int(motion_scale.x * SEED_SCALE_FACTOR) + star_count + SEED_OFFSET
 
 	for _i in range(star_count):
 		var star: Polygon2D = Polygon2D.new()
