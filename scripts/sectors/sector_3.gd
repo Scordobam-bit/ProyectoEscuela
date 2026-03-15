@@ -74,13 +74,38 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 	match challenge_index:
 		0:
-			if _theory_panel:
-				_theory_panel.show_sector_theory(3)
 			_show_reference("sin(x)", Color(0.4, 0.8, 1.0, 0.4))
 		1:
 			_show_reference("cos(x)", Color(0.4, 0.8, 1.0, 0.4))
 		2:
 			_show_reference(_mystery_formula, Color(0.8, 0.2, 1.0, 0.7))
+
+
+# ---------------------------------------------------------------------------
+# Override: Obstáculos del Sector
+# ---------------------------------------------------------------------------
+
+## Genera los obstáculos (púlsares) para cada desafío del Sintonizador de Púlsares.
+func _setup_obstacles_for_challenge(challenge_index: int) -> void:
+	if not _obstacle_manager:
+		return
+	var T: int = GestorObstaculos.TipoObstaculo.PULSAR
+	match challenge_index:
+		0:
+			# Desafío 1: y = sin(x−π)+2
+			_obstacle_manager.add_obstacle(Vector2(0.0,       4.5), 0.7, "Púlsar Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2(0.0,      -0.5), 0.7, "Púlsar Beta", T)
+			_obstacle_manager.add_obstacle(Vector2(PI,        0.5), 0.7, "Púlsar Gamma", T)
+		1:
+			# Desafío 2: y = −0.5·cos(x)
+			_obstacle_manager.add_obstacle(Vector2(0.0,   1.0), 0.7, "Púlsar Delta", T)
+			_obstacle_manager.add_obstacle(Vector2(0.0,  -2.0), 0.7, "Púlsar Épsilon", T)
+			_obstacle_manager.add_obstacle(Vector2(PI,    2.0), 0.7, "Púlsar Zeta", T)
+		2:
+			# Jefe: y = 2·sin(2x)−1
+			_obstacle_manager.add_obstacle(Vector2(0.0,   1.5), 0.7, "Púlsar Maestro Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2(0.0,  -3.5), 0.7, "Púlsar Maestro Beta", T)
+			_obstacle_manager.add_obstacle(Vector2(2.0,   2.5), 0.7, "Púlsar Maestro Gamma", T)
 
 
 func _on_formula_submitted_sector(formula: String) -> void:

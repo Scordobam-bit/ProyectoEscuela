@@ -118,6 +118,11 @@ var _expression: Expression = Expression.new()
 var _last_points: PackedVector2Array = PackedVector2Array()
 var _plot_valid: bool = false
 
+## Línea de referencia / "Línea Fantasma" — muestra la solución correcta en verde.
+var _reference_line: Line2D = null
+## Color original de la línea de función (para restaurar después de marcar error).
+var _original_line_color: Color = Color(0.0, 1.0, 0.8, 1.0)
+
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
@@ -310,6 +315,76 @@ func build_path2d() -> Path2D:
 		curve.add_point(pt)
 	path.curve = curve
 	return path
+
+
+## Muestra una "Línea Fantasma" de referencia con la fórmula y color indicados.
+## Llamar con la fórmula correcta (verde) cuando el jugador cometió un error.
+func show_reference_line(ref_formula: String, ref_color: Color = Color(0.0, 1.0, 0.3, 0.7)) -> void:
+	if not is_inside_tree():
+		return
+
+	# Eliminar referencia previa si existe
+	hide_reference_line()
+
+	var expr: Expression = Expression.new()
+	if expr.parse(ref_formula, ["x"]) != OK:
+		return
+
+	var step: float = (domain_max - domain_min) / float(sample_count - 1)
+	var ref_pts: PackedVector2Array = PackedVector2Array()
+
+	for i in range(sample_count):
+		var x: float = domain_min + step * float(i)
+		var result: Variant = expr.execute([x])
+		if expr.has_execute_failed() or result == null:
+			continue
+		var y: float = float(result)
+		if is_nan(y) or is_inf(y):
+			continue
+		if y_clamp > 0.0 and absf(y) > y_clamp:
+			continue
+		ref_pts.append(math_to_screen(Vector2(x, y)))
+
+	if ref_pts.size() < 2:
+		return
+
+	_reference_line = Line2D.new()
+	_reference_line.name = "_ReferenceLine"
+	_reference_line.width = line_width + 0.5
+	_reference_line.default_color = ref_color
+	_reference_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_reference_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	_reference_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	_reference_line.points = ref_pts
+	add_child(_reference_line)
+
+
+## Oculta y elimina la Línea Fantasma de referencia.
+func hide_reference_line() -> void:
+	if _reference_line and is_instance_valid(_reference_line):
+		_reference_line.queue_free()
+	_reference_line = null
+
+
+## Marca la línea de función actual como errónea (color rojo semitransparente).
+## Llama a reset_line_style() para restaurar el estilo original.
+func mark_as_error() -> void:
+	_original_line_color = line_color
+	if _function_line:
+		_function_line.default_color = Color(1.0, 0.2, 0.2, 0.55)
+	for child in get_children():
+		if child.name.begins_with("_SegLine"):
+			(child as Line2D).default_color = Color(1.0, 0.2, 0.2, 0.55)
+
+
+## Restaura el color y estilo originales de la línea de función.
+func reset_line_style() -> void:
+	if _function_line:
+		_function_line.default_color = _original_line_color
+	for child in get_children():
+		if child.name.begins_with("_SegLine"):
+			(child as Line2D).default_color = _original_line_color
+	hide_reference_line()
 
 
 ## Devuelve el Vector2 en espacio de pantalla para un par (x, y) en espacio matemático.

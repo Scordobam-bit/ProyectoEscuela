@@ -76,14 +76,41 @@ func _on_challenge_begin(challenge_index: int) -> void:
 	for wp in waypoints:
 		_spawn_waypoint_marker(wp)
 
-	# Establecer dominio del graficador y mostrar teoría para el desafío 0
+	# Establecer dominio del graficador
 	if _plotter:
 		_plotter.domain_min = -10.0
 		_plotter.domain_max = 10.0
 		_plotter.scale_factor = 40.0
 
-	if challenge_index == 0 and _theory_panel:
-		_theory_panel.show_sector_theory(1)
+
+# ---------------------------------------------------------------------------
+# Override: Obstáculos del Sector
+# ---------------------------------------------------------------------------
+
+## Genera los obstáculos (asteroides) para cada desafío del Cinturón de Asteroides.
+func _setup_obstacles_for_challenge(challenge_index: int) -> void:
+	if not _obstacle_manager:
+		return
+	var T: int = GestorObstaculos.TipoObstaculo.ASTEROIDE
+	match challenge_index:
+		0:
+			# Desafío 1: y = x + 1  (los asteroides flanquean el pasillo correcto)
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  4.0), 1.0, "Asteroide Alfa-1", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -2.0), 1.0, "Asteroide Alfa-2", T)
+			_obstacle_manager.add_obstacle(Vector2( 5.0,  3.0), 1.0, "Asteroide Alfa-3", T)
+			_obstacle_manager.add_obstacle(Vector2(-5.0,  0.0), 1.0, "Asteroide Alfa-4", T)
+		1:
+			# Desafío 2: y = -2x + 3
+			_obstacle_manager.add_obstacle(Vector2( 2.0,  1.0), 1.0, "Asteroide Beta-1", T)
+			_obstacle_manager.add_obstacle(Vector2(-2.0, -3.0), 1.0, "Asteroide Beta-2", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  6.0), 1.0, "Asteroide Beta-3", T)
+			_obstacle_manager.add_obstacle(Vector2( 1.0, -1.0), 1.0, "Asteroide Beta-4", T)
+		2:
+			# Jefe: y = 1.5x - 5
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -1.0), 1.0, "Asteroide Gamma-1", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -9.0), 1.0, "Asteroide Gamma-2", T)
+			_obstacle_manager.add_obstacle(Vector2( 4.0,  5.0), 1.0, "Asteroide Gamma-3", T)
+			_obstacle_manager.add_obstacle(Vector2(-4.0, -7.0), 1.0, "Asteroide Gamma-4", T)
 
 
 # ---------------------------------------------------------------------------

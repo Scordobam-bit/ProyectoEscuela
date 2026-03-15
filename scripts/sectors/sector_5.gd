@@ -64,10 +64,24 @@ func _setup_challenges() -> void:
 				"¡INGRESA SU INVERSA para liberarte del Horizonte de Sucesos!",
 			"hint": "log(x + 2)",
 			"expected_formula": "log(x + 2)",
-			"feedback_correct": "🌟 ¡HORIZONTE DE SUCESOS ESCAPADO! ¡Planet Waves completado! 🌟",
+			"feedback_correct": "🌟 ¡Inversa hallada! Preparando secuencia de escape…",
 			"feedback_wrong": "Si f(x) = eˣ − 2, invierte: y = eˣ−2 → x = ln(y+2) → f⁻¹(y) = ln(y+2)",
 			"solution_hint": "f⁻¹(x) = ln(x + 2)  → Godot: log(x + 2)",
 			"score": 500,
+		},
+		{
+			"instruction": "🌌 FUNCIÓN COMPUESTA — ESTABILIZACIÓN FINAL:\n" +
+				"f(x) = eˣ − 2  y  g(x) = ln(x + 2).\n" +
+				"Calcula (f∘g)(x) = f(g(x)) e ingresa la fórmula simplificada para estabilizar\n" +
+				"el Horizonte de Sucesos y salvar la nave.",
+			"hint": "x",
+			"expected_formula": "x",
+			"feedback_correct": "🌟 ¡HORIZONTE DE SUCESOS ESTABILIZADO! ¡Planet Waves completado! 🌟\n" +
+				"f(g(x)) = eˡⁿ⁽ˣ⁺²⁾ − 2 = (x+2) − 2 = x ✓",
+			"feedback_wrong": "Sustituye g(x) en f: f(g(x)) = e^(ln(x+2)) − 2.\n" +
+				"Recuerda que e^(ln(u)) = u para u > 0.",
+			"solution_hint": "f(g(x)) = eˡⁿ⁽ˣ⁺²⁾ − 2 = (x+2) − 2 = x",
+			"score": 750,
 		},
 	]
 
@@ -82,8 +96,6 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 	match challenge_index:
 		0:
-			if _theory_panel:
-				_theory_panel.show_sector_theory(5)
 			_show_reference("x^3", Color(0.6, 0.8, 1.0, 0.5))
 		1:
 			_show_reference("2*x + 4", Color(0.6, 0.8, 1.0, 0.5))
@@ -93,10 +105,56 @@ func _on_challenge_begin(challenge_index: int) -> void:
 			_show_reference("exp(x) - 2", Color(1.0, 0.5, 0.2, 0.5))
 			_show_symmetry_line()
 		3:
-			# JEFE: mostrar la fórmula gravitacional
+			# Jefe parcial: mostrar la fórmula gravitacional
 			_show_reference("exp(x) - 2", Color(1.0, 0.2, 0.2, 0.8))
 			_show_symmetry_line()
 			_spawn_event_horizon_ring()
+		4:
+			# FUNCIÓN COMPUESTA FINAL: mostrar ambas funciones f y g
+			_show_reference("exp(x) - 2", Color(1.0, 0.3, 0.1, 0.7))
+			_show_reference_secondary("log(x + 2)", Color(0.3, 1.0, 0.5, 0.7))
+			_show_symmetry_line()
+			_spawn_event_horizon_ring()
+			_spawn_composite_sequence_vfx()
+
+
+# ---------------------------------------------------------------------------
+# Override: Obstáculos del Sector
+# ---------------------------------------------------------------------------
+
+## Genera los obstáculos (púlsares del horizonte) para cada desafío del Sector 5.
+func _setup_obstacles_for_challenge(challenge_index: int) -> void:
+	if not _obstacle_manager:
+		return
+	var T: int = GestorObstaculos.TipoObstaculo.PULSAR
+	match challenge_index:
+		0:
+			# Desafío 1: y = 1 (constante)
+			_obstacle_manager.add_obstacle(Vector2( 3.0,  4.0), 0.7, "Singularidad Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2(-2.0,  4.0), 0.7, "Singularidad Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -2.0), 0.7, "Singularidad Gamma", T)
+		1:
+			# Desafío 2: y = (x−4)/2
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  1.0), 0.7, "Horizonte Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -5.0), 0.7, "Horizonte Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 4.0,  3.5), 0.7, "Horizonte Gamma", T)
+		2:
+			# Desafío 3: y = log(x+2)
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  2.5), 0.7, "Velo de Sucesos Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -1.5), 0.7, "Velo de Sucesos Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 3.0,  4.0), 0.7, "Velo de Sucesos Gamma", T)
+		3:
+			# Jefe parcial: y = log(x+2)
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  3.0), 0.8, "Centinela del Horizonte Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -1.5), 0.8, "Centinela del Horizonte Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 4.0,  5.0), 0.8, "Centinela del Horizonte Gamma", T)
+			_obstacle_manager.add_obstacle(Vector2(-1.0,  2.0), 0.8, "Centinela del Horizonte Delta", T)
+		4:
+			# FUNCIÓN COMPUESTA FINAL: y = x (identidad)
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  3.0), 0.8, "Guardián de la Singularidad Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2( 3.0,  0.0), 0.8, "Guardián de la Singularidad Beta", T)
+			_obstacle_manager.add_obstacle(Vector2(-2.0,  2.0), 0.8, "Guardián de la Singularidad Gamma", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -3.0), 0.8, "Guardián de la Singularidad Delta", T)
 
 
 func _on_formula_submitted_sector(formula: String) -> void:
@@ -126,6 +184,12 @@ func _on_formula_submitted_sector(formula: String) -> void:
 				_inverse_plotter.position = _plotter.position if _plotter else Vector2.ZERO
 				add_child(_inverse_plotter)
 				_markers.append(_inverse_plotter)
+			4:
+				# Mostrar la función compuesta evaluada en un punto de prueba
+				var composed: String = MathEngine.compose("exp(x) - 2", "log(x + 2)")
+				_hud.show_feedback(
+					"Verificación f(g(x)): %s → simplificado: x" % composed, "info"
+				)
 	_validate_formula_against_current(formula)
 
 
@@ -175,6 +239,42 @@ func _spawn_event_horizon_ring() -> void:
 	ring.position = _plotter.position if _plotter else Vector2.ZERO
 	add_child(ring)
 	_markers.append(ring)
+
+
+## Muestra una segunda curva de referencia para el desafío de función compuesta.
+func _show_reference_secondary(ref_formula: String, color: Color) -> void:
+	var sec: FunctionPlotter = FunctionPlotter.new()
+	sec.formula = ref_formula
+	sec.domain_min = -4.0
+	sec.domain_max = 6.0
+	sec.scale_factor = 55.0
+	sec.y_clamp = 10.0
+	sec.line_color = color
+	sec.line_width = 1.8
+	sec.show_axes = false
+	sec.position = _plotter.position if _plotter else Vector2.ZERO
+	add_child(sec)
+	_markers.append(sec)
+
+
+## Genera efectos visuales adicionales para la secuencia de función compuesta final.
+func _spawn_composite_sequence_vfx() -> void:
+	# Dibujar doble anillo — exterior naranja, interior cian — que representa la composición
+	for ring_data in [
+		{"radius": 220.0, "color": Color(1.0, 0.5, 0.0, 0.4), "width": 3.0},
+		{"radius": 140.0, "color": Color(0.0, 0.9, 1.0, 0.35), "width": 2.0},
+	]:
+		var ring: Line2D = Line2D.new()
+		ring.width = ring_data["width"]
+		ring.default_color = ring_data["color"]
+		var pts: PackedVector2Array = PackedVector2Array()
+		for i in range(65):
+			var angle: float = TAU * float(i) / 64.0
+			pts.append(Vector2(cos(angle) * ring_data["radius"], sin(angle) * ring_data["radius"]))
+		ring.points = pts
+		ring.position = _plotter.position if _plotter else Vector2.ZERO
+		add_child(ring)
+		_markers.append(ring)
 
 
 func _clear_markers() -> void:
