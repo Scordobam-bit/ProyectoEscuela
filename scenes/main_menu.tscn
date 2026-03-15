@@ -78,6 +78,15 @@ layout_mode = 2
 custom_minimum_size = Vector2(300, 40)
 text = "Sector 5: Horizonte de Sucesos"
 
+[node name="Spacer3" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+
+[node name="LabButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(300, 48)
+text = "🔬  Laboratorio Estelar (Exploración Libre)"
+
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)

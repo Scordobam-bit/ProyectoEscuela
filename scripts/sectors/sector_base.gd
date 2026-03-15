@@ -224,11 +224,29 @@ func _advance_challenge() -> void:
 func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
-	if _hud:
-		_hud.show_feedback(
-			"¡Sector %d Completado! Saltando al siguiente sector…" % sector_index, "success"
-		)
-	await get_tree().create_timer(2.0).timeout
+
+	# Guardar progreso automáticamente al completar cada sector
+	GameManager.save_progress()
+
+	# Calcular puntuación ganada en este sector
+	var score_earned: int = 0
+	if GameManager.completed_challenges.has(sector_index):
+		for ci: int in GameManager.completed_challenges[sector_index]:
+			if ci < _challenges.size():
+				score_earned += _challenges[ci].get("score", 100)
+
+	# Mostrar panel de "¡Misión Cumplida!" con resumen pedagógico
+	var panel: MissionCompletePanel = MissionCompletePanel.new()
+	add_child(panel)
+	panel.show_results(
+		sector_index,
+		score_earned,
+		GameManager.completed_challenges.get(sector_index, [])
+	)
+
+	# Esperar a que el jugador presione "Continuar"
+	await panel.continue_pressed
+
 	var next_sector: int = sector_index + 1
 	if next_sector <= GameManager.SECTORS.size():
 		GameManager.go_to_sector(next_sector)

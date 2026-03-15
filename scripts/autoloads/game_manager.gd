@@ -82,12 +82,20 @@ var session_start_time: float = 0.0
 var tutorial_completed: bool = false
 
 # ---------------------------------------------------------------------------
+# Persistencia
+# ---------------------------------------------------------------------------
+
+## Ruta del archivo de guardado de progreso.
+const SAVE_PATH: String = "user://planet_waves_save.cfg"
+
+# ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
 	session_start_time = Time.get_ticks_msec() / 1000.0
 	_initialise_progress()
+	load_progress()   # Cargar progreso guardado al iniciar
 
 
 func _initialise_progress() -> void:
@@ -176,3 +184,45 @@ func get_elapsed_time() -> float:
 ## Devuelve la puntuación total del jugador.
 func get_score() -> int:
 	return total_score
+
+
+# ---------------------------------------------------------------------------
+# Persistencia de Progreso
+# ---------------------------------------------------------------------------
+
+## Guarda el progreso actual del jugador en disco.
+func save_progress() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	config.set_value("jugador", "sector_actual", current_sector)
+	config.set_value("jugador", "puntuacion_total", total_score)
+	config.set_value("jugador", "pistas_usadas", hints_used)
+	config.set_value("jugador", "tutorial_completado", tutorial_completed)
+
+	# Serializar desafíos completados (sector_index → arreglo de índices)
+	for sector_idx: int in completed_challenges.keys():
+		config.set_value("desafios", "sector_%d" % sector_idx,
+			completed_challenges[sector_idx])
+
+	var err: Error = config.save(SAVE_PATH)
+	if err != OK:
+		push_warning("GameManager: no se pudo guardar el progreso en '%s' (error %d)" % [SAVE_PATH, err])
+
+
+## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
+func load_progress() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	var err: Error = config.load(SAVE_PATH)
+	if err != OK:
+		return   # Sin archivo de guardado previo — primera sesión
+
+	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
+	total_score         = config.get_value("jugador", "puntuacion_total",   0)
+	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
+	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
+
+	# Restaurar desafíos completados
+	for sector_data in SECTORS:
+		var sid: int = sector_data["index"]
+		var key: String = "sector_%d" % sid
+		if config.has_section_key("desafios", key):
+			completed_challenges[sid] = config.get_value("desafios", key, [])

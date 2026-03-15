@@ -71,17 +71,18 @@ func _setup_challenges() -> void:
 		},
 		{
 			"instruction": "🌌 FUNCIÓN COMPUESTA — ESTABILIZACIÓN FINAL:\n" +
-				"f(x) = eˣ − 2  y  g(x) = ln(x + 2).\n" +
-				"Calcula (f∘g)(x) = f(g(x)) e ingresa la fórmula simplificada para estabilizar\n" +
+				"f(x) = ln(x)  y  g(x) = eˣ + 2.\n" +
+				"Calcula (f∘g)(x) = f(g(x)) e ingresa la fórmula resultante para estabilizar\n" +
 				"el Horizonte de Sucesos y salvar la nave.",
-			"hint": "x",
-			"expected_formula": "x",
+			"hint": "log(exp(x) + 2)",
+			"expected_formula": "log(exp(x) + 2)",
 			"feedback_correct": "🌟 ¡HORIZONTE DE SUCESOS ESTABILIZADO! ¡Planet Waves completado! 🌟\n" +
-				"f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x ✓",
-			"feedback_wrong": "Sustituye g(x) en f: f(g(x)) = e^(ln(x+2)) − 2.\n" +
-				"Recuerda que e^(ln(u)) = u para u > 0.",
-			"solution_hint": "f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x",
+				"f(g(x)) = ln(eˣ + 2) ✓  — ¡dominio de funciones compuestas confirmado!",
+			"feedback_wrong": "Sustituye g(x) en f: f(g(x)) = ln(eˣ + 2).\n" +
+				"En Godot: log(exp(x) + 2)",
+			"solution_hint": "f(g(x)) = ln(eˣ + 2)  → en Godot: log(exp(x) + 2)",
 			"score": 750,
+			"briefing_key": "s5_c4",
 		},
 	]
 
@@ -110,9 +111,9 @@ func _on_challenge_begin(challenge_index: int) -> void:
 			_show_symmetry_line()
 			_spawn_event_horizon_ring()
 		4:
-			# FUNCIÓN COMPUESTA FINAL: mostrar ambas funciones f y g
-			_show_reference("exp(x) - 2", Color(1.0, 0.3, 0.1, 0.7))
-			_show_reference_secondary("log(x + 2)", Color(0.3, 1.0, 0.5, 0.7))
+			# FUNCIÓN COMPUESTA FINAL: f(x)=ln(x) y g(x)=eˣ+2 → f(g(x))=ln(eˣ+2)
+			_show_reference("log(x)", Color(0.3, 1.0, 0.5, 0.7))
+			_show_reference_secondary("exp(x) + 2", Color(1.0, 0.4, 0.1, 0.7))
 			_show_symmetry_line()
 			_spawn_event_horizon_ring()
 			_spawn_composite_sequence_vfx()
@@ -161,14 +162,20 @@ func _on_formula_submitted_sector(formula: String) -> void:
 	if _hud and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
-				# Mostrar verificación de inyectividad
+				# Mostrar verificación de inyectividad de la función de referencia
 				var inj: Dictionary = MathEngine.check_injectivity("2*x + 4")
 				_hud.show_feedback(
 					"Inyectividad de 2x+4: %s (creciente: %s)" % [
 						str(inj["injective"]), str(inj["monotone_increasing"])
 					], "info"
 				)
+				# Advertencia de inyectividad si la fórmula del jugador no es inyectiva
+				_check_and_warn_injectivity(formula)
 			2, 3:
+				# Advertencia de inyectividad antes de mostrar la inversa
+				if _check_and_warn_injectivity(formula):
+					return   # Fórmula no inyectiva → no continuar con la validación
+
 				# Mostrar la inversa graficada junto a f para confirmar simetría sobre y=x
 				if _inverse_plotter:
 					_inverse_plotter.queue_free()
@@ -186,11 +193,32 @@ func _on_formula_submitted_sector(formula: String) -> void:
 				_markers.append(_inverse_plotter)
 			4:
 				# Mostrar la función compuesta evaluada en un punto de prueba
-				var composed: String = MathEngine.compose("exp(x) - 2", "log(x + 2)")
+				var composed: String = MathEngine.compose("log(x)", "exp(x) + 2")
 				_hud.show_feedback(
-					"Verificación f(g(x)): %s → simplificado: x" % composed, "info"
+					"Verificación f(g(x)): f(g(x)) = %s" % composed, "info"
 				)
 	_validate_formula_against_current(formula)
+
+
+## Comprueba si la fórmula enviada es inyectiva en el dominio actual.
+## Si no lo es, muestra el mensaje de Advertencia de Inyectividad y devuelve true.
+func _check_and_warn_injectivity(formula: String) -> bool:
+	var d_min: float = -5.0
+	var d_max: float = 5.0
+	if _plotter:
+		d_min = _plotter.domain_min
+		d_max = _plotter.domain_max
+	var result: Dictionary = MathEngine.check_injectivity(formula, d_min, d_max)
+	if not result["injective"]:
+		if _hud:
+			_hud.show_feedback(
+				"⚠ Error de Simetría: La trayectoria actual no es inyectiva y "
+				+ "no posee inversa en este dominio.\n"
+				+ "Restrinja el dominio o use una función estrictamente monótona.",
+				"error"
+			)
+		return true
+	return false
 
 
 func _show_reference(ref_formula: String, color: Color) -> void:

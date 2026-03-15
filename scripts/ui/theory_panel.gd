@@ -685,25 +685,25 @@ Esta es la INVERSA EXACTA de la gravedad del agujero negro. Al ingresar esta fun
 	},
 	"s5_c4": {
 		"title": "⚡ SECUENCIA FINAL — Función Compuesta del Horizonte",
-		"content": """[color=#ff0000][b]PROTOCOLO SIGMA — ESTABILIZACIÓN CUÁNTICA[/b][/color]
+		"content": """[color=#ff0000][b]PROTOCOLO SIGMA — COMPOSICIÓN TRASCENDENTAL[/b][/color]
 
-¡Capitán! Los sensores detectan un [color=#aa44ff]segundo pliegue dimensional[/color] emergiendo del núcleo. La inversión simple ya no es suficiente.
+¡Capitán! Un segundo pliegue dimensional emerge del núcleo. El Consejo Galáctico transmite el protocolo definitivo:
 
-Los físicos del Consejo Galáctico transmiten el protocolo definitivo:
+[b]Función de Transformación:[/b]     [color=#00ff88]f(x) = ln(x)[/color]  → en Godot: [color=#ffcc00]log(x)[/color]
+[b]Función de Campo Gravitacional:[/b] [color=#ff8844]g(x) = eˣ + 2[/color]  → en Godot: [color=#ffcc00]exp(x) + 2[/color]
 
-[b]Función Gravitacional:[/b]      [color=#ff4444]f(x) = eˣ − 2[/color]
-[b]Función de Contra-gravedad:[/b]  [color=#00ff88]g(x) = ln(x + 2)[/color]
+Para estabilizar el Horizonte de Sucesos, calcula la [color=#ffcc00]función compuesta[/color]:
 
-Para estabilizar el Horizonte de Sucesos, la computadora central necesita la [color=#ffcc00]función compuesta[/color]:
+[b][color=#ffcc00](f∘g)(x) = f(g(x)) = ln(eˣ + 2)[/color][/b]
 
-[b][color=#ffcc00](f∘g)(x) = f(g(x)) = e^(ln(x+2)) − 2 = (x+2) − 2 = x[/color][/b]
+[b]Pasos:[/b]
+1. Sustituye g(x) dentro de f:  f(g(x)) = ln(g(x))
+2. Reemplaza g(x) = eˣ + 2:    f(g(x)) = ln(eˣ + 2)
 
-Esta composición da como resultado la [color=#00ffcc]función identidad[/color], lo que significa que f y g se cancelan perfectamente.
+[b]Tu misión:[/b] Ingresa la función compuesta resultante:
+  [color=#ffcc00][b]log(exp(x) + 2)[/b][/color]
 
-[b]Tu misión:[/b] Ingresa la función identidad compuesta simplificada:
-  [color=#ffcc00][b]f(g(x)) = x[/b][/color]
-
-[color=#ff3300][b]¡La composición perfecta estabilizará el Horizonte y salvará Planet Waves para siempre![/b][/color]"""
+[color=#ff3300][b]¡La composición perfecta estabilizará el Horizonte y salvará Planet Waves![/b][/color]"""
 	},
 }
 
