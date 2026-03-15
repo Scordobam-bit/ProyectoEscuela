@@ -33,8 +33,8 @@ signal challenge_started(challenge_index: int)
 
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
 @onready var _ship: ShipController = $Ship
-@onready var _hud: HUD = find_child("HUD", true, false)
-var _theory_panel: TheoryPanel = null
+@export var hud_node: HUD
+@export var theory_panel_node: TheoryPanel
 
 # ---------------------------------------------------------------------------
 # Estado de Desafíos
@@ -52,8 +52,6 @@ var _obstacle_manager: GestorObstaculos = null
 
 func _ready() -> void:
 	await get_tree().process_frame
-	if _hud:
-		_theory_panel = _hud.find_child("TheoryPanel", true, false)
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
 	_setup_parallax_stars()
@@ -192,10 +190,10 @@ func _start_challenge(index: int) -> void:
 	if _plotter:
 		_plotter.reset_line_style()
 
-	if _hud:
+	if hud_node:
 		var ch: Dictionary = _challenges[index]
-		_hud.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
-		_hud.show_feedback(ch.get("instruction", ""), "info")
+		hud_node.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
+		hud_node.show_feedback(ch.get("instruction", ""), "info")
 
 	# Mostrar briefing de misión antes del desafío
 	_show_mission_briefing_for_challenge(index)
@@ -204,7 +202,7 @@ func _start_challenge(index: int) -> void:
 
 
 func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
-	if not _theory_panel:
+	if not theory_panel_node:
 		return
 	# Permitir que cada desafío defina su propia clave de briefing, con la convención
 	# "s{sector}_c{challenge}" como valor por defecto.
@@ -213,7 +211,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 	if challenge_index < _challenges.size():
 		key = _challenges[challenge_index].get("briefing_key", default_key)
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
-		_theory_panel.show_mission_briefing(key)
+		theory_panel_node.show_mission_briefing(key)
 
 
 func _advance_challenge() -> void:
@@ -266,12 +264,12 @@ func _on_sector_complete() -> void:
 # ---------------------------------------------------------------------------
 
 func _connect_hud() -> void:
-	if not _hud:
+	if not hud_node:
 		return
-	_hud.formula_submitted.connect(_on_formula_submitted_hud)
-	_hud.domain_changed.connect(_on_domain_changed)
-	_hud.theory_requested.connect(_on_theory_requested)
-	_hud.hint_requested.connect(_on_hint_requested)
+	hud_node.formula_submitted.connect(_on_formula_submitted_hud)
+	hud_node.domain_changed.connect(_on_domain_changed)
+	hud_node.theory_requested.connect(_on_theory_requested)
+	hud_node.hint_requested.connect(_on_hint_requested)
 
 
 func _connect_plotter() -> void:
@@ -285,8 +283,8 @@ func _connect_plotter() -> void:
 func _on_formula_submitted_hud(formula: String) -> void:
 	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
 	if not MathEngine.is_valid_formula(formula):
-		if _hud:
-			_hud.show_feedback(MathEngine.get_friendly_error_message(formula), "error")
+		if hud_node:
+			hud_node.show_feedback(MathEngine.get_friendly_error_message(formula), "error")
 		return
 
 	if _plotter:
@@ -297,8 +295,8 @@ func _on_formula_submitted_hud(formula: String) -> void:
 		var trajectory_points: PackedVector2Array = _plotter.get_screen_points()
 		if _obstacle_manager.check_trajectory_collision(trajectory_points):
 			var hit_name: String = _obstacle_manager.get_last_hit_name()
-			if _hud:
-				_hud.show_mission_failed(hit_name)
+			if hud_node:
+				hud_node.show_mission_failed(hit_name)
 			if _ship:
 				_ship.reset()
 			return  # No validar la fórmula si impacta un obstáculo
@@ -313,20 +311,20 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 
 
 func _on_plot_failed(error_message: String) -> void:
-	if _hud:
-		_hud.show_feedback("⚠ " + error_message, "error")
+	if hud_node:
+		hud_node.show_feedback("⚠ " + error_message, "error")
 
 
 func _on_theory_requested() -> void:
-	if _theory_panel:
-		_theory_panel.show_sector_theory(sector_index)
+	if theory_panel_node:
+		theory_panel_node.show_sector_theory(sector_index)
 
 
 func _on_hint_requested() -> void:
 	if _current_challenge < _challenges.size():
 		var hint: String = _challenges[_current_challenge].get("solution_hint", "Sin pista disponible.")
-		if _hud:
-			_hud.show_feedback("Pista: " + hint, "warning")
+		if hud_node:
+			hud_node.show_feedback("Pista: " + hint, "warning")
 		GameManager.hints_used += 1
 
 
@@ -361,6 +359,6 @@ func _validate_formula_against_current(player_formula: String) -> void:
 			_plotter.mark_as_error()
 			_plotter.show_reference_line(expected, Color(0.0, 1.0, 0.3, 0.7))
 		# Generar explicación automática del error
-		if _hud and not expected.is_empty():
-			_hud.show_auto_error_explanation(player_formula, expected)
+		if hud_node and not expected.is_empty():
+			hud_node.show_auto_error_explanation(player_formula, expected)
 

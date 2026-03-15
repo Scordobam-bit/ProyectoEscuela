@@ -7,6 +7,8 @@
 
 [node name="Sector1AsteroidBelt" type="Node2D"]
 script = ExtResource("5")
+hud_node = NodePath("HUD")
+theory_panel_node = NodePath("HUD/TheoryPanel")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
