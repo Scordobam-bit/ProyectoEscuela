@@ -71,8 +71,6 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 	match challenge_index:
 		0:
-			if _theory_panel:
-				_theory_panel.show_sector_theory(4)
 			# Mostrar curvas de referencia f y g
 			_show_ref_curve(_f_formula, Color(0.2, 0.6, 1.0, 0.4))
 			_show_ref_curve(_g_formula, Color(1.0, 0.6, 0.2, 0.4))
@@ -81,6 +79,34 @@ func _on_challenge_begin(challenge_index: int) -> void:
 			_show_ref_curve("x - 1", Color(1.0, 0.6, 0.2, 0.4))
 		2:
 			_show_ref_curve("x^2 - 4", Color(0.8, 0.4, 1.0, 0.4))
+
+
+# ---------------------------------------------------------------------------
+# Override: Obstáculos del Sector
+# ---------------------------------------------------------------------------
+
+## Genera los obstáculos para cada desafío de la Estación de Acoplamiento.
+func _setup_obstacles_for_challenge(challenge_index: int) -> void:
+	if not _obstacle_manager:
+		return
+	var T: int = GestorObstaculos.TipoObstaculo.ASTEROIDE
+	match challenge_index:
+		0:
+			# Desafío 1: y = x² + 3x − 1
+			_obstacle_manager.add_obstacle(Vector2( 0.0,  2.0), 0.9, "Escombro Orbital Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2( 0.0, -4.0), 0.9, "Escombro Orbital Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 2.0,  3.0), 0.9, "Escombro Orbital Gamma", T)
+			_obstacle_manager.add_obstacle(Vector2(-3.0,  4.0), 0.9, "Escombro Orbital Delta", T)
+		1:
+			# Desafío 2: y = (x+1)/(x−1)
+			_obstacle_manager.add_obstacle(Vector2( 3.5, -2.0), 0.9, "Residuo de Acoplamiento Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2(-2.0,  5.0), 0.9, "Residuo de Acoplamiento Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 4.0,  0.0), 0.9, "Residuo de Acoplamiento Gamma", T)
+		2:
+			# Jefe: y = sqrt(x²−4)
+			_obstacle_manager.add_obstacle(Vector2( 3.5,  5.0), 0.9, "Escudo de Acoplamiento Alfa", T)
+			_obstacle_manager.add_obstacle(Vector2(-3.5,  5.0), 0.9, "Escudo de Acoplamiento Beta", T)
+			_obstacle_manager.add_obstacle(Vector2( 5.0,  0.5), 0.9, "Escudo de Acoplamiento Gamma", T)
 
 
 func _on_formula_submitted_sector(formula: String) -> void:

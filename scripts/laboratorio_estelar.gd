@@ -1,0 +1,503 @@
+## LaboratorioEstelar.gd
+## =====================
+## Modo sandbox de exploración libre — "Laboratorio Estelar".
+## Permite comparar hasta tres funciones matemáticas simultáneamente
+## sin obstáculos ni metas. Fomenta la curiosidad y el descubrimiento autónomo.
+class_name LaboratorioEstelar
+extends Node2D
+
+# ---------------------------------------------------------------------------
+# Constantes de Estética
+# ---------------------------------------------------------------------------
+
+## Colores neón para las tres curvas (cian, naranja, magenta).
+const PLOT_COLORS: Array[Color] = [
+	Color(0.0,  1.0,  0.8,  1.0),   # Cian neón
+	Color(1.0,  0.55, 0.0,  1.0),   # Naranja neón
+	Color(0.85, 0.0,  1.0,  1.0),   # Magenta neón
+]
+
+const LABEL_COLORS: Array[Color] = [
+	Color(0.0,  1.0,  0.8,  1.0),
+	Color(1.0,  0.65, 0.1,  1.0),
+	Color(0.9,  0.2,  1.0,  1.0),
+]
+
+## Colores tenues para las estelas (versiones oscurecidas de los colores neón).
+const TRAIL_COLORS: Array[Color] = [
+	Color(0.0,  0.55, 0.44, 0.45),   # Cian tenue
+	Color(0.55, 0.28, 0.0,  0.45),   # Naranja tenue
+	Color(0.45, 0.0,  0.55, 0.45),   # Magenta tenue
+	Color(0.15, 0.40, 0.75, 0.45),   # Azul tenue
+	Color(0.65, 0.55, 0.0,  0.45),   # Amarillo tenue
+	Color(0.0,  0.55, 0.25, 0.45),   # Verde tenue
+]
+
+const MAX_FUNCTIONS: int = 3
+
+## Máximo de estelas (trazos congelados) simultáneas.
+const MAX_TRAILS: int = 6
+
+## Dominio por defecto del graficador.
+const DEFAULT_DOMAIN_MIN: float = -10.0
+const DEFAULT_DOMAIN_MAX: float = 10.0
+const DEFAULT_SCALE: float = 40.0
+
+## Multiplicador de escala para dispersar las semillas del generador de estrellas
+## por capa de paralaje, evitando distribuciones idénticas entre capas.
+const SEED_SCALE_FACTOR: int = 2000
+## Desplazamiento adicional de semilla para evitar colisiones entre capas
+## que compartan la misma cantidad de estrellas.
+const SEED_OFFSET: int = 99
+
+# ---------------------------------------------------------------------------
+# Nodos Dinámicos
+# ---------------------------------------------------------------------------
+
+var _plotters: Array[FunctionPlotter] = []
+var _hud_layer: CanvasLayer = null
+var _formula_inputs: Array[LineEdit] = []
+var _plot_buttons: Array[Button] = []
+var _active_checks: Array[CheckBox] = []
+var _domain_min_spin: SpinBox = null
+var _domain_max_spin: SpinBox = null
+var _status_label: Label = null
+
+## Lista de graficadores de estela (trazos congelados).
+var _trail_plotters: Array[FunctionPlotter] = []
+## Índice que apunta al próximo color de estela disponible.
+var _trail_index: int = 0
+## Etiqueta que indica cuántas estelas hay activas.
+var _trails_count_label: Label = null
+
+# ---------------------------------------------------------------------------
+# Ciclo de Vida
+# ---------------------------------------------------------------------------
+
+func _ready() -> void:
+	RenderingServer.set_default_clear_color(Color(0.02, 0.01, 0.08, 1.0))
+	_setup_world_environment()
+	_setup_parallax_stars()
+	_setup_plotters()
+	_build_hud()
+
+
+# ---------------------------------------------------------------------------
+# Entorno Visual
+# ---------------------------------------------------------------------------
+
+func _setup_world_environment() -> void:
+	var env_node: WorldEnvironment = WorldEnvironment.new()
+	env_node.name = "WorldEnvironment"
+	var env_res: Environment = load("res://resources/entorno.tres")
+	if env_res:
+		env_node.environment = env_res
+	add_child(env_node)
+	move_child(env_node, 0)
+
+
+func _setup_parallax_stars() -> void:
+	var parallax_bg: ParallaxBackground = ParallaxBackground.new()
+	parallax_bg.name = "ParallaxBackground"
+	add_child(parallax_bg)
+	move_child(parallax_bg, 1)
+
+	_create_star_layer(parallax_bg, Vector2(0.04, 0.0), 90, 1.0, 1.5)
+	_create_star_layer(parallax_bg, Vector2(0.10, 0.0), 45, 1.5, 2.5)
+	_create_star_layer(parallax_bg, Vector2(0.20, 0.0), 22, 2.0, 3.5)
+
+	var tween: Tween = create_tween()
+	tween.set_loops()
+	tween.tween_property(parallax_bg, "scroll_offset", Vector2(3000.0, 0.0), 150.0)
+
+
+func _create_star_layer(
+		parent: ParallaxBackground,
+		motion_scale: Vector2,
+		star_count: int,
+		min_radius: float,
+		max_radius: float) -> void:
+	var layer: ParallaxLayer = ParallaxLayer.new()
+	layer.motion_scale = motion_scale
+	parent.add_child(layer)
+
+	var stars_node: Node2D = Node2D.new()
+	layer.add_child(stars_node)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(motion_scale.x * SEED_SCALE_FACTOR) + star_count + SEED_OFFSET
+
+	for _i in range(star_count):
+		var star: Polygon2D = Polygon2D.new()
+		var r: float = rng.randf_range(min_radius, max_radius)
+		star.polygon = PackedVector2Array([
+			Vector2(0.0, -r), Vector2(r * 0.3, r * 0.3),
+			Vector2(-r * 0.3, r * 0.3)
+		])
+		var brightness: float = rng.randf_range(0.5, 1.0)
+		star.color = Color(brightness, brightness, brightness, 0.8)
+		star.position = Vector2(
+			rng.randf_range(-200.0, 1480.0),
+			rng.randf_range(-200.0, 920.0)
+		)
+		stars_node.add_child(star)
+
+
+# ---------------------------------------------------------------------------
+# Graficadores
+# ---------------------------------------------------------------------------
+
+func _setup_plotters() -> void:
+	for i in range(MAX_FUNCTIONS):
+		var plotter: FunctionPlotter = FunctionPlotter.new()
+		plotter.name = "Plotter%d" % (i + 1)
+		plotter.position = Vector2(640.0, 360.0)
+		plotter.formula = ""
+		plotter.domain_min = DEFAULT_DOMAIN_MIN
+		plotter.domain_max = DEFAULT_DOMAIN_MAX
+		plotter.scale_factor = DEFAULT_SCALE
+		plotter.line_color = PLOT_COLORS[i]
+		plotter.line_width = 2.5
+		plotter.show_axes = (i == 0)   # Solo el primero muestra los ejes
+		plotter.auto_plot = false
+		add_child(plotter)
+		_plotters.append(plotter)
+
+
+# ---------------------------------------------------------------------------
+# HUD del Laboratorio (construido programáticamente)
+# ---------------------------------------------------------------------------
+
+func _build_hud() -> void:
+	_hud_layer = CanvasLayer.new()
+	_hud_layer.name = "HUDLab"
+	_hud_layer.layer = 2
+	add_child(_hud_layer)
+
+	# ── Panel superior (título + volver) ────────────────────────────────
+	var top_bar: HBoxContainer = HBoxContainer.new()
+	top_bar.name = "TopBar"
+	top_bar.anchor_right = 1.0
+	top_bar.anchor_bottom = 0.0
+	top_bar.offset_bottom = 36.0
+	_hud_layer.add_child(top_bar)
+
+	var title_lbl: Label = Label.new()
+	title_lbl.text = "🔬  LABORATORIO ESTELAR — Exploración Libre"
+	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
+	title_lbl.add_theme_font_size_override("font_size", 16)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_bar.add_child(title_lbl)
+
+	var back_btn: Button = Button.new()
+	back_btn.text = "🏠  Menú Principal"
+	back_btn.pressed.connect(_on_back_pressed)
+	top_bar.add_child(back_btn)
+
+	# ── Panel de control inferior ────────────────────────────────────────
+	var bottom_panel: PanelContainer = PanelContainer.new()
+	bottom_panel.name = "BottomPanel"
+	bottom_panel.anchor_left   = 0.0
+	bottom_panel.anchor_top    = 1.0
+	bottom_panel.anchor_right  = 1.0
+	bottom_panel.anchor_bottom = 1.0
+	bottom_panel.offset_top    = -220.0
+
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.02, 0.03, 0.12, 0.95)
+	bg_style.border_color = Color(0.0, 1.0, 0.8, 0.6)
+	bg_style.border_width_top = 2
+	bottom_panel.add_theme_stylebox_override("panel", bg_style)
+	_hud_layer.add_child(bottom_panel)
+
+	var main_vbox: VBoxContainer = VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 6)
+	bottom_panel.add_child(main_vbox)
+
+	# ── Subtítulo de instrucción ─────────────────────────────────────────
+	var instr_lbl: Label = Label.new()
+	instr_lbl.text = "Ingrese hasta 3 funciones para compararlas simultáneamente. No hay obstáculos — ¡explore libremente!"
+	instr_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 1.0, 1.0))
+	instr_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	main_vbox.add_child(instr_lbl)
+
+	# ── Filas de fórmula para cada función ──────────────────────────────
+	for i in range(MAX_FUNCTIONS):
+		var row: HBoxContainer = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		main_vbox.add_child(row)
+
+		var check: CheckBox = CheckBox.new()
+		check.text = ""
+		check.button_pressed = true
+		check.toggled.connect(_on_function_toggled.bind(i))
+		row.add_child(check)
+		_active_checks.append(check)
+
+		var color_box: ColorRect = ColorRect.new()
+		color_box.custom_minimum_size = Vector2(14.0, 14.0)
+		color_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		color_box.color = LABEL_COLORS[i]
+		row.add_child(color_box)
+
+		var func_lbl: Label = Label.new()
+		func_lbl.text = "f%d(x) =" % (i + 1)
+		func_lbl.add_theme_color_override("font_color", LABEL_COLORS[i])
+		func_lbl.custom_minimum_size = Vector2(62.0, 0.0)
+		row.add_child(func_lbl)
+
+		var input: LineEdit = LineEdit.new()
+		input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		input.placeholder_text = _get_placeholder(i)
+		input.add_theme_color_override("font_color", LABEL_COLORS[i])
+		input.text_submitted.connect(_on_formula_submitted.bind(i))
+		row.add_child(input)
+		_formula_inputs.append(input)
+
+		var plot_btn: Button = Button.new()
+		plot_btn.text = "GRAFICAR"
+		plot_btn.pressed.connect(_on_plot_pressed.bind(i))
+		row.add_child(plot_btn)
+		_plot_buttons.append(plot_btn)
+
+		var clear_btn: Button = Button.new()
+		clear_btn.text = "✕"
+		clear_btn.tooltip_text = "Borrar función %d" % (i + 1)
+		clear_btn.custom_minimum_size = Vector2(32.0, 0.0)
+		clear_btn.pressed.connect(_on_clear_single.bind(i))
+		row.add_child(clear_btn)
+
+		# Botón de estela: congela la curva actual como trazo de fondo
+		var trace_btn: Button = Button.new()
+		trace_btn.text = "📌 Mantener Trazo"
+		trace_btn.tooltip_text = "Congela f%d como estela tenue de fondo para comparar" % (i + 1)
+		trace_btn.pressed.connect(_on_keep_trace_pressed.bind(i))
+		row.add_child(trace_btn)
+
+	# ── Controles de dominio ────────────────────────────────────────────
+	var domain_row: HBoxContainer = HBoxContainer.new()
+	domain_row.add_theme_constant_override("separation", 8)
+	main_vbox.add_child(domain_row)
+
+	var dom_lbl: Label = Label.new()
+	dom_lbl.text = "Dominio:  ["
+	dom_lbl.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))
+	domain_row.add_child(dom_lbl)
+
+	_domain_min_spin = SpinBox.new()
+	_domain_min_spin.min_value = -50.0
+	_domain_min_spin.max_value = -0.5
+	_domain_min_spin.step = 0.5
+	_domain_min_spin.value = DEFAULT_DOMAIN_MIN
+	_domain_min_spin.value_changed.connect(_on_domain_changed)
+	domain_row.add_child(_domain_min_spin)
+
+	var comma_lbl: Label = Label.new()
+	comma_lbl.text = " ,  "
+	domain_row.add_child(comma_lbl)
+
+	_domain_max_spin = SpinBox.new()
+	_domain_max_spin.min_value = 0.5
+	_domain_max_spin.max_value = 50.0
+	_domain_max_spin.step = 0.5
+	_domain_max_spin.value = DEFAULT_DOMAIN_MAX
+	_domain_max_spin.value_changed.connect(_on_domain_changed)
+	domain_row.add_child(_domain_max_spin)
+
+	var dom_lbl2: Label = Label.new()
+	dom_lbl2.text = " ]"
+	domain_row.add_child(dom_lbl2)
+
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	domain_row.add_child(spacer)
+
+	var clear_all_btn: Button = Button.new()
+	clear_all_btn.text = "🗑  Limpiar Todo"
+	clear_all_btn.pressed.connect(_on_clear_all)
+	domain_row.add_child(clear_all_btn)
+
+	var clear_trails_btn: Button = Button.new()
+	clear_trails_btn.text = "🌫  Borrar Estelas"
+	clear_trails_btn.tooltip_text = "Elimina todos los trazos congelados de fondo"
+	clear_trails_btn.pressed.connect(_on_clear_trails)
+	domain_row.add_child(clear_trails_btn)
+
+	# ── Contador de estelas ─────────────────────────────────────────────
+	_trails_count_label = Label.new()
+	_trails_count_label.name = "TrailsCountLabel"
+	_trails_count_label.add_theme_color_override("font_color", Color(0.55, 0.65, 0.9, 0.85))
+	_trails_count_label.add_theme_font_size_override("font_size", 11)
+	_trails_count_label.text = ""
+	domain_row.add_child(_trails_count_label)
+
+	# ── Barra de estado ──────────────────────────────────────────────────
+	_status_label = Label.new()
+	_status_label.name = "StatusLabel"
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.add_theme_color_override("font_color", Color(0.7, 0.8, 1.0, 1.0))
+	_status_label.text = "Listo. Ingrese una función y presione GRAFICAR o Enter."
+	main_vbox.add_child(_status_label)
+
+
+# ---------------------------------------------------------------------------
+# Manejadores de Señales
+# ---------------------------------------------------------------------------
+
+func _on_formula_submitted(text: String, index: int) -> void:
+	_plot_function(text, index)
+
+
+func _on_plot_pressed(index: int) -> void:
+	_plot_function(_formula_inputs[index].text.strip_edges(), index)
+
+
+func _on_function_toggled(active: bool, index: int) -> void:
+	if index < _plotters.size():
+		_plotters[index].visible = active
+
+
+func _on_clear_single(index: int) -> void:
+	if index < _formula_inputs.size():
+		_formula_inputs[index].text = ""
+	if index < _plotters.size():
+		_plotters[index].formula = ""
+		_plotters[index].plot()
+	_set_status("Función %d borrada." % (index + 1))
+
+
+func _on_clear_all() -> void:
+	for i in range(MAX_FUNCTIONS):
+		_formula_inputs[i].text = ""
+		_plotters[i].formula = ""
+		_plotters[i].plot()
+	_set_status("Todas las funciones borradas. ¡Comience de nuevo!")
+
+
+func _on_domain_changed(_value: float) -> void:
+	var d_min: float = _domain_min_spin.value
+	var d_max: float = _domain_max_spin.value
+	for p in _plotters:
+		p.domain_min = d_min
+		p.domain_max = d_max
+		if not p.formula.is_empty():
+			p.plot()
+	# Actualizar también las estelas congeladas para mantener consistencia visual
+	for t in _trail_plotters:
+		if is_instance_valid(t):
+			t.domain_min = d_min
+			t.domain_max = d_max
+			if not t.formula.is_empty():
+				t.plot()
+
+
+func _on_back_pressed() -> void:
+	SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
+
+
+# ---------------------------------------------------------------------------
+# Estelas (Trazos Congelados)
+# ---------------------------------------------------------------------------
+
+## Congela la curva activa del índice indicado como estela tenue de fondo.
+## Esto permite comparar una transformación (ej. f(x) vs f(x)+c) de forma visual.
+func _on_keep_trace_pressed(index: int) -> void:
+	var formula: String = _formula_inputs[index].text.strip_edges()
+	if formula.is_empty():
+		_set_status("f%d está vacía — grafique una función antes de congelar la estela." % (index + 1))
+		return
+
+	if not MathEngine.is_valid_formula(formula):
+		_set_status("f%d: fórmula inválida — corrija antes de congelar." % (index + 1))
+		return
+
+	if _trail_plotters.size() >= MAX_TRAILS:
+		_set_status("Máximo de %d estelas alcanzado. Use '🌫 Borrar Estelas' para liberar espacio." % MAX_TRAILS)
+		return
+
+	# Crear un nuevo FunctionPlotter para la estela con color tenue
+	var trail: FunctionPlotter = FunctionPlotter.new()
+	trail.name          = "Estela%d" % (_trail_plotters.size() + 1)
+	trail.position      = Vector2(640.0, 360.0)
+	trail.formula       = formula
+	trail.domain_min    = _domain_min_spin.value
+	trail.domain_max    = _domain_max_spin.value
+	trail.scale_factor  = DEFAULT_SCALE
+	trail.line_color    = TRAIL_COLORS[_trail_index % TRAIL_COLORS.size()]
+	trail.line_width    = 1.5
+	trail.show_axes     = false
+	trail.auto_plot     = true
+
+	# Insertar la estela ANTES de los plotters activos para que se dibuje detrás
+	add_child(trail)
+	move_child(trail, _plotters[0].get_index())
+
+	_trail_plotters.append(trail)
+	_trail_index += 1
+
+	_set_status(
+		"✓ Estela de f%d(x) = %s guardada (trazo tenue). Grafique una nueva función encima para comparar." \
+		% [index + 1, formula]
+	)
+	_update_trails_count_label()
+
+
+## Elimina todas las estelas congeladas de la escena.
+func _on_clear_trails() -> void:
+	for t in _trail_plotters:
+		if is_instance_valid(t):
+			t.queue_free()
+	_trail_plotters.clear()
+	_trail_index = 0
+	_set_status("Estelas borradas. La pizarra está limpia — ¡empiece una nueva comparación!")
+	_update_trails_count_label()
+
+
+## Actualiza la etiqueta de conteo de estelas activas.
+func _update_trails_count_label() -> void:
+	if not _trails_count_label:
+		return
+	if _trail_plotters.is_empty():
+		_trails_count_label.text = ""
+	else:
+		_trails_count_label.text = "  Estelas: %d/%d" % [_trail_plotters.size(), MAX_TRAILS]
+
+
+# ---------------------------------------------------------------------------
+# Lógica de Graficado
+# ---------------------------------------------------------------------------
+
+func _plot_function(formula: String, index: int) -> void:
+	if formula.is_empty():
+		_set_status("Fórmula vacía para f%d. Ingrese una expresión." % (index + 1))
+		return
+
+	# Validación sintáctica con mensaje educativo
+	if not MathEngine.is_valid_formula(formula):
+		var msg: String = MathEngine.get_friendly_error_message(formula)
+		_set_status("f%d: %s" % [index + 1, msg])
+		return
+
+	var plotter: FunctionPlotter = _plotters[index]
+	plotter.formula = formula
+	plotter.domain_min = _domain_min_spin.value
+	plotter.domain_max = _domain_max_spin.value
+	plotter.plot()
+	_set_status("f%d(x) = %s  trazada correctamente." % [index + 1, formula])
+
+
+# ---------------------------------------------------------------------------
+# Auxiliares
+# ---------------------------------------------------------------------------
+
+func _set_status(msg: String) -> void:
+	if _status_label:
+		_status_label.text = msg
+
+
+func _get_placeholder(index: int) -> String:
+	match index:
+		0: return "ej.  x^2"
+		1: return "ej.  sin(x)"
+		2: return "ej.  log(x + 1)"
+		_: return "fórmula…"

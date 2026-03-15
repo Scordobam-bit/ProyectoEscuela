@@ -77,6 +77,17 @@ var total_score: int = 0
 var hints_used: int = 0
 var session_start_time: float = 0.0
 
+## True después de que el jugador completa (o salta) la guía de inicio rápido del Sector 1.
+## Evita que la guía se repita en sesiones posteriores de la misma ejecución.
+var tutorial_completed: bool = false
+
+# ---------------------------------------------------------------------------
+# Persistencia
+# ---------------------------------------------------------------------------
+
+## Ruta del archivo de guardado de progreso.
+const SAVE_PATH: String = "user://planet_waves_save.cfg"
+
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
@@ -84,6 +95,10 @@ var session_start_time: float = 0.0
 func _ready() -> void:
 	session_start_time = Time.get_ticks_msec() / 1000.0
 	_initialise_progress()
+	load_progress()   # Cargar progreso guardado al iniciar
+
+	# Sincronizar estado con SaveSystem
+	_sync_from_save_system()
 
 
 func _initialise_progress() -> void:
@@ -95,7 +110,7 @@ func _initialise_progress() -> void:
 # Navegación
 # ---------------------------------------------------------------------------
 
-## Transiciona a la escena del sector especificado.
+## Transiciona a la escena del sector especificado con fundido a negro.
 func go_to_sector(sector_index: int) -> void:
 	if sector_index < 1 or sector_index > SECTORS.size():
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
@@ -103,7 +118,7 @@ func go_to_sector(sector_index: int) -> void:
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
 	var scene_path: String = SECTORS[sector_index - 1]["scene"]
-	get_tree().change_scene_to_file(scene_path)
+	SceneTransition.fade_to_scene(scene_path)
 
 
 ## Devuelve el diccionario de datos del sector actual.
@@ -172,3 +187,82 @@ func get_elapsed_time() -> float:
 ## Devuelve la puntuación total del jugador.
 func get_score() -> int:
 	return total_score
+
+
+## Reinicia todos los campos del GameManager a sus valores por defecto.
+## Debe llamarse junto con SaveSystem.clear_progress() para un borrado completo.
+func reset_to_defaults() -> void:
+	total_score        = 0
+	hints_used         = 0
+	tutorial_completed = false
+	current_sector     = 1
+	for sid: int in completed_challenges.keys():
+		completed_challenges[sid] = []
+
+
+# ---------------------------------------------------------------------------
+# Persistencia de Progreso
+# ---------------------------------------------------------------------------
+
+## Guarda el progreso actual del jugador en disco (GameManager + SaveSystem).
+func save_progress() -> void:
+	# Sincronizar puntuación con SaveSystem antes de guardar
+	SaveSystem.set_total_score(total_score)
+	SaveSystem.tutorial_completed = tutorial_completed
+	SaveSystem.save()
+
+	# Guardar datos complementarios de GameManager (desafíos individuales)
+	var config: ConfigFile = ConfigFile.new()
+	config.set_value("jugador", "sector_actual", current_sector)
+	config.set_value("jugador", "puntuacion_total", total_score)
+	config.set_value("jugador", "pistas_usadas", hints_used)
+	config.set_value("jugador", "tutorial_completado", tutorial_completed)
+
+	for sector_idx: int in completed_challenges.keys():
+		config.set_value("desafios", "sector_%d" % sector_idx,
+			completed_challenges[sector_idx])
+
+	var err: Error = config.save(SAVE_PATH)
+	if err != OK:
+		push_warning("GameManager: no se pudo guardar el progreso en '%s' (error %d)" % [SAVE_PATH, err])
+
+
+## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
+func load_progress() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	var err: Error = config.load(SAVE_PATH)
+	if err != OK:
+		return   # Sin archivo de guardado previo — primera sesión
+
+	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
+	total_score         = config.get_value("jugador", "puntuacion_total",   0)
+	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
+	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
+
+	for sector_data in SECTORS:
+		var sid: int = sector_data["index"]
+		var key: String = "sector_%d" % sid
+		if config.has_section_key("desafios", key):
+			completed_challenges[sid] = config.get_value("desafios", key, [])
+
+
+## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.
+## Se llama en _ready() después de load_progress().
+func _sync_from_save_system() -> void:
+	# Puntuación desde SaveSystem (tiene prioridad si es mayor)
+	if SaveSystem.total_score > total_score:
+		total_score = SaveSystem.total_score
+	tutorial_completed = tutorial_completed or SaveSystem.tutorial_completed
+
+	# Reconstruir completed_challenges a partir de los sectores completados en SaveSystem.
+	# Se usa is_sector_complete() para marcar el sector; los índices individuales de desafíos
+	# no se conocen aquí, así que sólo actualizamos sectores vacíos para evitar duplicados.
+	for sid: int in SaveSystem.completed_sectors:
+		if completed_challenges.has(sid) and completed_challenges[sid].is_empty():
+			# Buscar el número de desafíos real del sector desde SECTORS
+			var sector_challenge_count: int = 5   # Valor por defecto
+			for s: Dictionary in SECTORS:
+				if s["index"] == sid:
+					sector_challenge_count = s.get("challenge_count", 5)
+					break
+			completed_challenges[sid] = Array(range(sector_challenge_count))

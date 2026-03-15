@@ -43,16 +43,109 @@ signal challenge_started(challenge_index: int)
 var _current_challenge: int = 0
 var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subclases
 
+## Gestor de obstáculos del sector (instanciado programáticamente).
+var _obstacle_manager: GestorObstaculos = null
+
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(background_color)
+	_setup_world_environment()
+	_setup_parallax_stars()
+	_setup_obstacles_manager()
 	_setup_challenges()
 	_connect_hud()
 	_connect_plotter()
 	_start_challenge(0)
+
+
+# ---------------------------------------------------------------------------
+# Configuración del Entorno Visual
+# ---------------------------------------------------------------------------
+
+## Crea y añade un WorldEnvironment con resplandor (glow) para las líneas neón.
+func _setup_world_environment() -> void:
+	var env_node: WorldEnvironment = WorldEnvironment.new()
+	env_node.name = "WorldEnvironment"
+	var env_res: Environment = load("res://resources/entorno.tres")
+	if env_res:
+		env_node.environment = env_res
+	add_child(env_node)
+	move_child(env_node, 0)
+
+
+## Genera un campo de estrellas paraláctico animado mediante código.
+func _setup_parallax_stars() -> void:
+	var parallax_bg: ParallaxBackground = ParallaxBackground.new()
+	parallax_bg.name = "ParallaxBackground"
+	add_child(parallax_bg)
+	move_child(parallax_bg, 1)
+
+	# Capa 1: estrellas lejanas (movimiento lento)
+	_create_star_layer(parallax_bg, Vector2(0.05, 0.0), 80, 1.0, 1.5)
+	# Capa 2: estrellas medias
+	_create_star_layer(parallax_bg, Vector2(0.12, 0.0), 40, 1.5, 2.5)
+	# Capa 3: estrellas cercanas (movimiento rápido)
+	_create_star_layer(parallax_bg, Vector2(0.22, 0.0), 20, 2.0, 3.5)
+
+	# Mover suavemente el paralaje con el tiempo (sin cámara física)
+	var tween: Tween = create_tween()
+	tween.set_loops()
+	tween.tween_property(parallax_bg, "scroll_offset", Vector2(3000.0, 0.0), 120.0)
+
+
+## Crea una capa de estrellas (ParallaxLayer) con movimiento proporcional a [motion_scale].
+## Se generan [star_count] puntos distribuidos aleatoriamente con radio entre
+## [min_radius] y [max_radius] píxeles.
+func _create_star_layer(
+		parent: ParallaxBackground,
+		motion_scale: Vector2,
+		star_count: int,
+		min_radius: float,
+		max_radius: float) -> void:
+	var layer: ParallaxLayer = ParallaxLayer.new()
+	layer.motion_scale = motion_scale
+	parent.add_child(layer)
+
+	var stars_node: Node2D = Node2D.new()
+	layer.add_child(stars_node)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(motion_scale.x * 1000) + star_count
+
+	for _i in range(star_count):
+		var star: Polygon2D = Polygon2D.new()
+		var r: float = rng.randf_range(min_radius, max_radius)
+		star.polygon = PackedVector2Array([
+			Vector2(0.0, -r), Vector2(r * 0.3, r * 0.3),
+			Vector2(-r * 0.3, r * 0.3)
+		])
+		var brightness: float = rng.randf_range(0.5, 1.0)
+		star.color = Color(brightness, brightness, brightness, 0.8)
+		star.position = Vector2(
+			rng.randf_range(-200.0, 1480.0),
+			rng.randf_range(-200.0, 920.0)
+		)
+		stars_node.add_child(star)
+
+
+# ---------------------------------------------------------------------------
+# Gestión de Obstáculos
+# ---------------------------------------------------------------------------
+
+## Crea el nodo GestorObstaculos y lo añade a la escena.
+func _setup_obstacles_manager() -> void:
+	_obstacle_manager = GestorObstaculos.new()
+	_obstacle_manager.name = "GestorObstaculos"
+	add_child(_obstacle_manager)
+
+
+## Sobrescribir en subclases para registrar los obstáculos de cada desafío.
+## Se llama al inicio de cada desafío (después de limpiar los obstáculos previos).
+func _setup_obstacles_for_challenge(_challenge_index: int) -> void:
+	pass
 
 
 # ---------------------------------------------------------------------------
@@ -85,12 +178,39 @@ func _start_challenge(index: int) -> void:
 	_current_challenge = index
 	challenge_started.emit(index)
 
+	# Limpiar obstáculos previos y generar los del nuevo desafío
+	if _obstacle_manager:
+		_obstacle_manager.clear_obstacles()
+		if _plotter:
+			_obstacle_manager.setup(_plotter)
+		_setup_obstacles_for_challenge(index)
+
+	# Limpiar línea de referencia previa
+	if _plotter:
+		_plotter.reset_line_style()
+
 	if _hud:
 		var ch: Dictionary = _challenges[index]
 		_hud.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		_hud.show_feedback(ch.get("instruction", ""), "info")
 
+	# Mostrar briefing de misión antes del desafío
+	_show_mission_briefing_for_challenge(index)
+
 	_on_challenge_begin(index)
+
+
+func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
+	if not _theory_panel:
+		return
+	# Permitir que cada desafío defina su propia clave de briefing, con la convención
+	# "s{sector}_c{challenge}" como valor por defecto.
+	var default_key: String = "s%d_c%d" % [sector_index, challenge_index]
+	var key: String = default_key
+	if challenge_index < _challenges.size():
+		key = _challenges[challenge_index].get("briefing_key", default_key)
+	if TheoryPanel.MISSION_BRIEFINGS.has(key):
+		_theory_panel.show_mission_briefing(key)
 
 
 func _advance_challenge() -> void:
@@ -104,17 +224,38 @@ func _advance_challenge() -> void:
 func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
-	if _hud:
-		_hud.show_feedback(
-			"¡Sector %d Completado! Saltando al siguiente sector…" % sector_index, "success"
-		)
-	await get_tree().create_timer(2.0).timeout
+
+	# Registrar sector completado en SaveSystem (desbloquea el siguiente automáticamente)
+	SaveSystem.mark_sector_complete(sector_index)
+
+	# Guardar progreso automáticamente al completar cada sector
+	GameManager.save_progress()
+
+	# Calcular puntuación ganada en este sector
+	var score_earned: int = 0
+	if GameManager.completed_challenges.has(sector_index):
+		for ci: int in GameManager.completed_challenges[sector_index]:
+			if ci < _challenges.size():
+				score_earned += _challenges[ci].get("score", 100)
+
+	# Mostrar panel de "¡Misión Cumplida!" con resumen pedagógico
+	var panel: MissionCompletePanel = MissionCompletePanel.new()
+	add_child(panel)
+	panel.show_results(
+		sector_index,
+		score_earned,
+		GameManager.completed_challenges.get(sector_index, [])
+	)
+
+	# Esperar a que el jugador presione "Continuar"
+	await panel.continue_pressed
+
 	var next_sector: int = sector_index + 1
 	if next_sector <= GameManager.SECTORS.size():
 		GameManager.go_to_sector(next_sector)
 	else:
-		# Sector final completado → volver al menú principal
-		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+		# Sector final completado → volver al menú principal con fundido
+		SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
 
 
 # ---------------------------------------------------------------------------
@@ -139,8 +280,26 @@ func _connect_plotter() -> void:
 
 
 func _on_formula_submitted_hud(formula: String) -> void:
+	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
+	if not MathEngine.is_valid_formula(formula):
+		if _hud:
+			_hud.show_feedback(MathEngine.get_friendly_error_message(formula), "error")
+		return
+
 	if _plotter:
 		_plotter.formula = formula
+
+	# Verificar colisión con obstáculos antes de validar la fórmula
+	if _obstacle_manager and _plotter and _plotter.is_plot_valid():
+		var trajectory_points: PackedVector2Array = _plotter.get_screen_points()
+		if _obstacle_manager.check_trajectory_collision(trajectory_points):
+			var hit_name: String = _obstacle_manager.get_last_hit_name()
+			if _hud:
+				_hud.show_mission_failed(hit_name)
+			if _ship:
+				_ship.reset()
+			return  # No validar la fórmula si impacta un obstáculo
+
 	_on_formula_submitted_sector(formula)
 
 
@@ -152,7 +311,7 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 
 func _on_plot_failed(error_message: String) -> void:
 	if _hud:
-		_hud.show_feedback("Error al graficar: " + error_message, "error")
+		_hud.show_feedback("⚠ " + error_message, "error")
 
 
 func _on_theory_requested() -> void:
@@ -186,7 +345,19 @@ func _validate_formula_against_current(player_formula: String) -> void:
 		ch.get("feedback_wrong", "No es correcto. Revisa tu fórmula e inténtalo de nuevo.")
 	)
 	if correct:
+		# Respuesta correcta: restaurar estilo de línea
+		if _plotter:
+			_plotter.reset_line_style()
 		GameManager.complete_challenge(sector_index, _current_challenge, ch.get("score", 100))
 		challenge_done.emit(_current_challenge)
 		await get_tree().create_timer(1.5).timeout
 		_advance_challenge()
+	else:
+		# Respuesta incorrecta: mostrar Línea Fantasma con la solución correcta
+		if _plotter and not expected.is_empty():
+			_plotter.mark_as_error()
+			_plotter.show_reference_line(expected, Color(0.0, 1.0, 0.3, 0.7))
+		# Generar explicación automática del error
+		if _hud and not expected.is_empty():
+			_hud.show_auto_error_explanation(player_formula, expected)
+
