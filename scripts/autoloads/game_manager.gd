@@ -77,6 +77,10 @@ var total_score: int = 0
 var hints_used: int = 0
 var session_start_time: float = 0.0
 
+## True después de que el jugador completa (o salta) la guía de inicio rápido del Sector 1.
+## Evita que la guía se repita en sesiones posteriores de la misma ejecución.
+var tutorial_completed: bool = false
+
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------

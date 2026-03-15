@@ -374,6 +374,30 @@ donde  e ≈ 2.71828… (número de Euler)
 ## Diccionario de briefings lúdicos. Clave: "s{sector}_c{challenge}".
 ## Cada entrada: { "title": String, "content": String (BBCode) }
 const MISSION_BRIEFINGS: Dictionary = {
+	# ── Sector 1 — Calibración de Motores (Tutorial) ──────────────────────
+	"s1_cal": {
+		"title": "🚀 CALIBRACIÓN DE MOTORES — Prueba de Sistemas",
+		"content": """[color=#00ffcc][b]Capitán, bienvenido al puente de mando.[/b][/color]
+
+Los ingenieros necesitan realizar una [color=#ffcc00]calibración de motores[/color] antes de entrar en el cinturón de asteroides. Para ello, la computadora de navegación debe trazar una trayectoria de prueba.
+
+[b]Misión de Calibración:[/b]
+Trace la línea constante [color=#ffcc00][b]y = 5[/b][/color] para verificar que los sistemas de propulsión responden correctamente.
+
+[b]¿Cómo ingresar una función constante?[/b]
+Una función constante produce el mismo valor para cualquier x.
+Simplemente ingrese el número: [color=#ffcc00]5[/color]
+
+[b]Antes de comenzar — aprenda a usar el HUD:[/b]
+• [color=#00ffcc]Caja de ecuaciones:[/color] donde ingresa la trayectoria
+• [color=#00ffcc]Botón GRAFICAR (o tecla Enter):[/color] calcula y traza la ruta
+• [color=#00ffcc]Controles de dominio:[/color] ajustan el rango del eje X
+
+[i]Al cerrar este panel, aparecerá una guía rápida que señalará cada elemento del HUD.[/i]
+
+[b]Referencia de sintaxis:[/b] Use el botón [color=#ffcc00]?[/color] junto a la entrada de ecuaciones."""
+	},
+
 	# ── Sector 1 — Cinturón de Asteroides ────────────────────────────────
 	"s1_c0": {
 		"title": "⚠ BRIEFING DE MISIÓN — Cinturón de Asteroides #1",

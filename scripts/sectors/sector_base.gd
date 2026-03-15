@@ -203,7 +203,16 @@ func _start_challenge(index: int) -> void:
 func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 	if not _theory_panel:
 		return
-	var key: String = "s%d_c%d" % [sector_index, challenge_index]
+	# Permitir que cada desafío defina su propia clave de briefing, con la convención
+	# "s{sector}_c{challenge}" como valor por defecto.
+	var key: String
+	if challenge_index < _challenges.size():
+		key = _challenges[challenge_index].get(
+			"briefing_key",
+			"s%d_c%d" % [sector_index, challenge_index]
+		)
+	else:
+		key = "s%d_c%d" % [sector_index, challenge_index]
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
 		_theory_panel.show_mission_briefing(key)
 
@@ -254,6 +263,12 @@ func _connect_plotter() -> void:
 
 
 func _on_formula_submitted_hud(formula: String) -> void:
+	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
+	if not MathEngine.is_valid_formula(formula):
+		if _hud:
+			_hud.show_feedback(MathEngine.get_friendly_error_message(formula), "error")
+		return
+
 	if _plotter:
 		_plotter.formula = formula
 
@@ -279,7 +294,7 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 
 func _on_plot_failed(error_message: String) -> void:
 	if _hud:
-		_hud.show_feedback("Error al graficar: " + error_message, "error")
+		_hud.show_feedback("⚠ " + error_message, "error")
 
 
 func _on_theory_requested() -> void:

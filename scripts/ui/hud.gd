@@ -36,6 +36,11 @@ signal hint_requested
 @onready var _hint_button: Button = $HUDPanel/VBox/ButtonRow/HintButton
 @onready var _feedback_timer: Timer = $FeedbackTimer
 
+# Fila de fórmulas para añadir el botón "?" de ayuda de sintaxis.
+@onready var _formula_row: HBoxContainer = $HUDPanel/VBox/FormulaRow
+# Fila del dominio para calcular su rect de pantalla.
+@onready var _domain_row: HBoxContainer = $HUDPanel/VBox/DomainRow
+
 # ---------------------------------------------------------------------------
 # Propiedades Exportadas
 # ---------------------------------------------------------------------------
@@ -47,6 +52,10 @@ signal hint_requested
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
+
+# Botón "?" de referencia de sintaxis y su panel emergente.
+var _syntax_help_button: Button = null
+var _syntax_panel: PanelContainer = null
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -68,6 +77,7 @@ func _ready() -> void:
 	_update_sector_display(GameManager.current_sector)
 	_update_score_display()
 	_build_detail_label()
+	_build_syntax_ui()
 
 
 func _build_detail_label() -> void:
@@ -84,6 +94,83 @@ func _build_detail_label() -> void:
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_detail_label.visible = false
 	add_child(_detail_label)
+
+
+## Crea el botón "?" de ayuda de sintaxis y el panel de referencia emergente.
+func _build_syntax_ui() -> void:
+	# ── Botón "?" ──────────────────────────────────────────────────────────
+	_syntax_help_button = Button.new()
+	_syntax_help_button.name = "SyntaxHelpButton"
+	_syntax_help_button.text = "?"
+	_syntax_help_button.tooltip_text = "Referencia de sintaxis matemática"
+	_syntax_help_button.custom_minimum_size = Vector2(32.0, 0.0)
+	_syntax_help_button.pressed.connect(_toggle_syntax_panel)
+	_formula_row.add_child(_syntax_help_button)
+
+	# ── Panel de Referencia de Sintaxis ────────────────────────────────────
+	_syntax_panel = PanelContainer.new()
+	_syntax_panel.name = "SyntaxPanel"
+	# Posicionar debajo del HUDPanel (offset_top ~125 px)
+	_syntax_panel.anchor_left   = 0.0
+	_syntax_panel.anchor_top    = 0.0
+	_syntax_panel.anchor_right  = 0.0
+	_syntax_panel.anchor_bottom = 0.0
+	_syntax_panel.offset_left   = 5.0
+	_syntax_panel.offset_top    = 128.0
+	_syntax_panel.offset_right  = 460.0
+	_syntax_panel.offset_bottom = 410.0
+	_syntax_panel.visible = false
+
+	# Estilo neón/espacial
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.05, 0.15, 0.97)
+	style.border_color = Color(0.0, 1.0, 0.8, 0.85)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	_syntax_panel.add_theme_stylebox_override("panel", style)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	_syntax_panel.add_child(vbox)
+
+	var title: Label = Label.new()
+	title.text = "📐  Referencia de Sintaxis Matemática"
+	title.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
+	vbox.add_child(title)
+
+	var sep: HSeparator = HSeparator.new()
+	vbox.add_child(sep)
+
+	var content: RichTextLabel = RichTextLabel.new()
+	content.bbcode_enabled = true
+	content.fit_content = true
+	content.autowrap_mode = TextServer.AUTOWRAP_WORD
+	content.custom_minimum_size = Vector2(430.0, 220.0)
+	content.add_theme_color_override("default_color", Color(0.85, 0.92, 1.0, 1.0))
+	content.text = (
+		"[b]Potencias:[/b]       [color=#ffcc00]x^2[/color]  o  [color=#ffcc00]pow(x, 2)[/color]\n"
+		+ "[b]Raíces:[/b]         [color=#ffcc00]sqrt(x)[/color]\n"
+		+ "[b]Trigonometría:[/b]  [color=#ffcc00]sin(x)[/color],  [color=#ffcc00]cos(x)[/color],  [color=#ffcc00]tan(x)[/color]\n"
+		+ "[b]Logaritmo:[/b]      [color=#ffcc00]log(x)[/color]  ←  ln(x)\n"
+		+ "[b]Exponencial:[/b]    [color=#ffcc00]exp(x)[/color]  ←  eˣ\n"
+		+ "[b]Constantes:[/b]     [color=#ffcc00]PI[/color],  [color=#ffcc00]E[/color]\n"
+		+ "[b]Multiplicar:[/b]    [color=#ffcc00]2*x[/color]  — [color=#ff6644]¡nunca escribas 2x sin el *![/color]\n"
+		+ "[b]División:[/b]       [color=#ffcc00]x/2[/color]\n"
+		+ "[b]Valor absoluto:[/b] [color=#ffcc00]abs(x)[/color]\n"
+		+ "\n"
+		+ "[color=#aaaacc]Ejemplo completo:  [/color][color=#ffcc00]2*x^2 - 3*x + 1[/color]"
+	)
+	vbox.add_child(content)
+
+	var sep2: HSeparator = HSeparator.new()
+	vbox.add_child(sep2)
+
+	var close_btn: Button = Button.new()
+	close_btn.text = "✕  Cerrar"
+	close_btn.pressed.connect(hide_syntax_help)
+	vbox.add_child(close_btn)
+
+	add_child(_syntax_panel)
 
 
 # ---------------------------------------------------------------------------
@@ -155,6 +242,43 @@ func set_controls_enabled(enabled: bool) -> void:
 	_plot_button.disabled = not enabled
 	_domain_min_spin.editable = enabled
 	_domain_max_spin.editable = enabled
+
+
+## Muestra el panel de referencia de sintaxis.
+func show_syntax_help() -> void:
+	if _syntax_panel:
+		_syntax_panel.visible = true
+
+
+## Oculta el panel de referencia de sintaxis.
+func hide_syntax_help() -> void:
+	if _syntax_panel:
+		_syntax_panel.visible = false
+
+
+## Alterna la visibilidad del panel de referencia de sintaxis.
+func _toggle_syntax_panel() -> void:
+	if _syntax_panel:
+		_syntax_panel.visible = not _syntax_panel.visible
+
+
+# ---------------------------------------------------------------------------
+# Métodos de Geometría de Controles (para posicionamiento del TutorialManager)
+# ---------------------------------------------------------------------------
+
+## Devuelve el Rect2 en coordenadas de pantalla del campo de entrada de fórmulas.
+func get_input_global_rect() -> Rect2:
+	return _formula_input.get_global_rect()
+
+
+## Devuelve el Rect2 en coordenadas de pantalla del botón Graficar.
+func get_plot_button_global_rect() -> Rect2:
+	return _plot_button.get_global_rect()
+
+
+## Devuelve el Rect2 en coordenadas de pantalla que engloba los controles de dominio.
+func get_domain_row_global_rect() -> Rect2:
+	return _domain_row.get_global_rect()
 
 
 # ---------------------------------------------------------------------------

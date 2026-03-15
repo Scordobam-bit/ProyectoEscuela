@@ -387,3 +387,43 @@ func sector_name(sector_index: int) -> String:
 ## Formatea un float para mostrarlo, limitando los decimales.
 func format_float(value: float, decimals: int = 3) -> String:
 	return "%.*f" % [decimals, value]
+
+
+# ---------------------------------------------------------------------------
+# Mensajes de Error Educativos
+# ---------------------------------------------------------------------------
+
+## Diccionario de errores de fórmula comunes con explicaciones pedagógicas en español.
+## Las claves son identificadores internos; los valores son los mensajes para el jugador.
+const FRIENDLY_ERRORS: Dictionary = {
+	"implicit_multiply":
+		"Error de coordenadas: Asegúrese de usar '*' para multiplicar (ej. 2*x en lugar de 2x).",
+	"unknown_function":
+		"Función desconocida: Verifique el nombre. Funciones válidas: sin(x), cos(x), tan(x), sqrt(x), log(x), exp(x), abs(x).",
+	"unbalanced_parens":
+		"Error de paréntesis: Revise que cada '(' tenga su ')' correspondiente.",
+	"empty_formula":
+		"Fórmula vacía: Ingrese una expresión matemática usando la variable 'x' (ej. 2*x + 1).",
+	"generic":
+		"Error de sintaxis: Revise la fórmula. Recuerde usar '*' para multiplicar y '/' para dividir. Ejemplo válido: 2*x + 1.",
+}
+
+
+## Devuelve un mensaje de error educativo en español para una fórmula inválida.
+## Intenta detectar el patrón de error más probable para orientar al estudiante.
+func get_friendly_error_message(formula: String) -> String:
+	var f: String = formula.strip_edges()
+	if f.is_empty():
+		return FRIENDLY_ERRORS["empty_formula"]
+
+	# Detectar multiplicación implícita: dígito seguido de letra (ej. 2x, 3sin)
+	var impl_mult: RegEx = RegEx.new()
+	impl_mult.compile(r"\d[a-zA-Z]")
+	if impl_mult.search(f) != null:
+		return FRIENDLY_ERRORS["implicit_multiply"]
+
+	# Detectar paréntesis desbalanceados
+	if f.count("(") != f.count(")"):
+		return FRIENDLY_ERRORS["unbalanced_parens"]
+
+	return FRIENDLY_ERRORS["generic"]
