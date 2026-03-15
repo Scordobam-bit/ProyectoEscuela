@@ -118,12 +118,12 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 # ---------------------------------------------------------------------------
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	if _hud and MathEngine.is_valid_formula(formula):
+	if hud_node and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
 				# Mostrar información del vértice
 				var vertex: Vector2 = MathEngine.find_vertex("2*x^2 - 8*x + 5", -5.0, 10.0)
-				_hud.show_feedback(
+				hud_node.show_feedback(
 					"Vértice de referencia en x = %s, y = %s" % [
 						MathEngine.format_float(vertex.x),
 						MathEngine.format_float(vertex.y)
@@ -132,7 +132,7 @@ func _on_formula_submitted_sector(formula: String) -> void:
 			2:
 				# Mostrar información del discriminante
 				var qf: Dictionary = MathEngine.quadratic_formula(1.0, -5.0, 4.0)
-				_hud.show_feedback(
+				hud_node.show_feedback(
 					"Δ = %s, raíces: %s" % [
 						MathEngine.format_float(qf["discriminant"]),
 						str(qf["roots"])
