@@ -70,8 +70,8 @@ var _keyboard_button: Button = null
 
 func _ready() -> void:
 	_plot_button.pressed.connect(_on_plot_pressed)
-	_theory_button.pressed.connect(theory_requested.emit)
-	_hint_button.pressed.connect(hint_requested.emit)
+	_theory_button.pressed.connect(_on_theory_pressed)
+	_hint_button.pressed.connect(_on_hint_pressed)
 	_domain_min_spin.value_changed.connect(_on_domain_changed)
 	_domain_max_spin.value_changed.connect(_on_domain_changed)
 	_formula_input.text_submitted.connect(_on_formula_submitted)
@@ -496,6 +496,14 @@ func _on_plot_pressed() -> void:
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
 	formula_submitted.emit(formula)
+
+
+func _on_theory_pressed() -> void:
+	theory_requested.emit()
+
+
+func _on_hint_pressed() -> void:
+	hint_requested.emit()
 
 
 func _on_formula_submitted(formula: String) -> void:

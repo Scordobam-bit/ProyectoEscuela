@@ -180,6 +180,15 @@ func quadratic_formula(a: float, b: float, c: float) -> Dictionary:
 # Sector 3 – Transformaciones de Funciones
 # ---------------------------------------------------------------------------
 
+## Helper: reemplaza solo el token de variable como palabra independiente.
+## Usa RegEx con límites de palabra (`\b`) para evitar reemplazar substrings de
+## identificadores (p. ej. "x" en "exp" o "max" permanecen intactos).
+func _replace_token_variable(formula: String, var_name: String, replacement: String) -> String:
+	var re := RegEx.new()
+	re.compile("\\b" + var_name + "\\b")
+	return re.sub(formula, replacement, true)
+
+
 ## Devuelve la cadena de fórmula para un desplazamiento vertical: f(x) + k
 func transform_shift_vertical(base_formula: String, k: float) -> String:
 	if k >= 0.0:
@@ -190,8 +199,8 @@ func transform_shift_vertical(base_formula: String, k: float) -> String:
 ## Devuelve la cadena de fórmula para un desplazamiento horizontal: f(x - h)
 func transform_shift_horizontal(base_formula: String, h: float) -> String:
 	if h >= 0.0:
-		return base_formula.replace("x", "(x - %s)" % h)
-	return base_formula.replace("x", "(x + %s)" % absf(h))
+		return _replace_token_variable(base_formula, "x", "(x - %s)" % h)
+	return _replace_token_variable(base_formula, "x", "(x + %s)" % absf(h))
 
 
 ## Devuelve la cadena de fórmula para escala vertical: a·f(x)
@@ -201,7 +210,7 @@ func transform_scale_vertical(base_formula: String, a: float) -> String:
 
 ## Devuelve la cadena de fórmula para escala horizontal: f(b·x)
 func transform_scale_horizontal(base_formula: String, b: float) -> String:
-	return base_formula.replace("x", "(%s * x)" % b)
+	return _replace_token_variable(base_formula, "x", "(%s * x)" % b)
 
 
 ## Devuelve la cadena de fórmula para reflexión sobre el eje X: -f(x)
@@ -211,7 +220,7 @@ func transform_reflect_x(base_formula: String) -> String:
 
 ## Devuelve la cadena de fórmula para reflexión sobre el eje Y: f(-x)
 func transform_reflect_y(base_formula: String) -> String:
-	return base_formula.replace("x", "(-x)")
+	return _replace_token_variable(base_formula, "x", "(-x)")
 
 
 # ---------------------------------------------------------------------------
@@ -219,10 +228,10 @@ func transform_reflect_y(base_formula: String) -> String:
 # ---------------------------------------------------------------------------
 
 ## Devuelve la cadena de fórmula compuesta (f∘g)(x) = f(g(x)).
-## Reemplaza cada ocurrencia de "x" en f con "(g_formula)".
-## Nota: Funciona mejor con fórmulas simples de una sola variable.
+## Reemplaza solo el token variable "x" en f con "(g_formula)" usando
+## límites de palabra para preservar identificadores como "exp", "max", etc.
 func compose(f_formula: String, g_formula: String) -> String:
-	return f_formula.replace("x", "(%s)" % g_formula)
+	return _replace_token_variable(f_formula, "x", "(%s)" % g_formula)
 
 
 ## Devuelve la fórmula de la suma: (f+g)(x)
