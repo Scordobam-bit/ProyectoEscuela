@@ -31,8 +31,8 @@ const _STEP_TARGET_INPUT: String = "input"
 const _STEP_TARGET_PLOT: String = "plot_button"
 const _STEP_TARGET_DOMAIN: String = "domain"
 
-## Capa del CanvasLayer — debe ser mayor que la del HUD para renderizarse encima.
-const TUTORIAL_LAYER: int = 10
+## Capa del CanvasLayer — debe ser mayor que la del HUD (HUD usa layer=20).
+const TUTORIAL_LAYER: int = 30
 
 # Definición de los tres pasos en orden de aparición.
 var _steps: Array = [
@@ -101,7 +101,7 @@ func _build_ui() -> void:
 	_overlay.name = "TutorialOverlay"
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.color = Color(0.0, 0.0, 0.02, 0.5)
-	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_overlay)
 
 	# ── Marco de resaltado neón alrededor del elemento señalado ────────────
@@ -181,6 +181,7 @@ func start() -> void:
 		guide_completed.emit()
 		return
 	_current_step = 0
+	_hud.set_controls_enabled(false)
 	visible = true
 	_show_step(_current_step)
 
@@ -188,6 +189,8 @@ func start() -> void:
 ## Oculta la guía sin emitir señal (p. ej., si el sector avanza sin tutorial).
 func force_hide() -> void:
 	visible = false
+	if _hud:
+		_hud.set_controls_enabled(true)
 
 
 func _show_step(index: int) -> void:
@@ -254,4 +257,6 @@ func _on_skip_pressed() -> void:
 
 func _finish() -> void:
 	visible = false
+	if _hud:
+		_hud.set_controls_enabled(true)
 	guide_completed.emit()

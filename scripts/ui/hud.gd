@@ -31,13 +31,13 @@ signal hint_requested
 @onready var _domain_max_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMaxSpin
 @onready var _sector_label: Label = $TopBar/SectorLabel
 @onready var _score_label: Label = $TopBar/ScoreLabel
-@onready var _back_button: Button = $TopBar/BackButton
+@onready var _back_button: Button = $BackButton
 @onready var _feedback_label: Label = $FeedbackLabel
 @onready var _theory_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton
 @onready var _hint_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton
 @onready var _mission_title_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionTitleLabel
 @onready var _mission_description_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionDescriptionLabel
-@onready var _keyboard_toggle_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/KeyboardToggleButton
+@onready var _keyboard_toggle_button: Button = $HUDPanel/Margin/VBox/KeyboardToggleButton
 @onready var _feedback_timer: Timer = $FeedbackTimer
 @onready var _hud_panel: PanelContainer = $HUDPanel
 
@@ -60,6 +60,8 @@ const FEEDBACK_DURATION: float = 5.0
 # Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
 # que el LineEdit quede demasiado cerca del panel inferior.
 const KEYBOARD_VISIBLE_HUD_OFFSET: float = 26.0
+const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
+const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
@@ -69,8 +71,10 @@ var _syntax_help_button: Button = null
 var _syntax_panel: PanelContainer = null
 
 # Teclado matemático virtual.
-var _keyboard_panel: PanelContainer = null
+var _keyboard_panel: MathKeyboard = null
 var _base_hud_panel_y: float = 0.0
+var _hud_move_tween: Tween = null
+const BACK_BUTTON_Z_INDEX: int = 1000
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -102,6 +106,7 @@ func _ready() -> void:
 	_apply_label_outline(_feedback_label)
 	_apply_label_outline(_sector_label)
 	_apply_label_outline(_score_label)
+	_back_button.z_index = BACK_BUTTON_Z_INDEX
 
 
 func _build_detail_label() -> void:
@@ -207,7 +212,7 @@ func _build_syntax_ui() -> void:
 ## Se muestra oculto por defecto y aparece en la parte inferior de la pantalla.
 func _build_virtual_keyboard() -> void:
 	# ── Panel del teclado ────────────────────────────────────────────────
-	_keyboard_panel = PanelContainer.new()
+	_keyboard_panel = preload("res://scenes/ui/math_keyboard.tscn").instantiate() as MathKeyboard
 	_keyboard_panel.name = "KeyboardPanel"
 	_keyboard_panel.anchor_left   = 0.0
 	_keyboard_panel.anchor_top    = 1.0
@@ -218,88 +223,45 @@ func _build_virtual_keyboard() -> void:
 	_keyboard_panel.offset_right  = -14.0
 	_keyboard_panel.offset_bottom = -10.0
 	_keyboard_panel.visible = false
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.02, 0.04, 0.14, 0.97)
-	style.border_color = Color(0.0, 0.9, 0.7, 0.9)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	_keyboard_panel.add_theme_stylebox_override("panel", style)
-
-	var vbox: VBoxContainer = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 5)
-	_keyboard_panel.add_child(vbox)
-
-	# Cabecera
-	var header_row: HBoxContainer = HBoxContainer.new()
-	vbox.add_child(header_row)
-
-	var title_lbl: Label = Label.new()
-	title_lbl.text = "⌨ Teclado Matemático"
-	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
-	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_apply_label_outline(title_lbl)
-	header_row.add_child(title_lbl)
-
-	var close_btn: Button = Button.new()
-	close_btn.text = "Cerrar (X)"
-	close_btn.custom_minimum_size = Vector2(95.0, 0.0)
-	close_btn.pressed.connect(func() -> void: _set_keyboard_visible(false))
-	header_row.add_child(close_btn)
-
-	vbox.add_child(HSeparator.new())
-
-	# Botones requeridos por el currículo
-	_add_keyboard_section(vbox, "Operaciones", [
-		["x²", "x^2"], ["xⁿ", "^"], ["√", "sqrt("], ["a/b", "/"], ["(", "("], [")", ")"],
-	])
-	_add_keyboard_section(vbox, "Funciones", [
-		["sin", "sin("], ["cos", "cos("], ["tan", "tan("], ["log", "log("], ["ln", "log("], ["abs", "abs("],
-	])
-	_add_keyboard_section(vbox, "Constantes", [
-		["x", "x"], ["e", "E"], ["π", "PI"],
-	])
+	_keyboard_panel.key_pressed.connect(_insert_at_cursor)
+	_keyboard_panel.close_requested.connect(func() -> void: _set_keyboard_visible(false))
 
 	add_child(_keyboard_panel)
-
-
-## Agrega una fila de categoría al teclado virtual.
-## category_label : nombre visible de la categoría.
-## buttons        : arreglo de [texto_del_botón, texto_a_insertar].
-func _add_keyboard_section(parent: VBoxContainer, category_label: String, buttons: Array) -> void:
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 5)
-	parent.add_child(row)
-
-	var cat_lbl: Label = Label.new()
-	cat_lbl.text = category_label + ":"
-	cat_lbl.add_theme_color_override("font_color", Color(0.65, 0.78, 1.0, 0.9))
-	cat_lbl.add_theme_font_size_override("font_size", 11)
-	cat_lbl.custom_minimum_size = Vector2(185.0, 0.0)
-	_apply_label_outline(cat_lbl)
-	row.add_child(cat_lbl)
-
-	for btn_data: Array in buttons:
-		var btn: Button = Button.new()
-		btn.text      = btn_data[0]
-		var insert_text: String = btn_data[1]
-		btn.tooltip_text = "Insertar: %s" % insert_text
-		btn.custom_minimum_size = Vector2(66.0, 28.0)
-		btn.add_theme_font_size_override("font_size", 12)
-		btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.8, 1.0))
-		btn.pressed.connect(_insert_at_cursor.bind(insert_text))
-		row.add_child(btn)
-
 
 ## Inserta el texto dado en la posición actual del cursor del campo de fórmulas.
 ## Deja el cursor justo después del texto insertado para que el estudiante
 ## pueda seguir escribiendo sin mover el teclado.
 func _insert_at_cursor(text: String) -> void:
+	if text == "/":
+		_insert_fraction_at_cursor(_formula_input)
+		return
 	var pos: int        = _formula_input.caret_column
 	var current: String = _formula_input.text
 	_formula_input.text         = current.left(pos) + text + current.substr(pos)
 	_formula_input.caret_column = pos + text.length()
 	_formula_input.grab_focus()
+
+
+func _insert_fraction_at_cursor(input: LineEdit) -> void:
+	var pos: int = input.caret_column
+	var text: String = input.text
+	var numerator_start: int = pos
+	while numerator_start > 0:
+		var ch: String = text.substr(numerator_start - 1, 1)
+		if ch in MathKeyboard.MATH_DELIMITERS:
+			break
+		numerator_start -= 1
+
+	var numerator: String = text.substr(numerator_start, pos - numerator_start)
+	var before: String = text.left(numerator_start)
+	var after: String = text.substr(pos)
+	if numerator.is_empty():
+		input.text = before + "()/()" + after
+		input.caret_column = before.length() + _EMPTY_FRACTION_CURSOR_OFFSET
+	else:
+		input.text = before + "(%s)/()" % numerator + after
+		input.caret_column = before.length() + numerator.length() + _WRAPPED_FRACTION_CURSOR_OFFSET
+	input.grab_focus()
 
 
 ## Alterna la visibilidad del teclado matemático virtual.
@@ -318,7 +280,13 @@ func _set_keyboard_visible(new_visible: bool) -> void:
 	if new_visible and _syntax_panel:
 		_syntax_panel.visible = false
 	if _hud_panel:
-		_hud_panel.position.y = _base_hud_panel_y - (KEYBOARD_VISIBLE_HUD_OFFSET if new_visible else 0.0)
+		var target_y: float = _base_hud_panel_y - (KEYBOARD_VISIBLE_HUD_OFFSET if new_visible else 0.0)
+		if _hud_move_tween and _hud_move_tween.is_valid():
+			_hud_move_tween.kill()
+		_hud_move_tween = create_tween()
+		_hud_move_tween.set_trans(Tween.TRANS_SINE)
+		_hud_move_tween.set_ease(Tween.EASE_OUT)
+		_hud_move_tween.tween_property(_hud_panel, "position:y", target_y, 0.2)
 	if new_visible and is_instance_valid(_formula_input) and _formula_input.is_inside_tree():
 		_formula_input.grab_focus()
 
@@ -397,6 +365,8 @@ func set_controls_enabled(enabled: bool) -> void:
 	_plot_button.disabled = not enabled
 	_domain_min_spin.editable = enabled
 	_domain_max_spin.editable = enabled
+	_theory_button.disabled = not enabled
+	_hint_button.disabled = not enabled
 	if _keyboard_toggle_button:
 		_keyboard_toggle_button.disabled = not enabled
 
