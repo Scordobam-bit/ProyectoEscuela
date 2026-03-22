@@ -60,6 +60,8 @@ const FEEDBACK_DURATION: float = 5.0
 # Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
 # que el LineEdit quede demasiado cerca del panel inferior.
 const KEYBOARD_VISIBLE_HUD_OFFSET: float = 26.0
+const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
+const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
@@ -72,7 +74,7 @@ var _syntax_panel: PanelContainer = null
 var _keyboard_panel: MathKeyboard = null
 var _base_hud_panel_y: float = 0.0
 var _hud_move_tween: Tween = null
-const _MATH_DELIMITERS: Array[String] = ["+", "-", "*", "/", "^", "(", ")", " "]
+const BACK_BUTTON_Z_INDEX: int = 1000
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -104,6 +106,7 @@ func _ready() -> void:
 	_apply_label_outline(_feedback_label)
 	_apply_label_outline(_sector_label)
 	_apply_label_outline(_score_label)
+	_back_button.z_index = BACK_BUTTON_Z_INDEX
 
 
 func _build_detail_label() -> void:
@@ -225,10 +228,6 @@ func _build_virtual_keyboard() -> void:
 
 	add_child(_keyboard_panel)
 
-
-## Agrega una fila de categoría al teclado virtual.
-## category_label : nombre visible de la categoría.
-## buttons        : arreglo de [texto_del_botón, texto_a_insertar].
 ## Inserta el texto dado en la posición actual del cursor del campo de fórmulas.
 ## Deja el cursor justo después del texto insertado para que el estudiante
 ## pueda seguir escribiendo sin mover el teclado.
@@ -249,7 +248,7 @@ func _insert_fraction_at_cursor(input: LineEdit) -> void:
 	var numerator_start: int = pos
 	while numerator_start > 0:
 		var ch: String = text.substr(numerator_start - 1, 1)
-		if ch in _MATH_DELIMITERS:
+		if ch in MathKeyboard.MATH_DELIMITERS:
 			break
 		numerator_start -= 1
 
@@ -258,10 +257,10 @@ func _insert_fraction_at_cursor(input: LineEdit) -> void:
 	var after: String = text.substr(pos)
 	if numerator.is_empty():
 		input.text = before + "()/()" + after
-		input.caret_column = before.length() + 4
+		input.caret_column = before.length() + _EMPTY_FRACTION_CURSOR_OFFSET
 	else:
 		input.text = before + "(%s)/()" % numerator + after
-		input.caret_column = before.length() + numerator.length() + 5
+		input.caret_column = before.length() + numerator.length() + _WRAPPED_FRACTION_CURSOR_OFFSET
 	input.grab_focus()
 
 
@@ -282,7 +281,7 @@ func _set_keyboard_visible(new_visible: bool) -> void:
 		_syntax_panel.visible = false
 	if _hud_panel:
 		var target_y: float = _base_hud_panel_y - (KEYBOARD_VISIBLE_HUD_OFFSET if new_visible else 0.0)
-		if _hud_move_tween:
+		if _hud_move_tween and _hud_move_tween.is_valid():
 			_hud_move_tween.kill()
 		_hud_move_tween = create_tween()
 		_hud_move_tween.set_trans(Tween.TRANS_SINE)

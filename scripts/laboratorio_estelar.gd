@@ -72,8 +72,6 @@ var _trail_index: int = 0
 ## Etiqueta que indica cuántas estelas hay activas.
 var _trails_count_label: Label = null
 
-const _INSERT_FRACTION_COMMAND: String = "__FRACTION__"
-const _MATH_DELIMITERS: Array[String] = ["+", "-", "*", "/", "^", "(", ")", " "]
 const _KEYBOARD_BOTTOM_OFFSET: float = -224.0
 
 # ---------------------------------------------------------------------------
@@ -532,6 +530,8 @@ func _get_placeholder(index: int) -> String:
 
 func _on_formula_input_focus_entered() -> void:
 	_active_formula_input = get_viewport().gui_get_focus_owner() as LineEdit
+	if _active_formula_input == null and not _formula_inputs.is_empty():
+		_active_formula_input = _formula_inputs[0]
 
 
 func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
@@ -554,7 +554,7 @@ func _toggle_keyboard_visibility(visible: bool) -> void:
 
 
 func _insert_at_cursor(input: LineEdit, text: String) -> void:
-	if text == _INSERT_FRACTION_COMMAND or text == "/":
+	if text == "/":
 		_insert_fraction_at_cursor(input)
 		return
 	var pos: int = input.caret_column
@@ -570,7 +570,7 @@ func _insert_fraction_at_cursor(input: LineEdit) -> void:
 	var numerator_start: int = pos
 	while numerator_start > 0:
 		var ch: String = text.substr(numerator_start - 1, 1)
-		if ch in _MATH_DELIMITERS:
+		if ch in MathKeyboard.MATH_DELIMITERS:
 			break
 		numerator_start -= 1
 
@@ -598,6 +598,8 @@ func _build_virtual_keyboard(parent: Control) -> void:
 	keyboard_panel.visible = false
 	parent.add_child(keyboard_panel)
 	keyboard_panel.key_pressed.connect(func(payload: String) -> void:
+		if _active_formula_input == null and not _formula_inputs.is_empty():
+			_active_formula_input = _formula_inputs[0]
 		if _active_formula_input:
 			_insert_at_cursor(_active_formula_input, payload)
 	)

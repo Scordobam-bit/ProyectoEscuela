@@ -31,7 +31,7 @@ const _STEP_TARGET_INPUT: String = "input"
 const _STEP_TARGET_PLOT: String = "plot_button"
 const _STEP_TARGET_DOMAIN: String = "domain"
 
-## Capa del CanvasLayer — debe ser mayor que la del HUD para renderizarse encima.
+## Capa del CanvasLayer — debe ser mayor que la del HUD (HUD usa layer=20).
 const TUTORIAL_LAYER: int = 30
 
 # Definición de los tres pasos en orden de aparición.

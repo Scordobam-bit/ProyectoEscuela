@@ -7,6 +7,8 @@ extends PanelContainer
 signal key_pressed(text: String)
 signal close_requested
 
+const MATH_DELIMITERS: Array[String] = ["+", "-", "*", "/", "^", "(", ")", " "]
+
 const DEFAULT_LAYOUT: Array = [
 	{
 		"title": "Operaciones",

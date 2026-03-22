@@ -142,7 +142,6 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 
 [node name="BackButton" type="Button" parent="."]
-z_index = 1000
 offset_right = 110.0
 offset_bottom = 32.0
 text = "🏠 Inicio"
