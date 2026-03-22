@@ -62,6 +62,12 @@ func fade_to_scene(scene_path: String) -> void:
 	_busy = false
 
 
+## Alias de compatibilidad: cambia de escena usando fundido.
+## Mantiene una API corta para llamadas tipo SceneTransition.change_scene(...).
+func change_scene(scene_path: String) -> void:
+	await fade_to_scene(scene_path)
+
+
 ## Realiza solo el fundido de salida (oscurecer) sin cambiar de escena.
 ## Útil si la escena se cambia manualmente después.
 func fade_out_only() -> void:

@@ -57,6 +57,7 @@ const SEED_OFFSET: int = 99
 var _plotters: Array[FunctionPlotter] = []
 var _hud_layer: CanvasLayer = null
 var _formula_inputs: Array[LineEdit] = []
+var _active_formula_input: LineEdit = null
 var _plot_buttons: Array[Button] = []
 var _active_checks: Array[CheckBox] = []
 var _domain_min_spin: SpinBox = null
@@ -69,6 +70,10 @@ var _trail_plotters: Array[FunctionPlotter] = []
 var _trail_index: int = 0
 ## Etiqueta que indica cuántas estelas hay activas.
 var _trails_count_label: Label = null
+
+const _INSERT_FRACTION_COMMAND: String = "__FRACTION__"
+const _MATH_DELIMITERS: Array[String] = ["+", "-", "*", "/", "^", "(", ")", " "]
+const _KEYBOARD_BOTTOM_OFFSET: float = -224.0
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -186,11 +191,12 @@ func _build_hud() -> void:
 	title_lbl.text = "🔬  LABORATORIO ESTELAR — Exploración Libre"
 	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
 	title_lbl.add_theme_font_size_override("font_size", 16)
+	_apply_label_outline(title_lbl)
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_bar.add_child(title_lbl)
 
 	var back_btn: Button = Button.new()
-	back_btn.text = "🏠  Menú Principal"
+	back_btn.text = "🏠 Volver al Menú"
 	back_btn.pressed.connect(_on_back_pressed)
 	top_bar.add_child(back_btn)
 
@@ -219,6 +225,7 @@ func _build_hud() -> void:
 	instr_lbl.text = "Ingrese hasta 3 funciones para compararlas simultáneamente. No hay obstáculos — ¡explore libremente!"
 	instr_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 1.0, 1.0))
 	instr_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_apply_label_outline(instr_lbl)
 	main_vbox.add_child(instr_lbl)
 
 	# ── Filas de fórmula para cada función ──────────────────────────────
@@ -244,6 +251,7 @@ func _build_hud() -> void:
 		func_lbl.text = "f%d(x) =" % (i + 1)
 		func_lbl.add_theme_color_override("font_color", LABEL_COLORS[i])
 		func_lbl.custom_minimum_size = Vector2(62.0, 0.0)
+		_apply_label_outline(func_lbl)
 		row.add_child(func_lbl)
 
 		var input: LineEdit = LineEdit.new()
@@ -251,6 +259,8 @@ func _build_hud() -> void:
 		input.placeholder_text = _get_placeholder(i)
 		input.add_theme_color_override("font_color", LABEL_COLORS[i])
 		input.text_submitted.connect(_on_formula_submitted.bind(i))
+		input.focus_entered.connect(_on_formula_input_focus_entered)
+		input.gui_input.connect(_on_formula_input_gui_input.bind(input))
 		row.add_child(input)
 		_formula_inputs.append(input)
 
@@ -282,6 +292,7 @@ func _build_hud() -> void:
 	var dom_lbl: Label = Label.new()
 	dom_lbl.text = "Dominio:  ["
 	dom_lbl.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))
+	_apply_label_outline(dom_lbl)
 	domain_row.add_child(dom_lbl)
 
 	_domain_min_spin = SpinBox.new()
@@ -294,6 +305,7 @@ func _build_hud() -> void:
 
 	var comma_lbl: Label = Label.new()
 	comma_lbl.text = " ,  "
+	_apply_label_outline(comma_lbl)
 	domain_row.add_child(comma_lbl)
 
 	_domain_max_spin = SpinBox.new()
@@ -306,6 +318,7 @@ func _build_hud() -> void:
 
 	var dom_lbl2: Label = Label.new()
 	dom_lbl2.text = " ]"
+	_apply_label_outline(dom_lbl2)
 	domain_row.add_child(dom_lbl2)
 
 	var spacer: Control = Control.new()
@@ -328,6 +341,7 @@ func _build_hud() -> void:
 	_trails_count_label.name = "TrailsCountLabel"
 	_trails_count_label.add_theme_color_override("font_color", Color(0.55, 0.65, 0.9, 0.85))
 	_trails_count_label.add_theme_font_size_override("font_size", 11)
+	_apply_label_outline(_trails_count_label)
 	_trails_count_label.text = ""
 	domain_row.add_child(_trails_count_label)
 
@@ -336,8 +350,10 @@ func _build_hud() -> void:
 	_status_label.name = "StatusLabel"
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.add_theme_color_override("font_color", Color(0.7, 0.8, 1.0, 1.0))
+	_apply_label_outline(_status_label)
 	_status_label.text = "Listo. Ingrese una función y presione GRAFICAR o Enter."
 	main_vbox.add_child(_status_label)
+	_build_virtual_keyboard(bottom_panel)
 
 
 # ---------------------------------------------------------------------------
@@ -392,7 +408,7 @@ func _on_domain_changed(_value: float) -> void:
 
 
 func _on_back_pressed() -> void:
-	SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/main_menu.tscn")
 
 
 # ---------------------------------------------------------------------------
@@ -501,3 +517,118 @@ func _get_placeholder(index: int) -> String:
 		1: return "ej.  sin(x)"
 		2: return "ej.  log(x + 1)"
 		_: return "fórmula…"
+
+
+func _on_formula_input_focus_entered() -> void:
+	_active_formula_input = get_viewport().gui_get_focus_owner() as LineEdit
+	_toggle_keyboard_visibility(true)
+
+
+func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
+	var key_event: InputEventKey = event as InputEventKey
+	if key_event == null:
+		return
+	if not key_event.pressed or key_event.echo:
+		return
+	if key_event.keycode == KEY_SLASH or key_event.unicode == int('/'):
+		_insert_fraction_at_cursor(input)
+		get_viewport().set_input_as_handled()
+
+
+func _toggle_keyboard_visibility(visible: bool) -> void:
+	var keyboard_panel: Control = _hud_layer.get_node_or_null("BottomPanel/KeyboardPanel")
+	if keyboard_panel:
+		keyboard_panel.visible = visible
+
+
+func _insert_at_cursor(input: LineEdit, text: String) -> void:
+	if text == _INSERT_FRACTION_COMMAND:
+		_insert_fraction_at_cursor(input)
+		return
+	var pos: int = input.caret_column
+	var current: String = input.text
+	input.text = current.left(pos) + text + current.substr(pos)
+	input.caret_column = pos + text.length()
+	input.grab_focus()
+
+
+func _insert_fraction_at_cursor(input: LineEdit) -> void:
+	var pos: int = input.caret_column
+	var text: String = input.text
+	var numerator_start: int = pos
+	while numerator_start > 0:
+		var ch: String = text.substr(numerator_start - 1, 1)
+		if ch in _MATH_DELIMITERS:
+			break
+		numerator_start -= 1
+
+	var numerator: String = text.substr(numerator_start, pos - numerator_start)
+	var before: String = text.left(numerator_start)
+	var after: String = text.substr(pos)
+	if numerator.is_empty():
+		input.text = before + "()/()" + after
+		input.caret_column = before.length() + 4
+	else:
+		input.text = before + "(%s)/()" % numerator + after
+		input.caret_column = before.length() + numerator.length() + 5
+	input.grab_focus()
+
+
+func _build_virtual_keyboard(parent: Control) -> void:
+	var keyboard_panel: PanelContainer = PanelContainer.new()
+	keyboard_panel.name = "KeyboardPanel"
+	keyboard_panel.anchor_left = 0.0
+	keyboard_panel.anchor_top = 1.0
+	keyboard_panel.anchor_right = 1.0
+	keyboard_panel.anchor_bottom = 1.0
+	keyboard_panel.offset_top = -320.0
+	keyboard_panel.offset_bottom = _KEYBOARD_BOTTOM_OFFSET
+	keyboard_panel.visible = false
+	parent.add_child(keyboard_panel)
+
+	var kb_style: StyleBoxFlat = StyleBoxFlat.new()
+	kb_style.bg_color = Color(0.01, 0.02, 0.10, 0.95)
+	kb_style.border_color = Color(0.0, 0.95, 0.75, 0.65)
+	kb_style.set_border_width_all(2)
+	keyboard_panel.add_theme_stylebox_override("panel", kb_style)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	keyboard_panel.add_child(margin)
+
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	margin.add_child(row)
+
+	var keyboard_title_label: Label = Label.new()
+	keyboard_title_label.text = "⌨ Teclado Matemático"
+	keyboard_title_label.custom_minimum_size = Vector2(180.0, 0.0)
+	_apply_label_outline(keyboard_title_label)
+	row.add_child(keyboard_title_label)
+
+	var button_data: Array = [
+		# Etiqueta visible, texto insertado (símbolos tipográficos -> operadores ASCII)
+		["x", "x"], ["(", "("], [")", ")"], ["+", "+"], ["−", "-"],
+		["×", "*"], ["÷", _INSERT_FRACTION_COMMAND], ["^", "^"],
+		["sin()", "sin("], ["cos()", "cos("], ["log()", "log("], ["sqrt()", "sqrt("],
+	]
+	for item in button_data:
+		var btn: Button = Button.new()
+		btn.text = item[0]
+		btn.custom_minimum_size = Vector2(56.0, 0.0)
+		var payload: String = item[1]
+		btn.pressed.connect(func() -> void:
+			if _active_formula_input:
+				_insert_at_cursor(_active_formula_input, payload)
+		)
+		row.add_child(btn)
+
+
+func _apply_label_outline(label: Label) -> void:
+	if not label:
+		return
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	label.add_theme_constant_override("outline_size", 2)

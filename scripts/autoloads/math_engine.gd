@@ -41,27 +41,29 @@ var _expr: Expression = Expression.new()
 ## Evalúa una cadena de fórmula en un valor x dado.
 ## Devuelve NAN si el análisis o la ejecución fallan.
 func evaluate(formula: String, x_val: float) -> float:
-	var err: Error = _expr.parse(formula, ["x"])
+	var normalized: String = _normalize_formula(formula)
+	var err: Error = _expr.parse(normalized, ["x"])
 	if err != OK:
 		return NAN
 	var result: Variant = _expr.execute([x_val])
 	if _expr.has_execute_failed():
 		return NAN
 	var y: float = float(result)
-	formula_evaluated.emit(formula, x_val, y)
+	formula_evaluated.emit(normalized, x_val, y)
 	return y
 
 
 ## Devuelve true si la fórmula se analiza sin errores.
 func is_valid_formula(formula: String) -> bool:
-	return _expr.parse(formula, ["x"]) == OK
+	return _expr.parse(_normalize_formula(formula), ["x"]) == OK
 
 
 ## Evalúa una fórmula sobre un arreglo de valores x.
 ## Omite resultados NAN / Inf.
 func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloat64Array:
 	var results: PackedFloat64Array = PackedFloat64Array()
-	var err: Error = _expr.parse(formula, ["x"])
+	var normalized: String = _normalize_formula(formula)
+	var err: Error = _expr.parse(normalized, ["x"])
 	if err != OK:
 		return results
 	for x in x_values:
@@ -71,6 +73,23 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 		else:
 			results.append(float(res))
 	return results
+
+
+## Normaliza entradas de usuario para reducir errores comunes de precedencia y cociente.
+## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" y "x/x-3" -> "(x)/(x-3)".
+func _normalize_formula(formula: String) -> String:
+	var f: String = formula.strip_edges()
+	var simple_rational: RegEx = RegEx.new()
+	simple_rational.compile("^([\\w\\(\\)\\^\\*\\+\\-]+)\\/([\\w\\(\\)\\^\\*\\+\\-]+)([\\+\\-])([\\w\\(\\)\\^\\*\\+\\-]+)$")
+	var match: RegExMatch = simple_rational.search(f)
+	if match != null:
+		var numerator: String = match.get_string(1).strip_edges()
+		var denominator_base: String = match.get_string(2).strip_edges()
+		var denominator_op: String = match.get_string(3).strip_edges()
+		var denominator_tail: String = match.get_string(4).strip_edges()
+		if not numerator.is_empty() and not denominator_base.is_empty() and not denominator_tail.is_empty():
+			return "(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail]
+	return f
 
 
 ## Genera N valores x uniformemente espaciados en [x_min, x_max].

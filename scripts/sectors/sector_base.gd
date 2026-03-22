@@ -194,9 +194,19 @@ func _start_challenge(index: int) -> void:
 		var ch: Dictionary = _challenges[index]
 		hud_node.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		hud_node.show_feedback(ch.get("instruction", ""), "info")
+		hud_node.set_mission_text(
+			"Objetivo - Desafío %d" % (index + 1),
+			ch.get("instruction", "")
+		)
+		hud_node.set_controls_enabled(false)
+	if _ship:
+		_ship.stop()
 
-	# Mostrar briefing de misión antes del desafío
-	_show_mission_briefing_for_challenge(index)
+	# Mostrar briefing inicial de misión antes del primer desafío
+	if index == 0:
+		await _show_mission_briefing_for_challenge(index)
+	if hud_node:
+		hud_node.set_controls_enabled(true)
 
 	_on_challenge_begin(index)
 
@@ -212,6 +222,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		key = _challenges[challenge_index].get("briefing_key", default_key)
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
 		theory_panel_node.show_mission_briefing(key)
+		await theory_panel_node.panel_closed
 
 
 func _advance_challenge() -> void:
@@ -308,6 +319,10 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 	if _plotter:
 		_plotter.domain_min = min_x
 		_plotter.domain_max = max_x
+	GameManager.notify_inspector_values_changed(sector_index, min_x, max_x)
+	if _ship:
+		var domain_span: float = max_x - min_x
+		_ship.speed = clampf(0.04 + domain_span * 0.006, 0.04, 0.2)
 
 
 func _on_plot_failed(error_message: String) -> void:
@@ -361,4 +376,3 @@ func _validate_formula_against_current(player_formula: String) -> void:
 		# Generar explicación automática del error
 		if hud_node and not expected.is_empty():
 			hud_node.show_auto_error_explanation(player_formula, expected)
-
