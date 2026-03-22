@@ -63,6 +63,7 @@ var _active_checks: Array[CheckBox] = []
 var _domain_min_spin: SpinBox = null
 var _domain_max_spin: SpinBox = null
 var _status_label: Label = null
+var _keyboard_toggle_button: Button = null
 
 ## Lista de graficadores de estela (trazos congelados).
 var _trail_plotters: Array[FunctionPlotter] = []
@@ -336,6 +337,16 @@ func _build_hud() -> void:
 	clear_trails_btn.pressed.connect(_on_clear_trails)
 	domain_row.add_child(clear_trails_btn)
 
+	# ── Toggle de teclado matemático (oculto por defecto) ───────────────
+	_keyboard_toggle_button = Button.new()
+	_keyboard_toggle_button.text = "⌨ Teclado Matemático"
+	_keyboard_toggle_button.toggle_mode = true
+	_keyboard_toggle_button.button_pressed = false
+	_keyboard_toggle_button.pressed.connect(func() -> void:
+		_toggle_keyboard_visibility(_keyboard_toggle_button.button_pressed)
+	)
+	main_vbox.add_child(_keyboard_toggle_button)
+
 	# ── Contador de estelas ─────────────────────────────────────────────
 	_trails_count_label = Label.new()
 	_trails_count_label.name = "TrailsCountLabel"
@@ -521,7 +532,6 @@ func _get_placeholder(index: int) -> String:
 
 func _on_formula_input_focus_entered() -> void:
 	_active_formula_input = get_viewport().gui_get_focus_owner() as LineEdit
-	_toggle_keyboard_visibility(true)
 
 
 func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
@@ -539,10 +549,12 @@ func _toggle_keyboard_visibility(visible: bool) -> void:
 	var keyboard_panel: Control = _hud_layer.get_node_or_null("BottomPanel/KeyboardPanel")
 	if keyboard_panel:
 		keyboard_panel.visible = visible
+	if _keyboard_toggle_button:
+		_keyboard_toggle_button.button_pressed = visible
 
 
 func _insert_at_cursor(input: LineEdit, text: String) -> void:
-	if text == _INSERT_FRACTION_COMMAND:
+	if text == _INSERT_FRACTION_COMMAND or text == "/":
 		_insert_fraction_at_cursor(input)
 		return
 	var pos: int = input.caret_column
@@ -575,7 +587,7 @@ func _insert_fraction_at_cursor(input: LineEdit) -> void:
 
 
 func _build_virtual_keyboard(parent: Control) -> void:
-	var keyboard_panel: PanelContainer = PanelContainer.new()
+	var keyboard_panel: MathKeyboard = preload("res://scenes/ui/math_keyboard.tscn").instantiate() as MathKeyboard
 	keyboard_panel.name = "KeyboardPanel"
 	keyboard_panel.anchor_left = 0.0
 	keyboard_panel.anchor_top = 1.0
@@ -585,46 +597,13 @@ func _build_virtual_keyboard(parent: Control) -> void:
 	keyboard_panel.offset_bottom = _KEYBOARD_BOTTOM_OFFSET
 	keyboard_panel.visible = false
 	parent.add_child(keyboard_panel)
-
-	var kb_style: StyleBoxFlat = StyleBoxFlat.new()
-	kb_style.bg_color = Color(0.01, 0.02, 0.10, 0.95)
-	kb_style.border_color = Color(0.0, 0.95, 0.75, 0.65)
-	kb_style.set_border_width_all(2)
-	keyboard_panel.add_theme_stylebox_override("panel", kb_style)
-
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	keyboard_panel.add_child(margin)
-
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	margin.add_child(row)
-
-	var keyboard_title_label: Label = Label.new()
-	keyboard_title_label.text = "⌨ Teclado Matemático"
-	keyboard_title_label.custom_minimum_size = Vector2(180.0, 0.0)
-	_apply_label_outline(keyboard_title_label)
-	row.add_child(keyboard_title_label)
-
-	var button_data: Array = [
-		# Etiqueta visible, texto insertado (símbolos tipográficos -> operadores ASCII)
-		["x", "x"], ["(", "("], [")", ")"], ["+", "+"], ["−", "-"],
-		["×", "*"], ["÷", _INSERT_FRACTION_COMMAND], ["^", "^"],
-		["sin()", "sin("], ["cos()", "cos("], ["log()", "log("], ["sqrt()", "sqrt("],
-	]
-	for item in button_data:
-		var btn: Button = Button.new()
-		btn.text = item[0]
-		btn.custom_minimum_size = Vector2(56.0, 0.0)
-		var payload: String = item[1]
-		btn.pressed.connect(func() -> void:
-			if _active_formula_input:
-				_insert_at_cursor(_active_formula_input, payload)
-		)
-		row.add_child(btn)
+	keyboard_panel.key_pressed.connect(func(payload: String) -> void:
+		if _active_formula_input:
+			_insert_at_cursor(_active_formula_input, payload)
+	)
+	keyboard_panel.close_requested.connect(func() -> void:
+		_toggle_keyboard_visibility(false)
+	)
 
 
 func _apply_label_outline(label: Label) -> void:

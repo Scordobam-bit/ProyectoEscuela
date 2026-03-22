@@ -318,6 +318,9 @@ func _on_formula_submitted_hud(formula: String) -> void:
 				_ship.reset()
 			return  # No validar la fórmula si impacta un obstáculo
 
+	if _ship and _plotter and _plotter.is_plot_valid():
+		_ship.reset(true)
+
 	_on_formula_submitted_sector(formula)
 
 
