@@ -202,8 +202,9 @@ func _start_challenge(index: int) -> void:
 	if _ship:
 		_ship.stop()
 
-	# Mostrar briefing de misión antes del desafío
-	await _show_mission_briefing_for_challenge(index)
+	# Mostrar briefing inicial de misión antes del primer desafío
+	if index == 0:
+		await _show_mission_briefing_for_challenge(index)
 	if hud_node:
 		hud_node.set_controls_enabled(true)
 
@@ -318,6 +319,10 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 	if _plotter:
 		_plotter.domain_min = min_x
 		_plotter.domain_max = max_x
+	GameManager.notify_inspector_values_changed(sector_index, min_x, max_x)
+	if _ship:
+		var domain_span: float = max_x - min_x
+		_ship.speed = clampf(0.04 + domain_span * 0.006, 0.04, 0.2)
 
 
 func _on_plot_failed(error_message: String) -> void:

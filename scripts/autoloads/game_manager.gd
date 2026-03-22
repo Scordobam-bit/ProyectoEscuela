@@ -19,6 +19,9 @@ signal answer_validated(correct: bool, feedback: String)
 ## Emitida para solicitar la actualización del panel de teoría.
 signal theory_requested(sector_index: int, topic_key: String)
 
+## Emitida cuando el jugador modifica valores de inspección del HUD (p. ej. dominio).
+signal inspector_values_changed(sector_index: int, domain_min: float, domain_max: float)
+
 # ---------------------------------------------------------------------------
 # Definición de Sectores
 # ---------------------------------------------------------------------------
@@ -173,6 +176,11 @@ func submit_answer(player_formula: String, expected_formula: String,
 	answer_validated.emit(correct,
 		feedback_correct if correct else feedback_wrong)
 	return correct
+
+
+## Notifica cambios en valores de inspector del HUD para reactividad en tiempo real.
+func notify_inspector_values_changed(sector_index: int, domain_min: float, domain_max: float) -> void:
+	inspector_values_changed.emit(sector_index, domain_min, domain_max)
 
 
 # ---------------------------------------------------------------------------
