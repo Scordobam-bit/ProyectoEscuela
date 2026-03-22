@@ -31,6 +31,7 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
+			"briefing_key": "s5_tutorial",
 			"instruction": "Desafío 1: ¿Es f(x) = x³ inyectiva? Ingresa '1' para Sí o '0' para No.",
 			"hint": "1",
 			"expected_formula": "1",

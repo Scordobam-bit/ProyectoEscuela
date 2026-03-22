@@ -45,7 +45,7 @@ func _setup_challenges() -> void:
 	_challenges = [
 		# ── Desafío 0: Calibración de Motores ─────────────────────────────
 		{
-			"briefing_key": "s1_cal",
+			"briefing_key": "s1_tutorial",
 			"instruction":
 				(
 					"CALIBRACIÓN: Trace la línea constante [b]y = 5[/b] para verificar que los "

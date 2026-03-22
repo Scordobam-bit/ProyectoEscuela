@@ -41,7 +41,7 @@ placeholder_text = "ej.  2*x + 1"
 
 [node name="PlotButton" type="Button" parent="HUDPanel/Margin/VBox/FormulaRow"]
 layout_mode = 2
-text = "GRAFICAR"
+text = "EJECUTAR TRAYECTORIA"
 
 [node name="DomainRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
@@ -107,6 +107,10 @@ text = "Sigue las instrucciones de la misión actual."
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 
+[node name="KeyboardToggleButton" type="Button" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
+layout_mode = 2
+text = "⌨ Teclado Matemático"
+
 [node name="ButtonRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
 layout_mode = 2
 
@@ -122,6 +126,10 @@ text = "💡 Pista"
 offset_bottom = 30.0
 offset_right = 1280.0
 
+[node name="BackButton" type="Button" parent="TopBar"]
+layout_mode = 2
+text = "🏠 Inicio"
+
 [node name="SectorLabel" type="Label" parent="TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -134,10 +142,6 @@ layout_mode = 2
 text = "Puntuación: 0"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-
-[node name="BackButton" type="Button" parent="TopBar"]
-layout_mode = 2
-text = "🏠 Volver al Menú"
 
 [node name="FeedbackLabel" type="Label" parent="."]
 anchor_left = 0.5

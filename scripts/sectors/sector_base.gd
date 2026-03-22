@@ -214,6 +214,9 @@ func _start_challenge(index: int) -> void:
 func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 	if not theory_panel_node:
 		return
+	var prev_mode: int = theory_panel_node.process_mode
+	theory_panel_node.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	get_tree().paused = true
 	# Permitir que cada desafío defina su propia clave de briefing, con la convención
 	# "s{sector}_c{challenge}" como valor por defecto.
 	var default_key: String = "s%d_c%d" % [sector_index, challenge_index]
@@ -223,6 +226,8 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
 		theory_panel_node.show_mission_briefing(key)
 		await theory_panel_node.panel_closed
+	get_tree().paused = false
+	theory_panel_node.process_mode = prev_mode
 
 
 func _advance_challenge() -> void:
@@ -295,7 +300,8 @@ func _on_formula_submitted_hud(formula: String) -> void:
 	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
 	if not MathEngine.is_valid_formula(formula):
 		if hud_node:
-			hud_node.show_feedback(MathEngine.get_friendly_error_message(formula), "error")
+			var detailed_error: String = MathEngine.get_friendly_error_message(formula)
+			hud_node.show_feedback("¡Comando inválido! " + detailed_error, "error")
 		return
 
 	if _plotter:
@@ -330,9 +336,17 @@ func _on_plot_failed(error_message: String) -> void:
 		hud_node.show_feedback("⚠ " + error_message, "error")
 
 
+func _get_sector_tutorial_key() -> String:
+	return "s%d_tutorial" % sector_index
+
+
 func _on_theory_requested() -> void:
 	if theory_panel_node:
-		theory_panel_node.show_sector_theory(sector_index)
+		var tutorial_key: String = _get_sector_tutorial_key()
+		if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
+			theory_panel_node.show_mission_briefing(tutorial_key)
+		else:
+			theory_panel_node.show_sector_theory(sector_index)
 
 
 func _on_hint_requested() -> void:
@@ -340,6 +354,10 @@ func _on_hint_requested() -> void:
 		var hint: String = _challenges[_current_challenge].get("solution_hint", "Sin pista disponible.")
 		if hud_node:
 			hud_node.show_feedback("Pista: " + hint, "warning")
+		if theory_panel_node:
+			var tutorial_key: String = _get_sector_tutorial_key()
+			if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
+				theory_panel_node.show_mission_briefing(tutorial_key)
 		GameManager.hints_used += 1
 
 

@@ -28,6 +28,7 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
+			"briefing_key": "s4_tutorial",
 			"instruction": "Desafío 1: f(x) = x²  y  g(x) = 3x − 1.\n" +
 				"Calcula y grafica (f + g)(x).",
 			"hint": "x^2 + 3*x - 1",
