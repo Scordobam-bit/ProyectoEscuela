@@ -34,6 +34,7 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
+			"briefing_key": "s2_tutorial",
 			"instruction": "Desafío 1: Un pozo gravitatorio sigue f(x) = x² − 4.\nGrafica esta función para revelar la curvatura del pozo.",
 			"hint": "x^2 - 4",
 			"expected_formula": "x^2 - 4",

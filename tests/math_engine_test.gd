@@ -26,6 +26,8 @@ func _ready() -> void:
 	var tests: Array[Callable] = [
 		test_evaluate_basic,
 		test_evaluate_sin,
+		test_evaluate_rational_continuous_fraction,
+		test_normalize_simple_rational_without_parentheses,
 		test_compose_no_corrupt_exp,
 		test_compose_no_corrupt_sin,
 		test_compose_simple,
@@ -88,6 +90,20 @@ func test_evaluate_sin() -> bool:
 	var result: float = MathEngine.evaluate("sin(x)", PI / 2.0)
 	return _assert(_approx_equal(result, 1.0, 1e-6), "evaluate('sin(x)', PI/2) ≈ 1",
 		"got %s" % result)
+
+
+func test_evaluate_rational_continuous_fraction() -> bool:
+	var value: float = MathEngine.evaluate("x/(x+3)", 3.0)
+	return _assert(_approx_equal(value, 0.5, 1e-6),
+		"evaluate('x/(x+3)', 3) == 0.5",
+		"got %s" % value)
+
+
+func test_normalize_simple_rational_without_parentheses() -> bool:
+	var value: float = MathEngine.evaluate("x/x+3", 3.0)
+	return _assert(_approx_equal(value, 0.5, 1e-6),
+		"evaluate('x/x+3', 3) se interpreta como x/(x+3)",
+		"got %s" % value)
 
 
 # ---------------------------------------------------------------------------

@@ -33,6 +33,7 @@ func _setup_challenges() -> void:
 
 	_challenges = [
 		{
+			"briefing_key": "s3_tutorial",
 			"instruction": "Desafío 1: Desplaza sin(x) a la DERECHA por π y hacia ARRIBA por 2.\n" +
 				"Recuerda: f(x−h)+k desplaza a la derecha en h y hacia arriba en k.",
 			"hint": "sin(x - PI) + 2",

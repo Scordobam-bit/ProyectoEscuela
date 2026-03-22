@@ -374,28 +374,56 @@ donde  e ≈ 2.71828… (número de Euler)
 ## Diccionario de briefings lúdicos. Clave: "s{sector}_c{challenge}".
 ## Cada entrada: { "title": String, "content": String (BBCode) }
 const MISSION_BRIEFINGS: Dictionary = {
-	# ── Sector 1 — Calibración de Motores (Tutorial) ──────────────────────
-	"s1_cal": {
-		"title": "🚀 CALIBRACIÓN DE MOTORES — Prueba de Sistemas",
-		"content": """[color=#00ffcc][b]Capitán, bienvenido al puente de mando.[/b][/color]
+	# ── Tutoriales obligatorios por sector ─────────────────────────────────
+	"s1_tutorial": {
+		"title": "🚀 Sector 1 — ¿Qué es una Función? (La Máquina de Café)",
+		"content": """[b]Concepto:[/b]
+Una [color=#00ffcc]función[/color] es una máquina: entra un número [b]X[/b], la máquina aplica una regla y sale un único [b]Y[/b].
+Si una misma X tuviera dos Y diferentes, ¡la nave colapsaría!
 
-Los ingenieros necesitan realizar una [color=#ffcc00]calibración de motores[/color] antes de entrar en el cinturón de asteroides. Para ello, la computadora de navegación debe trazar una trayectoria de prueba.
+[b]Regla clave:[/b] una sola salida por cada entrada.
 
-[b]Misión de Calibración:[/b]
-Trace la línea constante [color=#ffcc00][b]y = 5[/b][/color] para verificar que los sistemas de propulsión responden correctamente.
+[b]Cómo jugar:[/b]
+Escribe tu primera función simple. Si escribes [color=#ffcc00]x[/color], la nave subirá un metro por cada metro que avance.
 
-[b]¿Cómo ingresar una función constante?[/b]
-Una función constante produce el mismo valor para cualquier x.
-Simplemente ingrese el número: [color=#ffcc00]5[/color]
+[i]Pulsa “EJECUTAR TRAYECTORIA” para iniciar la ruta.[/i]"""
+	},
+	"s2_tutorial": {
+		"title": "🛰️ Sector 2 — El Dominio (El Mapa de Vuelo)",
+		"content": """[b]Concepto:[/b]
+El [color=#00ffcc]Dominio[/color] son todos los valores de X que la máquina puede procesar.
+Con raíces cuadradas o divisiones hay zonas donde la nave no puede existir.
 
-[b]Antes de comenzar — aprenda a usar el HUD:[/b]
-• [color=#00ffcc]Caja de ecuaciones:[/color] donde ingresa la trayectoria
-• [color=#00ffcc]Botón GRAFICAR (o tecla Enter):[/color] calcula y traza la ruta
-• [color=#00ffcc]Controles de dominio:[/color] ajustan el rango del eje X
+[b]Cómo jugar:[/b]
+Observa el radar: hay valores de X no válidos.
+Ajusta tu función para que la trayectoria pase solo por el dominio seguro."""
+	},
+	"s3_tutorial": {
+		"title": "📈 Sector 3 — Funciones Lineales y Constantes",
+		"content": """[b]Concepto:[/b]
+Las funciones lineales son cables rectos.
+La pendiente decide qué tan rápido subes o bajas.
 
-[i]Al cerrar este panel, aparecerá una guía rápida que señalará cada elemento del HUD.[/i]
+[b]Cómo jugar:[/b]
+Usa multiplicadores como [color=#ffcc00]2*x[/color] para esquivar asteroides en diagonal."""
+	},
+	"s4_tutorial": {
+		"title": "🌙 Sector 4 — Potencias y Parábolas",
+		"content": """[b]Concepto:[/b]
+Las potencias como [color=#ffcc00]x²[/color] crean curvas (parábolas), ideales para rodear obstáculos circulares.
 
-[b]Referencia de sintaxis:[/b] Use el botón [color=#ffcc00]?[/color] junto a la entrada de ecuaciones."""
+[b]Cómo jugar:[/b]
+Usa el teclado matemático para elevar la X.
+Una parábola te permite hacer giros suaves en U."""
+	},
+	"s5_tutorial": {
+		"title": "🌀 Sector 5 — Funciones Racionales y Asíntotas",
+		"content": """[b]Concepto:[/b]
+Funciones como [color=#ffcc00]1/x[/color] crean muros invisibles llamados asíntotas.
+La nave se acerca infinitamente, pero nunca las toca.
+
+[b]Cómo jugar:[/b]
+Escribe fracciones como [color=#ffcc00]x/(x+3)[/color] para navegar pasajes estrechos finales."""
 	},
 
 	# ── Sector 1 — Cinturón de Asteroides ────────────────────────────────

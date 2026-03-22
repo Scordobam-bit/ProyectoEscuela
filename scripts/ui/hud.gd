@@ -37,7 +37,9 @@ signal hint_requested
 @onready var _hint_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton
 @onready var _mission_title_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionTitleLabel
 @onready var _mission_description_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionDescriptionLabel
+@onready var _keyboard_toggle_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/KeyboardToggleButton
 @onready var _feedback_timer: Timer = $FeedbackTimer
+@onready var _hud_panel: PanelContainer = $HUDPanel
 
 # Fila de fórmulas para añadir el botón "?" de ayuda de sintaxis.
 @onready var _formula_row: HBoxContainer = $HUDPanel/Margin/VBox/FormulaRow
@@ -63,9 +65,9 @@ var _detail_label: Label = null
 var _syntax_help_button: Button = null
 var _syntax_panel: PanelContainer = null
 
-# Teclado matemático virtual y su botón de alternancia.
+# Teclado matemático virtual.
 var _keyboard_panel: PanelContainer = null
-var _keyboard_button: Button = null
+var _base_hud_panel_y: float = 0.0
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -75,6 +77,7 @@ func _ready() -> void:
 	_plot_button.pressed.connect(_on_plot_pressed)
 	_theory_button.pressed.connect(_on_theory_pressed)
 	_hint_button.pressed.connect(_on_hint_pressed)
+	_keyboard_toggle_button.pressed.connect(_toggle_keyboard_panel)
 	_back_button.pressed.connect(_on_back_pressed)
 	_domain_min_spin.value_changed.connect(_on_domain_changed)
 	_domain_max_spin.value_changed.connect(_on_domain_changed)
@@ -90,6 +93,7 @@ func _ready() -> void:
 	_build_detail_label()
 	_build_syntax_ui()
 	_build_virtual_keyboard()
+	_base_hud_panel_y = _hud_panel.position.y
 	_apply_label_outline(_mission_title_label)
 	_apply_label_outline(_mission_description_label)
 	_apply_label_outline(_feedback_label)
@@ -197,28 +201,19 @@ func _build_syntax_ui() -> void:
 # ---------------------------------------------------------------------------
 
 ## Construye el teclado matemático virtual desplegable.
-## El botón ⌨ se añade a la fila de fórmulas; el panel aparece debajo del HUD.
+## Se muestra oculto por defecto y aparece en la parte inferior de la pantalla.
 func _build_virtual_keyboard() -> void:
-	# ── Botón de alternancia ⌨ ────────────────────────────────────────────
-	_keyboard_button = Button.new()
-	_keyboard_button.name = "KeyboardButton"
-	_keyboard_button.text = "⌨"
-	_keyboard_button.tooltip_text = "Teclado matemático virtual"
-	_keyboard_button.custom_minimum_size = Vector2(36.0, 0.0)
-	_keyboard_button.pressed.connect(_toggle_keyboard_panel)
-	_formula_row.add_child(_keyboard_button)
-
 	# ── Panel del teclado ────────────────────────────────────────────────
 	_keyboard_panel = PanelContainer.new()
 	_keyboard_panel.name = "KeyboardPanel"
 	_keyboard_panel.anchor_left   = 0.0
-	_keyboard_panel.anchor_top    = 0.0
-	_keyboard_panel.anchor_right  = 0.0
-	_keyboard_panel.anchor_bottom = 0.0
-	_keyboard_panel.offset_left   = 5.0
-	_keyboard_panel.offset_top    = 128.0
-	_keyboard_panel.offset_right  = 690.0
-	_keyboard_panel.offset_bottom = 410.0
+	_keyboard_panel.anchor_top    = 1.0
+	_keyboard_panel.anchor_right  = 1.0
+	_keyboard_panel.anchor_bottom = 1.0
+	_keyboard_panel.offset_left   = 14.0
+	_keyboard_panel.offset_top    = -255.0
+	_keyboard_panel.offset_right  = -14.0
+	_keyboard_panel.offset_bottom = -10.0
 	_keyboard_panel.visible = false
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
@@ -237,39 +232,29 @@ func _build_virtual_keyboard() -> void:
 	vbox.add_child(header_row)
 
 	var title_lbl: Label = Label.new()
-	title_lbl.text = "⌨  Teclado Matemático Virtual"
+	title_lbl.text = "⌨  Teclado Matemático"
 	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_apply_label_outline(title_lbl)
 	header_row.add_child(title_lbl)
 
 	var close_btn: Button = Button.new()
-	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(28.0, 0.0)
-	close_btn.pressed.connect(func() -> void: _keyboard_panel.visible = false)
+	close_btn.text = "Cerrar (X)"
+	close_btn.custom_minimum_size = Vector2(95.0, 0.0)
+	close_btn.pressed.connect(func() -> void: _set_keyboard_visible(false))
 	header_row.add_child(close_btn)
 
 	vbox.add_child(HSeparator.new())
 
-	# Filas temáticas de botones
-	_add_keyboard_section(vbox, "Variables / Constantes", [
-		["x", "x"], ["PI", "PI"], ["E", "E"],
+	# Botones requeridos por el currículo
+	_add_keyboard_section(vbox, "Operaciones", [
+		["x²", "x^2"], ["xⁿ", "^"], ["√", "sqrt("], ["a/b", "/"], ["(", "("], [")", ")"],
 	])
-	_add_keyboard_section(vbox, "Agrupación y Operadores", [
-		["(", "("], [")", ")"],
-		["+", "+"], ["−", "-"], ["×", "*"], ["÷", "/"], ["^", "^"],
+	_add_keyboard_section(vbox, "Funciones", [
+		["sin", "sin("], ["cos", "cos("], ["tan", "tan("], ["log", "log("], ["ln", "log("], ["abs", "abs("],
 	])
-	_add_keyboard_section(vbox, "Funciones Básicas", [
-		["sqrt()", "sqrt("], ["abs()", "abs("],
-	])
-	_add_keyboard_section(vbox, "Transcendentes", [
-		["exp()", "exp("], ["log() [ln]", "log("], ["log10()", "log10("],
-	])
-	_add_keyboard_section(vbox, "Trigonométricas", [
-		["sin()", "sin("], ["cos()", "cos("], ["tan()", "tan("],
-	])
-	_add_keyboard_section(vbox, "Inversas Trigonométricas", [
-		["asin()", "asin("], ["acos()", "acos("], ["atan()", "atan("],
+	_add_keyboard_section(vbox, "Constantes", [
+		["x", "x"], ["e", "E"], ["π", "PI"],
 	])
 
 	add_child(_keyboard_panel)
@@ -318,10 +303,20 @@ func _insert_at_cursor(text: String) -> void:
 ## Cierra el panel de sintaxis si está abierto.
 func _toggle_keyboard_panel() -> void:
 	if _keyboard_panel:
-		var new_visible: bool = not _keyboard_panel.visible
-		_keyboard_panel.visible = new_visible
-		if new_visible and _syntax_panel:
-			_syntax_panel.visible = false
+		_set_keyboard_visible(not _keyboard_panel.visible)
+
+
+func _set_keyboard_visible(new_visible: bool) -> void:
+	if not _keyboard_panel:
+		return
+	_keyboard_panel.visible = new_visible
+	if _keyboard_toggle_button:
+		_keyboard_toggle_button.button_pressed = new_visible
+	if new_visible and _syntax_panel:
+		_syntax_panel.visible = false
+	if _hud_panel:
+		_hud_panel.position.y = _base_hud_panel_y - (26.0 if new_visible else 0.0)
+	_formula_input.grab_focus()
 
 
 # ---------------------------------------------------------------------------
@@ -398,6 +393,8 @@ func set_controls_enabled(enabled: bool) -> void:
 	_plot_button.disabled = not enabled
 	_domain_min_spin.editable = enabled
 	_domain_max_spin.editable = enabled
+	if _keyboard_toggle_button:
+		_keyboard_toggle_button.disabled = not enabled
 
 
 ## Muestra el panel de referencia de sintaxis.
@@ -525,7 +522,7 @@ func _on_hint_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	SceneTransition.change_scene("res://scenes/main_menu.tscn")
+	SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
 
 
 func _on_formula_submitted(formula: String) -> void:
