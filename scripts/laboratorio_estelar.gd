@@ -71,7 +71,9 @@ var _trail_index: int = 0
 ## Etiqueta que indica cuántas estelas hay activas.
 var _trails_count_label: Label = null
 
-const _FRACTION_INSERT_TOKEN: String = "__FRACTION__"
+const _INSERT_FRACTION_COMMAND: String = "__FRACTION__"
+const _MATH_DELIMITERS: Array[String] = ["+", "-", "*", "/", "^", "(", ")", " "]
+const _KEYBOARD_BOTTOM_OFFSET: float = -224.0
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -540,7 +542,7 @@ func _toggle_keyboard_visibility(visible: bool) -> void:
 
 
 func _insert_at_cursor(input: LineEdit, text: String) -> void:
-	if text == _FRACTION_INSERT_TOKEN:
+	if text == _INSERT_FRACTION_COMMAND:
 		_insert_fraction_at_cursor(input)
 		return
 	var pos: int = input.caret_column
@@ -556,7 +558,7 @@ func _insert_fraction_at_cursor(input: LineEdit) -> void:
 	var numerator_start: int = pos
 	while numerator_start > 0:
 		var ch: String = text.substr(numerator_start - 1, 1)
-		if ch in ["+", "-", "*", "/", "^", "(", ")", " "]:
+		if ch in _MATH_DELIMITERS:
 			break
 		numerator_start -= 1
 
@@ -580,7 +582,7 @@ func _build_virtual_keyboard(parent: Control) -> void:
 	keyboard_panel.anchor_right = 1.0
 	keyboard_panel.anchor_bottom = 1.0
 	keyboard_panel.offset_top = -320.0
-	keyboard_panel.offset_bottom = -224.0
+	keyboard_panel.offset_bottom = _KEYBOARD_BOTTOM_OFFSET
 	keyboard_panel.visible = false
 	parent.add_child(keyboard_panel)
 
@@ -601,15 +603,16 @@ func _build_virtual_keyboard(parent: Control) -> void:
 	row.add_theme_constant_override("separation", 6)
 	margin.add_child(row)
 
-	var title: Label = Label.new()
-	title.text = "⌨ Teclado Matemático"
-	title.custom_minimum_size = Vector2(180.0, 0.0)
-	_apply_label_outline(title)
-	row.add_child(title)
+	var keyboard_title_label: Label = Label.new()
+	keyboard_title_label.text = "⌨ Teclado Matemático"
+	keyboard_title_label.custom_minimum_size = Vector2(180.0, 0.0)
+	_apply_label_outline(keyboard_title_label)
+	row.add_child(keyboard_title_label)
 
 	var button_data: Array = [
+		# Etiqueta visible, texto insertado (símbolos tipográficos -> operadores ASCII)
 		["x", "x"], ["(", "("], [")", ")"], ["+", "+"], ["−", "-"],
-		["×", "*"], ["÷", _FRACTION_INSERT_TOKEN], ["^", "^"],
+		["×", "*"], ["÷", _INSERT_FRACTION_COMMAND], ["^", "^"],
 		["sin()", "sin("], ["cos()", "cos("], ["log()", "log("], ["sqrt()", "sqrt("],
 	]
 	for item in button_data:

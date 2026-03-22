@@ -195,7 +195,7 @@ func _start_challenge(index: int) -> void:
 		hud_node.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		hud_node.show_feedback(ch.get("instruction", ""), "info")
 		hud_node.set_mission_text(
-			"Objetivo — Desafío %d" % (index + 1),
+			"Objetivo - Desafío %d" % (index + 1),
 			ch.get("instruction", "")
 		)
 		hud_node.set_controls_enabled(false)

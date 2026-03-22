@@ -76,18 +76,19 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 
 
 ## Normaliza entradas de usuario para reducir errores comunes de precedencia y cociente.
-## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" para representar función racional esperada.
+## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" y "x/x-3" -> "(x)/(x-3)".
 func _normalize_formula(formula: String) -> String:
 	var f: String = formula.strip_edges()
 	var simple_rational: RegEx = RegEx.new()
-	simple_rational.compile("^([\\w\\)\\(\\^\\*\\+\\-]+)\\/([\\w\\)\\(\\^\\*\\+\\-]+)\\+([\\w\\)\\(\\^\\*\\+\\-]+)$")
+	simple_rational.compile("^([\\w\\(\\)\\^\\*\\+\\-]+)\\/([\\w\\(\\)\\^\\*\\+\\-]+)([\\+\\-])([\\w\\(\\)\\^\\*\\+\\-]+)$")
 	var match: RegExMatch = simple_rational.search(f)
 	if match != null:
 		var numerator: String = match.get_string(1).strip_edges()
 		var denominator_base: String = match.get_string(2).strip_edges()
-		var denominator_tail: String = match.get_string(3).strip_edges()
+		var denominator_op: String = match.get_string(3).strip_edges()
+		var denominator_tail: String = match.get_string(4).strip_edges()
 		if not numerator.is_empty() and not denominator_base.is_empty() and not denominator_tail.is_empty():
-			return "(%s)/(%s+%s)" % [numerator, denominator_base, denominator_tail]
+			return "(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail]
 	return f
 
 
