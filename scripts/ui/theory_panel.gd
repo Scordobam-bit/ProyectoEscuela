@@ -376,7 +376,7 @@ donde  e ≈ 2.71828… (número de Euler)
 const MISSION_BRIEFINGS: Dictionary = {
 	# ── Tutoriales obligatorios por sector ─────────────────────────────────
 	"s1_tutorial": {
-		"title": "🚀 Sector 1 — ¿Qué es una Función? (La Máquina de Café)",
+		"title": "🚀 Sector 1 — ¿Qué es una Función? (El Sistema de Navegación)",
 		"content": """[b]Concepto:[/b]
 Una [color=#00ffcc]función[/color] es una máquina: entra un número [b]X[/b], la máquina aplica una regla y sale un único [b]Y[/b].
 Si una misma X tuviera dos Y diferentes, ¡la nave colapsaría!

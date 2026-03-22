@@ -27,7 +27,7 @@ func _ready() -> void:
 		test_evaluate_basic,
 		test_evaluate_sin,
 		test_evaluate_rational_continuous_fraction,
-		test_normalize_simple_rational_without_parentheses,
+		test_evaluate_non_standard_ambiguous_division_as_rational,
 		test_compose_no_corrupt_exp,
 		test_compose_no_corrupt_sin,
 		test_compose_simple,
@@ -99,7 +99,9 @@ func test_evaluate_rational_continuous_fraction() -> bool:
 		"got %s" % value)
 
 
-func test_normalize_simple_rational_without_parentheses() -> bool:
+func test_evaluate_non_standard_ambiguous_division_as_rational() -> bool:
+	## Este proyecto normaliza intencionalmente "x/x+3" como "x/(x+3)"
+	## para reforzar la lectura de fracción continua en el currículo.
 	var value: float = MathEngine.evaluate("x/x+3", 3.0)
 	return _assert(_approx_equal(value, 0.5, 1e-6),
 		"evaluate('x/x+3', 3) se interpreta como x/(x+3)",

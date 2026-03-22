@@ -57,6 +57,9 @@ signal hint_requested
 
 ## Duración en segundos del mensaje de retroalimentación visible en pantalla.
 const FEEDBACK_DURATION: float = 5.0
+# Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
+# que el LineEdit quede demasiado cerca del panel inferior.
+const KEYBOARD_VISIBLE_HUD_OFFSET: float = 26.0
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
@@ -232,7 +235,7 @@ func _build_virtual_keyboard() -> void:
 	vbox.add_child(header_row)
 
 	var title_lbl: Label = Label.new()
-	title_lbl.text = "⌨  Teclado Matemático"
+	title_lbl.text = "⌨ Teclado Matemático"
 	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_apply_label_outline(title_lbl)
@@ -315,8 +318,9 @@ func _set_keyboard_visible(new_visible: bool) -> void:
 	if new_visible and _syntax_panel:
 		_syntax_panel.visible = false
 	if _hud_panel:
-		_hud_panel.position.y = _base_hud_panel_y - (26.0 if new_visible else 0.0)
-	_formula_input.grab_focus()
+		_hud_panel.position.y = _base_hud_panel_y - (KEYBOARD_VISIBLE_HUD_OFFSET if new_visible else 0.0)
+	if new_visible and is_instance_valid(_formula_input) and _formula_input.is_inside_tree():
+		_formula_input.grab_focus()
 
 
 # ---------------------------------------------------------------------------
