@@ -194,9 +194,18 @@ func _start_challenge(index: int) -> void:
 		var ch: Dictionary = _challenges[index]
 		hud_node.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		hud_node.show_feedback(ch.get("instruction", ""), "info")
+		hud_node.set_mission_text(
+			"Objetivo — Desafío %d" % (index + 1),
+			ch.get("instruction", "")
+		)
+		hud_node.set_controls_enabled(false)
+	if _ship:
+		_ship.stop()
 
 	# Mostrar briefing de misión antes del desafío
-	_show_mission_briefing_for_challenge(index)
+	await _show_mission_briefing_for_challenge(index)
+	if hud_node:
+		hud_node.set_controls_enabled(true)
 
 	_on_challenge_begin(index)
 
@@ -212,6 +221,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		key = _challenges[challenge_index].get("briefing_key", default_key)
 	if TheoryPanel.MISSION_BRIEFINGS.has(key):
 		theory_panel_node.show_mission_briefing(key)
+		await theory_panel_node.panel_closed
 
 
 func _advance_challenge() -> void:
@@ -361,4 +371,3 @@ func _validate_formula_against_current(player_formula: String) -> void:
 		# Generar explicación automática del error
 		if hud_node and not expected.is_empty():
 			hud_node.show_auto_error_explanation(player_formula, expected)
-

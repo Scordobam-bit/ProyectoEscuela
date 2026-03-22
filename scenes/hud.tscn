@@ -5,68 +5,116 @@
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1")
+layer = 20
 
 [node name="HUDPanel" type="PanelContainer" parent="."]
 anchor_right = 1.0
-offset_bottom = 120.0
+offset_bottom = 200.0
 
-[node name="VBox" type="VBoxContainer" parent="HUDPanel"]
+[node name="Margin" type="MarginContainer" parent="HUDPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="FormulaRow" type="HBoxContainer" parent="HUDPanel/VBox"]
+[node name="VBox" type="VBoxContainer" parent="HUDPanel/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="FormulaRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="FormulaLabel" type="Label" parent="HUDPanel/VBox/FormulaRow"]
+[node name="FormulaLabel" type="Label" parent="HUDPanel/Margin/VBox/FormulaRow"]
 layout_mode = 2
 text = "f(x) = "
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
-[node name="FormulaInput" type="LineEdit" parent="HUDPanel/VBox/FormulaRow"]
+[node name="FormulaInput" type="LineEdit" parent="HUDPanel/Margin/VBox/FormulaRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "ej.  2*x + 1"
 
-[node name="PlotButton" type="Button" parent="HUDPanel/VBox/FormulaRow"]
+[node name="PlotButton" type="Button" parent="HUDPanel/Margin/VBox/FormulaRow"]
 layout_mode = 2
 text = "GRAFICAR"
 
-[node name="DomainRow" type="HBoxContainer" parent="HUDPanel/VBox"]
+[node name="DomainRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="DomainLabel" type="Label" parent="HUDPanel/VBox/DomainRow"]
+[node name="DomainLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
 text = "Dominio: ["
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
-[node name="DomainMinSpin" type="SpinBox" parent="HUDPanel/VBox/DomainRow"]
+[node name="DomainMinSpin" type="SpinBox" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
 min_value = -50.0
 max_value = 0.0
 step = 0.5
 value = -10.0
 
-[node name="DomainSepLabel" type="Label" parent="HUDPanel/VBox/DomainRow"]
+[node name="DomainSepLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
 text = " , "
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
-[node name="DomainMaxSpin" type="SpinBox" parent="HUDPanel/VBox/DomainRow"]
+[node name="DomainMaxSpin" type="SpinBox" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
 min_value = 0.0
 max_value = 50.0
 step = 0.5
 value = 10.0
 
-[node name="DomainEndLabel" type="Label" parent="HUDPanel/VBox/DomainRow"]
+[node name="DomainEndLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
 text = "]"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="HUDPanel/VBox"]
+[node name="MissionPanel" type="PanelContainer" parent="HUDPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MissionMargin" type="MarginContainer" parent="HUDPanel/Margin/VBox/MissionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="MissionVBox" type="VBoxContainer" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MissionTitleLabel" type="Label" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
+layout_mode = 2
+text = "Objetivo de misión"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+
+[node name="MissionDescriptionLabel" type="Label" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "Sigue las instrucciones de la misión actual."
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
 layout_mode = 2
 
-[node name="TheoryButton" type="Button" parent="HUDPanel/VBox/ButtonRow"]
+[node name="TheoryButton" type="Button" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow"]
 layout_mode = 2
 text = "📖 Teoría"
 
-[node name="HintButton" type="Button" parent="HUDPanel/VBox/ButtonRow"]
+[node name="HintButton" type="Button" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow"]
 layout_mode = 2
 text = "💡 Pista"
 
@@ -78,10 +126,18 @@ offset_right = 1280.0
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Sector"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
 [node name="ScoreLabel" type="Label" parent="TopBar"]
 layout_mode = 2
 text = "Puntuación: 0"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+
+[node name="BackButton" type="Button" parent="TopBar"]
+layout_mode = 2
+text = "🏠 Volver al Menú"
 
 [node name="FeedbackLabel" type="Label" parent="."]
 anchor_left = 0.5
@@ -93,6 +149,8 @@ offset_right = 300.0
 offset_bottom = 30.0
 horizontal_alignment = 1
 visible = false
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 
 [node name="FeedbackTimer" type="Timer" parent="."]
 wait_time = 3.0

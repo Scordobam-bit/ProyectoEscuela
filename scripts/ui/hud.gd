@@ -25,21 +25,24 @@ signal hint_requested
 # Referencias de Nodos (enlazadas en _ready mediante la sintaxis $Ruta)
 # ---------------------------------------------------------------------------
 
-@onready var _formula_input: LineEdit = $HUDPanel/VBox/FormulaRow/FormulaInput
-@onready var _plot_button: Button = $HUDPanel/VBox/FormulaRow/PlotButton
-@onready var _domain_min_spin: SpinBox = $HUDPanel/VBox/DomainRow/DomainMinSpin
-@onready var _domain_max_spin: SpinBox = $HUDPanel/VBox/DomainRow/DomainMaxSpin
+@onready var _formula_input: LineEdit = $HUDPanel/Margin/VBox/FormulaRow/FormulaInput
+@onready var _plot_button: Button = $HUDPanel/Margin/VBox/FormulaRow/PlotButton
+@onready var _domain_min_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMinSpin
+@onready var _domain_max_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMaxSpin
 @onready var _sector_label: Label = $TopBar/SectorLabel
 @onready var _score_label: Label = $TopBar/ScoreLabel
+@onready var _back_button: Button = $TopBar/BackButton
 @onready var _feedback_label: Label = $FeedbackLabel
-@onready var _theory_button: Button = $HUDPanel/VBox/ButtonRow/TheoryButton
-@onready var _hint_button: Button = $HUDPanel/VBox/ButtonRow/HintButton
+@onready var _theory_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton
+@onready var _hint_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton
+@onready var _mission_title_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionTitleLabel
+@onready var _mission_description_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionDescriptionLabel
 @onready var _feedback_timer: Timer = $FeedbackTimer
 
 # Fila de fórmulas para añadir el botón "?" de ayuda de sintaxis.
-@onready var _formula_row: HBoxContainer = $HUDPanel/VBox/FormulaRow
+@onready var _formula_row: HBoxContainer = $HUDPanel/Margin/VBox/FormulaRow
 # Fila del dominio para calcular su rect de pantalla.
-@onready var _domain_row: HBoxContainer = $HUDPanel/VBox/DomainRow
+@onready var _domain_row: HBoxContainer = $HUDPanel/Margin/VBox/DomainRow
 
 # ---------------------------------------------------------------------------
 # Propiedades Exportadas
@@ -72,6 +75,7 @@ func _ready() -> void:
 	_plot_button.pressed.connect(_on_plot_pressed)
 	_theory_button.pressed.connect(_on_theory_pressed)
 	_hint_button.pressed.connect(_on_hint_pressed)
+	_back_button.pressed.connect(_on_back_pressed)
 	_domain_min_spin.value_changed.connect(_on_domain_changed)
 	_domain_max_spin.value_changed.connect(_on_domain_changed)
 	_formula_input.text_submitted.connect(_on_formula_submitted)
@@ -86,6 +90,11 @@ func _ready() -> void:
 	_build_detail_label()
 	_build_syntax_ui()
 	_build_virtual_keyboard()
+	_apply_label_outline(_mission_title_label)
+	_apply_label_outline(_mission_description_label)
+	_apply_label_outline(_feedback_label)
+	_apply_label_outline(_sector_label)
+	_apply_label_outline(_score_label)
 
 
 func _build_detail_label() -> void:
@@ -101,6 +110,7 @@ func _build_detail_label() -> void:
 	_detail_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_detail_label.visible = false
+	_apply_label_outline(_detail_label)
 	add_child(_detail_label)
 
 
@@ -144,6 +154,7 @@ func _build_syntax_ui() -> void:
 	var title: Label = Label.new()
 	title.text = "📐  Referencia de Sintaxis Matemática"
 	title.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
+	_apply_label_outline(title)
 	vbox.add_child(title)
 
 	var sep: HSeparator = HSeparator.new()
@@ -229,6 +240,7 @@ func _build_virtual_keyboard() -> void:
 	title_lbl.text = "⌨  Teclado Matemático Virtual"
 	title_lbl.add_theme_color_override("font_color", Color(0.0, 1.0, 0.8, 1.0))
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_apply_label_outline(title_lbl)
 	header_row.add_child(title_lbl)
 
 	var close_btn: Button = Button.new()
@@ -276,6 +288,7 @@ func _add_keyboard_section(parent: VBoxContainer, category_label: String, button
 	cat_lbl.add_theme_color_override("font_color", Color(0.65, 0.78, 1.0, 0.9))
 	cat_lbl.add_theme_font_size_override("font_size", 11)
 	cat_lbl.custom_minimum_size = Vector2(185.0, 0.0)
+	_apply_label_outline(cat_lbl)
 	row.add_child(cat_lbl)
 
 	for btn_data: Array in buttons:
@@ -314,6 +327,11 @@ func _toggle_keyboard_panel() -> void:
 # ---------------------------------------------------------------------------
 # API Pública
 # ---------------------------------------------------------------------------
+
+func set_mission_text(title: String, description: String) -> void:
+	_mission_title_label.text = title
+	_mission_description_label.text = description
+
 
 ## Establece el texto de fórmula en el cuadro de entrada (p. ej., para mostrar una pista).
 func set_formula_hint(text: String) -> void:
@@ -506,6 +524,10 @@ func _on_hint_pressed() -> void:
 	hint_requested.emit()
 
 
+func _on_back_pressed() -> void:
+	SceneTransition.change_scene("res://scenes/main_menu.tscn")
+
+
 func _on_formula_submitted(formula: String) -> void:
 	formula_submitted.emit(formula.strip_edges())
 
@@ -546,3 +568,10 @@ func _clear_feedback() -> void:
 	_feedback_label.visible = false
 	if _detail_label:
 		_detail_label.visible = false
+
+
+func _apply_label_outline(label: Label) -> void:
+	if not label:
+		return
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	label.add_theme_constant_override("outline_size", 2)
