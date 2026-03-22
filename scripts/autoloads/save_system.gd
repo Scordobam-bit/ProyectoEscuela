@@ -66,7 +66,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	load()
+	load_game_data()
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ func unlock_sector(sector_index: int) -> void:
 		unlocked_sectors.append(sector_index)
 		unlocked_sectors.sort()
 		sector_unlocked.emit(sector_index)
-		save()
+		save_game_data()
 
 
 ## Devuelve true si el sector dado está desbloqueado.
@@ -89,7 +89,8 @@ func is_sector_unlocked(sector_index: int) -> bool:
 
 
 ## Marca un sector como completado y desbloquea el siguiente.
-## Llama a save() automáticamente.
+## Llama a save_game_data() directamente al final, y también de forma
+## indirecta a través de unlock_sector() cuando hay un sector siguiente.
 func mark_sector_complete(sector_index: int) -> void:
 	if sector_index not in completed_sectors:
 		completed_sectors.append(sector_index)
@@ -98,7 +99,7 @@ func mark_sector_complete(sector_index: int) -> void:
 	var next: int = sector_index + 1
 	if next <= TOTAL_SECTORS:
 		unlock_sector(next)
-	save()
+	save_game_data()
 
 
 ## Devuelve true si el sector dado ha sido completado.
@@ -146,7 +147,8 @@ func set_total_score(score: int) -> void:
 # ---------------------------------------------------------------------------
 
 ## Guarda todo el progreso en disco.
-func save() -> void:
+## path: ruta destino del archivo de guardado (por defecto: SAVE_FILE).
+func save_game_data(path: String = SAVE_FILE) -> void:
 	var config: ConfigFile = ConfigFile.new()
 
 	# ── Sección jugador ──────────────────────────────────────────────────
@@ -160,20 +162,29 @@ func save() -> void:
 	# ── Logros de Concepto ────────────────────────────────────────────────
 	config.set_value("logros", "conceptos_dominados", mastered_concepts)
 
-	var err: Error = config.save(SAVE_FILE)
+	var err: Error = config.save(path)
 	if err == OK:
 		progress_saved.emit()
 	else:
-		push_warning("SaveSystem: no se pudo guardar en '%s' (error %d)" % [SAVE_FILE, err])
+		push_warning("SaveSystem: no se pudo guardar en '%s' (error %d)" % [path, err])
 
 
 ## Carga el progreso desde disco.
-## Si el archivo no existe o está corrupto, mantiene los valores por defecto.
-func load() -> void:
+## path: ruta fuente del archivo de guardado (por defecto: SAVE_FILE).
+## Si el archivo no existe o está corrupto, inicializa el estado por defecto
+## para evitar que el resto del juego reciba valores nulos.
+func load_game_data(path: String = SAVE_FILE) -> void:
+	# Validación preventiva: no intentar leer si el archivo no existe
+	if not FileAccess.file_exists(path):
+		_apply_default_state()
+		return
+
 	var config: ConfigFile = ConfigFile.new()
-	var err: Error = config.load(SAVE_FILE)
+	var err: Error = config.load(path)
 	if err != OK:
-		return   # Primera sesión — no hay archivo guardado
+		push_warning("SaveSystem: no se pudo cargar '%s' (error %d). Se usarán valores por defecto." % [path, err])
+		_apply_default_state()
+		return
 
 	total_score         = config.get_value("jugador",  "puntuacion_total",    0)
 	tutorial_completed  = config.get_value("jugador",  "tutorial_completado", false)
@@ -200,6 +211,18 @@ func load() -> void:
 		mastered_concepts.append(c)
 
 	progress_loaded.emit()
+
+
+## Inicializa el estado del jugador a los valores por defecto.
+## Se llama cuando no existe archivo de guardado o la lectura falla.
+## Refleja intencionalmente los valores iniciales declarados en los campos
+## de la clase, para poder restablecer el estado en tiempo de ejecución.
+func _apply_default_state() -> void:
+	total_score        = 0
+	tutorial_completed = false
+	unlocked_sectors   = [FIRST_SECTOR]
+	completed_sectors  = []
+	mastered_concepts  = []
 
 
 ## Borra todo el progreso y reinicia el archivo de guardado.

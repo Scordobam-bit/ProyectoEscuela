@@ -209,7 +209,7 @@ func save_progress() -> void:
 	# Sincronizar puntuación con SaveSystem antes de guardar
 	SaveSystem.set_total_score(total_score)
 	SaveSystem.tutorial_completed = tutorial_completed
-	SaveSystem.save()
+	SaveSystem.save_game_data()
 
 	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
