@@ -26,6 +26,7 @@ signal formula_evaluated(formula: String, x: float, result: float)
 # ---------------------------------------------------------------------------
 
 const EULER_E: float = 2.718281828459045
+const PI_VALUE: float = 3.141592653589793
 const GOLDEN_RATIO: float = 1.6180339887498948
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
@@ -88,6 +89,7 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 ## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" y "x/x-3" -> "(x)/(x-3)".
 func _normalize_formula(formula: String) -> String:
 	var f: String = formula.strip_edges()
+	f = _rewrite_math_constants(f)
 	f = _rewrite_ln_alias(f)
 	f = _rewrite_log_with_base(f)
 	f = _rewrite_power_operator(f)
@@ -102,6 +104,44 @@ func _normalize_formula(formula: String) -> String:
 		if not numerator.is_empty() and not denominator_base.is_empty() and not denominator_tail.is_empty():
 			return "(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail]
 	return f
+
+
+func _rewrite_math_constants(formula: String) -> String:
+	var output: PackedStringArray = []
+	var i: int = 0
+	while i < formula.length():
+		var code: int = formula.unicode_at(i)
+		if not ((code >= _CHAR_CODE_UPPER_A and code <= _CHAR_CODE_UPPER_Z) \
+			or (code >= _CHAR_CODE_LOWER_A and code <= _CHAR_CODE_LOWER_Z) \
+			or code == _CHAR_CODE_UNDERSCORE):
+			output.append(formula.substr(i, 1))
+			i += 1
+			continue
+		var start: int = i
+		i += 1
+		while i < formula.length() and _is_identifier_or_number_code(formula.unicode_at(i)):
+			i += 1
+		var token: String = formula.substr(start, i - start)
+		var lower_token: String = token.to_lower()
+		if lower_token == "pi":
+			output.append(str(PI_VALUE))
+			continue
+		if (token == "E" or token == "e") and not _is_scientific_exponent_marker(formula, start, i):
+			output.append(str(EULER_E))
+			continue
+		output.append(token)
+	return "".join(output)
+
+
+func _is_scientific_exponent_marker(formula: String, token_start: int, token_end: int) -> bool:
+	if token_start <= 0 or token_end >= formula.length():
+		return false
+	var prev_code: int = formula.unicode_at(token_start - 1)
+	var next_char: String = formula.substr(token_end, 1)
+	var prev_is_digit: bool = prev_code >= _CHAR_CODE_0 and prev_code <= _CHAR_CODE_9
+	var next_is_sign_or_digit: bool = next_char == "+" or next_char == "-" \
+		or (next_char.length() == 1 and next_char.unicode_at(0) >= _CHAR_CODE_0 and next_char.unicode_at(0) <= _CHAR_CODE_9)
+	return prev_is_digit and next_is_sign_or_digit
 
 
 func _rewrite_ln_alias(formula: String) -> String:
@@ -226,6 +266,14 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 	end_idx -= 1
 	if end_idx < i:
 		return {}
+	var after_token: int = end_idx + 1
+	while after_token < formula.length() and formula.unicode_at(after_token) <= 32:
+		after_token += 1
+	if after_token < formula.length() and formula.substr(after_token, 1) == "(":
+		var fn_close_idx: int = _find_matching_paren(formula, after_token)
+		if fn_close_idx == -1:
+			return {}
+		end_idx = fn_close_idx
 	return {
 		"end": end_idx,
 		"expr": sign + formula.substr(i, end_idx - i + 1),

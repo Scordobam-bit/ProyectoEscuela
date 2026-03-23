@@ -11,6 +11,7 @@ extends Node2D
 
 ## Emitida cuando todos los desafíos de este sector se completan.
 signal sector_complete(sector_index: int)
+signal level_completed(sector_index: int)
 
 ## Emitida cuando un único desafío se completa.
 signal challenge_done(challenge_index: int)
@@ -249,6 +250,7 @@ func _advance_challenge() -> void:
 
 func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
+	level_completed.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
 
 	# Registrar sector completado en SaveSystem (desbloquea el siguiente automáticamente)
