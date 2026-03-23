@@ -105,7 +105,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
-const SAVE_PATH: String = "user://planet_waves_save.cfg"
+const SAVE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -261,12 +261,18 @@ func save_progress() -> void:
 	# Sincronizar puntuación con SaveSystem antes de guardar
 	SaveSystem.set_total_score(total_score)
 	SaveSystem.tutorial_completed = tutorial_completed
+	var unlocked_copy: Array[int] = SaveSystem.unlocked_sectors.duplicate()
+	var unlocked_level: int = 0
+	for level_index: int in unlocked_copy:
+		unlocked_level = maxi(unlocked_level, level_index)
 	SaveSystem.save_game_data()
 
 	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntuacion_total", total_score)
+	config.set_value("jugador", "puntos", total_score)
+	config.set_value("jugador", "nivel_desbloqueado", unlocked_level)
 	config.set_value("jugador", "pistas_usadas", hints_used)
 	config.set_value("jugador", "tutorial_completado", tutorial_completed)
 
@@ -287,7 +293,12 @@ func load_progress() -> void:
 		return   # Sin archivo de guardado previo — primera sesión
 
 	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
-	total_score         = config.get_value("jugador", "puntuacion_total",   0)
+	total_score         = config.get_value(
+		"jugador",
+		"puntos",
+		config.get_value("jugador", "puntuacion_total", 0)
+	)
+	var unlocked_level: int = int(config.get_value("jugador", "nivel_desbloqueado", 0))
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
 	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
 
@@ -296,6 +307,9 @@ func load_progress() -> void:
 		var key: String = "sector_%d" % sid
 		if config.has_section_key("desafios", key):
 			completed_challenges[sid] = config.get_value("desafios", key, [])
+
+	for idx in range(unlocked_level + 1):
+		SaveSystem.unlock_sector(idx)
 
 
 ## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.

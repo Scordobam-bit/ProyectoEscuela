@@ -1,14 +1,22 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/nodes/function_plotter.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/nodes/ship_controller.gd" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3"]
 [ext_resource type="Script" path="res://scripts/sectors/sector_1.gd" id="5"]
 
+[sub_resource type="Curve2D" id="Curve2D_trajectory"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ship"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_goal"]
+radius = 28.0
+
 [node name="Sector1AsteroidBelt" type="Node2D"]
 script = ExtResource("5")
-hud_node = NodePath("HUD")
-theory_panel_node = NodePath("HUD/TheoryPanel")
+hud_node = NodePath("HUD_Layer/HUD")
+theory_panel_node = NodePath("HUD_Layer/HUD/TheoryPanel")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
@@ -17,7 +25,18 @@ offset_right = 1280.0
 offset_bottom = 720.0
 color = Color(0.02, 0.04, 0.12, 1)
 
-[node name="StarField" type="Node2D" parent="."]
+[node name="CartesianPlane" type="Node2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="AxisX" type="Line2D" parent="CartesianPlane"]
+points = PackedVector2Array(-640, 0, 640, 0)
+width = 1.0
+default_color = Color(0.35, 0.45, 0.7, 0.35)
+
+[node name="AxisY" type="Line2D" parent="CartesianPlane"]
+points = PackedVector2Array(0, -360, 0, 360)
+width = 1.0
+default_color = Color(0.35, 0.45, 0.7, 0.35)
 
 [node name="FunctionPlotter" type="Node2D" parent="."]
 position = Vector2(640, 360)
@@ -26,7 +45,7 @@ formula = ""
 domain_min = -10.0
 domain_max = 10.0
 scale_factor = 40.0
-line_color = Color(0, 1.0, 0.8, 1)
+line_color = Color(0, 1, 0.8, 1)
 line_width = 2.5
 show_axes = true
 
@@ -36,8 +55,47 @@ speed = 0.08
 auto_start = false
 rotate_to_direction = true
 
-[node name="ShipSprite" type="Polygon2D" parent="Ship"]
-polygon = PackedVector2Array(0, -12, -7, 8, 0, 4, 7, 8)
-color = Color(0, 1.0, 0.8, 0.9)
+[node name="TrajectoryPath" type="Path2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(640, 360)
+curve = SubResource("Curve2D_trajectory")
 
-[node name="HUD" parent="." instance=ExtResource("3")]
+[node name="TrajectoryLine" type="Line2D" parent="TrajectoryPath"]
+unique_name_in_owner = true
+width = 3.0
+default_color = Color(0, 1, 0.8, 1)
+
+[node name="PathFollower" type="PathFollow2D" parent="TrajectoryPath"]
+rotates = true
+loop = false
+
+[node name="ShipBody" type="CharacterBody2D" parent="TrajectoryPath/PathFollower" groups=["player_ship"]]
+collision_layer = 1
+collision_mask = 1
+
+[node name="ShipSprite" type="Polygon2D" parent="TrajectoryPath/PathFollower/ShipBody"]
+polygon = PackedVector2Array(0, -14, -8, 10, 0, 5, 8, 10)
+color = Color(0, 1, 0.8, 0.92)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrajectoryPath/PathFollower/ShipBody"]
+shape = SubResource("CircleShape2D_ship")
+
+[node name="GoalPortal" type="Area2D" parent="."]
+position = Vector2(1020, 200)
+collision_layer = 1
+collision_mask = 1
+monitoring = true
+monitorable = true
+
+[node name="PortalVisual" type="Polygon2D" parent="GoalPortal"]
+polygon = PackedVector2Array(0, -30, 22, -22, 30, 0, 22, 22, 0, 30, -22, 22, -30, 0, -22, -22)
+color = Color(0.2, 1, 0.35, 0.8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GoalPortal"]
+shape = SubResource("CircleShape2D_goal")
+
+[node name="HUD_Layer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="HUD" parent="HUD_Layer" instance=ExtResource("3")]
+unique_name_in_owner = true
