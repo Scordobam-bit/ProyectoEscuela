@@ -156,22 +156,21 @@ func unlock_next_level() -> void:
 		var next_scene_path: String = SECTOR_SCENE_PATHS[next_sector]
 		if not _is_scene_path_loadable(next_scene_path):
 			_handle_scene_load_failure(
-				"No se pudo cargar la siguiente escena. Tu progreso ya fue guardado.",
+				"No se pudo cargar la siguiente escena.",
 				next_scene_path
 			)
 			return
 		current_sector = next_sector
-		save_progress()
 		sector_changed.emit(current_sector)
+		save_progress()
 		SceneTransition.fade_to_scene(next_scene_path)
 		return
 	if not _is_scene_path_loadable(MAIN_MENU_SCENE_PATH):
 		_handle_scene_load_failure(
-			"No se pudo volver al menú principal. Tu progreso ya fue guardado.",
+			"No se pudo volver al menú principal.",
 			MAIN_MENU_SCENE_PATH
 		)
 		return
-	current_sector = 0
 	save_progress()
 	SceneTransition.fade_to_scene(MAIN_MENU_SCENE_PATH)
 
