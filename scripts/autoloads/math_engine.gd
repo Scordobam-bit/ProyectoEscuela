@@ -257,7 +257,10 @@ func _rewrite_power_operator(formula: String) -> String:
 
 
 func _ensure_non_empty_formula(value: String) -> String:
-	return "0" if value.strip_edges().is_empty() else value
+	if value.strip_edges().is_empty():
+		push_warning("MathEngine: normalización produjo fórmula vacía; se usa expresión segura '0'.")
+		return "0"
+	return value
 
 
 func _extract_power_left(formula: String, start_idx: int) -> Dictionary:
