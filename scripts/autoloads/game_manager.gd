@@ -139,26 +139,41 @@ func go_to_sector(sector_index: int) -> void:
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
 	var scene_path: String = data.get("scene", "")
-	if not _try_transition_to_scene(
-		scene_path,
-		"No se pudo cargar el sector solicitado. Regresando al menú principal."
-	):
+	if not _is_scene_path_loadable(scene_path):
+		_handle_scene_load_failure(
+			"No se pudo cargar el sector solicitado. Regresando al menú principal.",
+			scene_path
+		)
 		return
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
+	SceneTransition.fade_to_scene(scene_path)
 
 
 func unlock_next_level() -> void:
 	var next_sector: int = current_sector + 1
 	if next_sector >= 0 and next_sector < SECTOR_SCENE_PATHS.size():
+		var next_scene_path: String = SECTOR_SCENE_PATHS[next_sector]
+		if not _is_scene_path_loadable(next_scene_path):
+			_handle_scene_load_failure(
+				"No se pudo cargar la siguiente escena. Tu progreso ya fue guardado.",
+				next_scene_path
+			)
+			return
 		current_sector = next_sector
 		save_progress()
 		sector_changed.emit(current_sector)
-		_try_transition_to_scene(SECTOR_SCENE_PATHS[current_sector])
+		SceneTransition.fade_to_scene(next_scene_path)
+		return
+	if not _is_scene_path_loadable(MAIN_MENU_SCENE_PATH):
+		_handle_scene_load_failure(
+			"No se pudo volver al menú principal. Tu progreso ya fue guardado.",
+			MAIN_MENU_SCENE_PATH
+		)
 		return
 	current_sector = 0
 	save_progress()
-	_try_transition_to_scene(MAIN_MENU_SCENE_PATH)
+	SceneTransition.fade_to_scene(MAIN_MENU_SCENE_PATH)
 
 
 ## Devuelve el diccionario de datos del sector actual.
@@ -346,24 +361,10 @@ func _sync_from_save_system() -> void:
 			completed_challenges[sid] = Array(range(sector_challenge_count))
 
 
-func _try_transition_to_scene(
-	scene_path: String,
-	error_message: String = "No se pudo cargar la siguiente escena. Tu progreso ya fue guardado."
-) -> bool:
-	if not _is_scene_path_loadable(scene_path):
-		_handle_scene_load_failure(error_message, scene_path)
-		return false
-	SceneTransition.fade_to_scene(scene_path)
-	return true
-
-
 func _is_scene_path_loadable(scene_path: String) -> bool:
 	if scene_path.is_empty():
 		return false
-	if not ResourceLoader.exists(scene_path, "PackedScene"):
-		return false
-	var scene_resource: PackedScene = load(scene_path) as PackedScene
-	return scene_resource != null
+	return ResourceLoader.exists(scene_path, "PackedScene")
 
 
 func _handle_scene_load_failure(message: String, target_scene: String) -> void:
