@@ -20,7 +20,7 @@ color = Color(0.04, 0.02, 0.08, 1)
 [node name="FunctionPlotter" type="Node2D" parent="."]
 position = Vector2(640, 360)
 script = ExtResource("1")
-formula = "sin(x)"
+formula = ""
 domain_min = -6.283
 domain_max = 6.283
 scale_factor = 45.0

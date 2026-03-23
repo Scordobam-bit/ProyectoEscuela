@@ -274,7 +274,9 @@ func plot() -> void:
 		return
 
 	# Analizar la fórmula una vez; "x" es la única variable
-	var parse_err: Error = _expression.parse(formula, ["x"])
+	# usando las mismas normalizaciones que MathEngine (e.g. ^, log(base,x), E/e).
+	var normalized_formula: String = MathEngine.normalize_formula(formula)
+	var parse_err: Error = _expression.parse(normalized_formula, ["x"])
 	if parse_err != OK:
 		plot_failed.emit("Error de análisis en la fórmula \"%s\"." % formula)
 		return
@@ -338,6 +340,20 @@ func set_domain(min_x: float, max_x: float) -> void:
 		plot()
 
 
+## Limpia la curva renderizada y marca el estado como no válido sin emitir errores.
+func clear_plot() -> void:
+	if _function_line:
+		_function_line.clear_points()
+	# Eliminar líneas de segmentos auxiliares creadas previamente
+	for child in get_children():
+		if child.name.begins_with("_SegLine"):
+			child.queue_free()
+	_last_points = PackedVector2Array()
+	_plot_valid = false
+	hide_reference_line()
+	queue_redraw()
+
+
 ## Evalúa la fórmula actual en un único valor x.
 ## Devuelve NAN si la evaluación falla.
 func evaluate_at(x_val: float) -> float:
@@ -384,7 +400,8 @@ func show_reference_line(ref_formula: String, ref_color: Color = Color(0.0, 1.0,
 	hide_reference_line()
 
 	var expr: Expression = Expression.new()
-	if expr.parse(ref_formula, ["x"]) != OK:
+	var normalized_ref_formula: String = MathEngine.normalize_formula(ref_formula)
+	if expr.parse(normalized_ref_formula, ["x"]) != OK:
 		return
 
 	var step: float = (domain_max - domain_min) / float(sample_count - 1)
