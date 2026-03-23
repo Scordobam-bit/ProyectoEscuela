@@ -142,13 +142,14 @@ func _rewrite_log_with_base(formula: String) -> String:
 
 func _rewrite_power_operator(formula: String) -> String:
 	var rewritten: String = formula
+	var caret_pattern: RegEx = RegEx.new()
+	caret_pattern.compile("\\^")
 	var max_passes: int = 128
-	var pass: int = 0
-	while pass < max_passes:
-		pass += 1
-		var idx: int = rewritten.rfind("^")
-		if idx == -1:
+	for _pass_idx in range(max_passes):
+		var matches: Array[RegExMatch] = caret_pattern.search_all(rewritten)
+		if matches.is_empty():
 			break
+		var idx: int = matches[matches.size() - 1].get_start()
 		var left_part: Dictionary = _extract_power_left(rewritten, idx - 1)
 		var right_part: Dictionary = _extract_power_right(rewritten, idx + 1)
 		if left_part.is_empty() or right_part.is_empty():

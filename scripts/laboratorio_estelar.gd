@@ -564,6 +564,8 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 			_on_plot_pressed(index)
 		get_viewport().set_input_as_handled()
 		return
+	if key_event.keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
+		return
 	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
 		get_viewport().set_input_as_handled()
 		return
