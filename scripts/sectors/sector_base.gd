@@ -48,6 +48,7 @@ var _obstacle_manager: GestorObstaculos = null
 const _HUD_PLOT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/FormulaRow/PlotButton"
 const _HUD_THEORY_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton"
 const _HUD_HINT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton"
+const _MIN_HUD_LAYER: int = 20
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -55,6 +56,10 @@ const _HUD_HINT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/Mission
 
 func _ready() -> void:
 	await get_tree().process_frame
+	# Garantiza que paneles informativos (Teoría/Pista) del HUD no queden
+	# ocultos detrás del fondo/parallax en escenas de sector.
+	if hud_node and hud_node.layer < _MIN_HUD_LAYER:
+		hud_node.layer = _MIN_HUD_LAYER
 	_connect_hud_buttons_in_code()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
