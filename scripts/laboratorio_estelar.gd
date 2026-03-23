@@ -64,6 +64,7 @@ var _domain_min_spin: SpinBox = null
 var _domain_max_spin: SpinBox = null
 var _status_label: Label = null
 var _keyboard_toggle_button: Button = null
+var _reference_dialog: AcceptDialog = null
 
 ## Lista de graficadores de estela (trazos congelados).
 var _trail_plotters: Array[FunctionPlotter] = []
@@ -74,7 +75,11 @@ var _trails_count_label: Label = null
 
 const _KEYBOARD_BOTTOM_OFFSET: float = -224.0
 const _ALLOWED_SYMBOLS: String = "+-*/^().,"
-const _ALLOWED_LETTERS: String = "xsincotalgXSINCOTALG"
+const _ALLOWED_LETTERS: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const _ALLOWED_WORDS_LOWER: Array[String] = [
+	"x", "sin", "cos", "tan", "asin", "acos", "atan",
+	"log", "ln", "sqrt", "exp", "abs", "pow", "e", "pi",
+]
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
 const _CHAR_CODE_SPACE: int = 32
@@ -352,6 +357,12 @@ func _build_hud() -> void:
 	)
 	main_vbox.add_child(_keyboard_toggle_button)
 
+	var reference_btn: Button = Button.new()
+	reference_btn.text = "📐 Referencia"
+	reference_btn.tooltip_text = "Mostrar cuadro de referencia matemática"
+	reference_btn.pressed.connect(_on_reference_pressed)
+	main_vbox.add_child(reference_btn)
+
 	# ── Contador de estelas ─────────────────────────────────────────────
 	_trails_count_label = Label.new()
 	_trails_count_label.name = "TrailsCountLabel"
@@ -370,6 +381,7 @@ func _build_hud() -> void:
 	_status_label.text = "Listo. Ingrese una función y presione GRAFICAR o Enter."
 	main_vbox.add_child(_status_label)
 	_build_virtual_keyboard(bottom_panel)
+	_build_reference_dialog()
 
 
 # ---------------------------------------------------------------------------
@@ -425,6 +437,11 @@ func _on_domain_changed(_value: float) -> void:
 
 func _on_back_pressed() -> void:
 	SceneTransition.change_scene("res://scenes/main_menu.tscn")
+
+
+func _on_reference_pressed() -> void:
+	if _reference_dialog:
+		_reference_dialog.popup_centered()
 
 
 # ---------------------------------------------------------------------------
@@ -683,7 +700,36 @@ func _sanitize_formula_text(raw_text: String) -> String:
 		var code: int = raw_text.unicode_at(i)
 		if _is_allowed_math_code(code):
 			out.append(char(code))
-	return "".join(out)
+	return _sanitize_math_words("".join(out))
+
+
+func _sanitize_math_words(text: String) -> String:
+	var output: PackedStringArray = []
+	var current_word: PackedStringArray = []
+	for i in range(text.length()):
+		var ch: String = text.substr(i, 1)
+		if _ALLOWED_LETTERS.contains(ch):
+			current_word.append(ch)
+			continue
+		_append_sanitized_word(output, "".join(current_word), true)
+		current_word.clear()
+		output.append(ch)
+	_append_sanitized_word(output, "".join(current_word), true)
+	return "".join(output)
+
+
+func _append_sanitized_word(output: PackedStringArray, word: String, allow_prefix: bool) -> void:
+	if word.is_empty():
+		return
+	var lower_word: String = word.to_lower()
+	if lower_word in _ALLOWED_WORDS_LOWER:
+		output.append(word)
+		return
+	if allow_prefix:
+		for allowed_word in _ALLOWED_WORDS_LOWER:
+			if allowed_word.begins_with(lower_word):
+				output.append(word)
+				return
 
 
 func _is_allowed_math_code(code: int) -> bool:
@@ -697,3 +743,18 @@ func _is_allowed_math_code(code: int) -> bool:
 	if _ALLOWED_LETTERS.contains(ch):
 		return true
 	return false
+
+
+func _build_reference_dialog() -> void:
+	_reference_dialog = AcceptDialog.new()
+	_reference_dialog.title = "Referencia Matemática"
+	_reference_dialog.dialog_text = (
+		"Potencias: x^2 o pow(x, 2)\n"
+		+ "Raíces: sqrt(x)\n"
+		+ "Trigonometría: sin(x), cos(x), tan(x)\n"
+		+ "Trig. inversa: asin(x), acos(x), atan(x)\n"
+		+ "Logaritmos: log(x), ln(x), log(base, x)\n"
+		+ "Constantes: PI, E\n"
+		+ "Dominio: ajusta [min, max] para enfocar la zona válida."
+	)
+	add_child(_reference_dialog)

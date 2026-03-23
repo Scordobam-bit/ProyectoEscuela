@@ -27,9 +27,12 @@ func _ready() -> void:
 		test_evaluate_basic,
 		test_evaluate_sin,
 		test_evaluate_inverse_trig,
+		test_evaluate_inverse_trig_out_of_domain,
 		test_evaluate_ln_alias,
+		test_evaluate_constants_pi_e,
 		test_evaluate_log_with_base,
 		test_evaluate_power_operator_rewrite,
+		test_evaluate_power_operator_nested_right_associative,
 		test_evaluate_rational_continuous_fraction,
 		test_evaluate_non_standard_ambiguous_division_as_rational,
 		test_compose_no_corrupt_exp,
@@ -107,11 +110,27 @@ func test_evaluate_inverse_trig() -> bool:
 		"asin=%s acos=%s atan=%s" % [asin_val, acos_val, atan_val])
 
 
+func test_evaluate_inverse_trig_out_of_domain() -> bool:
+	var asin_val: float = MathEngine.evaluate("asin(x)", 2.0)
+	var acos_val: float = MathEngine.evaluate("acos(x)", -2.0)
+	return _assert(is_nan(asin_val) and is_nan(acos_val),
+		"evaluate asin/acos fuera de dominio devuelve NAN",
+		"asin=%s acos=%s" % [asin_val, acos_val])
+
+
 func test_evaluate_ln_alias() -> bool:
 	var result: float = MathEngine.evaluate("ln(x)", MathEngine.EULER_E)
 	return _assert(_approx_equal(result, 1.0, 1e-6),
 		"evaluate('ln(x)', e) ≈ 1",
 		"got %s" % result)
+
+
+func test_evaluate_constants_pi_e() -> bool:
+	var pi_result: float = MathEngine.evaluate("PI", 0.0)
+	var e_result: float = MathEngine.evaluate("E", 0.0)
+	var ok: bool = _approx_equal(pi_result, 3.141592, 1e-6) and _approx_equal(e_result, 2.718281, 1e-6)
+	return _assert(ok, "evaluate reconoce PI y E como constantes",
+		"PI=%s E=%s" % [pi_result, e_result])
 
 
 func test_evaluate_log_with_base() -> bool:
@@ -125,6 +144,13 @@ func test_evaluate_power_operator_rewrite() -> bool:
 	var result: float = MathEngine.evaluate("sin(x)^2", PI / 2.0)
 	return _assert(_approx_equal(result, 1.0, 1e-6),
 		"evaluate('sin(x)^2', PI/2) == 1",
+		"got %s" % result)
+
+
+func test_evaluate_power_operator_nested_right_associative() -> bool:
+	var result: float = MathEngine.evaluate("x^x^2", 2.0)
+	return _assert(_approx_equal(result, 16.0, 1e-6),
+		"evaluate('x^x^2', 2) == 16 (asociatividad derecha)",
 		"got %s" % result)
 
 
