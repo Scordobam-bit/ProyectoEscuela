@@ -394,7 +394,6 @@ func _get_sector_tutorial_key() -> String:
 func _on_theory_requested() -> void:
 	var sector_theory: String = SectorDataManager.get_theory_text(sector_index)
 	if hud_node and not sector_theory.is_empty():
-		hud_node.show_feedback(sector_theory, "info")
 		hud_node.set_mission_text("Teoría", sector_theory)
 	if theory_panel_node:
 		var tutorial_key: String = _get_sector_tutorial_key()
@@ -407,7 +406,6 @@ func _on_theory_requested() -> void:
 func _on_hint_requested() -> void:
 	var sector_hint: String = SectorDataManager.get_hint_text(sector_index)
 	if hud_node and not sector_hint.is_empty():
-		hud_node.show_feedback("Pista: " + sector_hint, "warning")
 		hud_node.set_mission_text("Pista", sector_hint)
 	if _current_challenge < _challenges.size():
 		var hint: String = _challenges[_current_challenge].get("solution_hint", "Sin pista disponible.")
