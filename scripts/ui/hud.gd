@@ -61,6 +61,8 @@ const FEEDBACK_DURATION: float = 5.0
 # Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
 # que el LineEdit quede demasiado cerca del panel inferior.
 const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
+# Debe quedar por encima del panel inferior reubicado y de los contenedores del HUD.
+const KEYBOARD_Z_INDEX: int = 120
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 const _ALLOWED_SYMBOLS: String = "+-*/^().,"
@@ -128,6 +130,7 @@ func _ready() -> void:
 	_domain_max_spin.value_changed.connect(_on_domain_changed)
 	_formula_input.text_submitted.connect(_on_formula_submitted)
 	_formula_input.text_changed.connect(_on_formula_text_changed)
+	_formula_input.focus_entered.connect(_on_formula_focus_entered)
 	_formula_input.gui_input.connect(_on_formula_gui_input)
 	_feedback_timer.timeout.connect(_clear_feedback)
 
@@ -272,6 +275,7 @@ func _build_virtual_keyboard() -> void:
 	_keyboard_panel.offset_top    = -255.0
 	_keyboard_panel.offset_right  = -14.0
 	_keyboard_panel.offset_bottom = -10.0
+	_keyboard_panel.z_index = KEYBOARD_Z_INDEX
 	_keyboard_panel.visible = false
 	_keyboard_panel.key_pressed.connect(_insert_at_cursor)
 	_keyboard_panel.close_requested.connect(func() -> void: _set_keyboard_visible(false))
@@ -339,6 +343,10 @@ func _set_keyboard_visible(new_visible: bool) -> void:
 		_hud_move_tween.tween_property(_hud_panel, "position:y", target_y, 0.2)
 	if new_visible and is_instance_valid(_formula_input) and _formula_input.is_inside_tree():
 		_formula_input.grab_focus()
+
+
+func set_math_keyboard_visible(new_visible: bool) -> void:
+	_set_keyboard_visible(new_visible)
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +426,11 @@ func get_formula() -> String:
 ## Devuelve el dominio actual como [min, max].
 func get_domain() -> Array[float]:
 	return [_domain_min_spin.value, _domain_max_spin.value]
+
+
+func set_domain(min_x: float, max_x: float) -> void:
+	_domain_min_spin.value = min_x
+	_domain_max_spin.value = max_x
 
 
 ## Bloquea o desbloquea los controles de entrada.
@@ -565,6 +578,11 @@ func _on_formula_submitted(formula: String) -> void:
 	var sanitized: String = formula.strip_edges()
 	request_plot.emit(sanitized)
 	formula_submitted.emit(sanitized)
+
+
+func _on_formula_focus_entered() -> void:
+	if _keyboard_panel and _keyboard_toggle_button and not _keyboard_toggle_button.disabled:
+		_set_keyboard_visible(true)
 
 
 func _on_formula_text_changed(new_text: String) -> void:

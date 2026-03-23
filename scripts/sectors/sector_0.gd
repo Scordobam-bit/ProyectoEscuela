@@ -4,6 +4,12 @@ extends SectorBase
 const PLAYER_SHIP_GROUP: StringName = &"player_ship"
 const PORTAL_DEFAULT_COLOR: Color = Color(0.2, 1, 0.35, 0.8)
 const PORTAL_SUCCESS_COLOR: Color = Color(0.0, 1.0, 1.0, 1.0)
+# La academia exige que la nave inicie exactamente en el punto matemático (0,5).
+const SHIP_START_MATH: Vector2 = Vector2(0.0, 5.0)
+const START_DOMAIN_MIN: float = 0.0
+const START_DOMAIN_MAX: float = 10.0
+const PORTAL_ANIMATION_TIME: float = 0.2
+const PORTAL_ANIMATION_SCALE: Vector2 = Vector2(1.18, 1.18)
 
 var _tutorial_manager: TutorialManager = null
 @onready var _trajectory_path: Path2D = get_node_or_null("TrajectoryPath")
@@ -62,9 +68,14 @@ func _setup_challenges() -> void:
 func _on_challenge_begin(_challenge_index: int) -> void:
 	_clear_trajectory_path()
 	if _plotter:
-		_plotter.domain_min = -10.0
-		_plotter.domain_max = 10.0
+		_plotter.domain_min = START_DOMAIN_MIN
+		_plotter.domain_max = START_DOMAIN_MAX
 		_plotter.scale_factor = 40.0
+	if _path_follower and _plotter:
+		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
+	if hud_node:
+		hud_node.set_domain(START_DOMAIN_MIN, START_DOMAIN_MAX)
+		hud_node.set_math_keyboard_visible(true)
 	if not GameManager.tutorial_completed:
 		_setup_tutorial_manager()
 		if _tutorial_manager:
@@ -90,6 +101,9 @@ func _on_hud_request_plot(formula: String) -> void:
 			hud_node.show_feedback("¡Comando inválido! " + MathEngine.get_friendly_error_message(normalized_formula), "error")
 		return
 	if _plotter:
+		var domain: Array[float] = hud_node.get_domain() if hud_node else [_plotter.domain_min, _plotter.domain_max]
+		_plotter.domain_min = domain[0]
+		_plotter.domain_max = domain[1]
 		_plotter.set_formula_and_plot(normalized_formula)
 	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
@@ -116,6 +130,8 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 		_trajectory_path.curve.add_point(pt)
 	if _path_follower:
 		_path_follower.progress_ratio = 0.0
+		if points.is_empty() and _plotter:
+			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	_movement_active = points.size() >= 2
 
 
@@ -130,6 +146,8 @@ func _clear_trajectory_path() -> void:
 	_trajectory_path.curve.clear_points()
 	if _path_follower:
 		_path_follower.progress_ratio = 0.0
+		if _plotter:
+			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	if _ship_body:
 		_ship_body.position = Vector2.ZERO
 	if _portal_visual:
@@ -160,8 +178,15 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 	_portal_triggered = true
 	_movement_active = false
 	_goal_triggered = true
+	if hud_node:
+		hud_node.set_controls_enabled(false)
 	if _portal_visual:
-		_portal_visual.color = PORTAL_SUCCESS_COLOR
+		var tween: Tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(_portal_visual, "color", PORTAL_SUCCESS_COLOR, PORTAL_ANIMATION_TIME)
+		tween.parallel().tween_property(_portal_visual, "scale", PORTAL_ANIMATION_SCALE, PORTAL_ANIMATION_TIME)
+		tween.tween_property(_portal_visual, "scale", Vector2.ONE, PORTAL_ANIMATION_TIME)
 	if hud_node:
 		hud_node.show_feedback("¡Misión Cumplida! Portal asegurado.", "success")
 	challenge_completed.emit()
