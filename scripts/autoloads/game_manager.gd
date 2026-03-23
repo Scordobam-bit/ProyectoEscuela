@@ -299,6 +299,7 @@ func load_progress() -> void:
 		config.get_value("jugador", "puntuacion_total", 0)
 	)
 	var unlocked_level: int = int(config.get_value("jugador", "nivel_desbloqueado", 0))
+	unlocked_level = clampi(unlocked_level, 0, get_last_sector_index())
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
 	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
 
