@@ -61,6 +61,8 @@ const FEEDBACK_DURATION: float = 5.0
 # Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
 # que el LineEdit quede demasiado cerca del panel inferior.
 const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
+# Debe quedar por encima del panel inferior reubicado y de los contenedores del HUD.
+const KEYBOARD_Z_INDEX: int = 120
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 const _ALLOWED_SYMBOLS: String = "+-*/^().,"
@@ -273,7 +275,7 @@ func _build_virtual_keyboard() -> void:
 	_keyboard_panel.offset_top    = -255.0
 	_keyboard_panel.offset_right  = -14.0
 	_keyboard_panel.offset_bottom = -10.0
-	_keyboard_panel.z_index = 120
+	_keyboard_panel.z_index = KEYBOARD_Z_INDEX
 	_keyboard_panel.visible = false
 	_keyboard_panel.key_pressed.connect(_insert_at_cursor)
 	_keyboard_panel.close_requested.connect(func() -> void: _set_keyboard_visible(false))

@@ -4,7 +4,12 @@ extends SectorBase
 const PLAYER_SHIP_GROUP: StringName = &"player_ship"
 const PORTAL_DEFAULT_COLOR: Color = Color(0.2, 1, 0.35, 0.8)
 const PORTAL_SUCCESS_COLOR: Color = Color(0.0, 1.0, 1.0, 1.0)
+# La academia exige que la nave inicie exactamente en el punto matemático (0,5).
 const SHIP_START_MATH: Vector2 = Vector2(0.0, 5.0)
+const START_DOMAIN_MIN: float = 0.0
+const START_DOMAIN_MAX: float = 10.0
+const PORTAL_ANIMATION_TIME: float = 0.2
+const PORTAL_ANIMATION_SCALE: Vector2 = Vector2(1.18, 1.18)
 
 var _tutorial_manager: TutorialManager = null
 @onready var _trajectory_path: Path2D = get_node_or_null("TrajectoryPath")
@@ -63,13 +68,13 @@ func _setup_challenges() -> void:
 func _on_challenge_begin(_challenge_index: int) -> void:
 	_clear_trajectory_path()
 	if _plotter:
-		_plotter.domain_min = 0.0
-		_plotter.domain_max = 10.0
+		_plotter.domain_min = START_DOMAIN_MIN
+		_plotter.domain_max = START_DOMAIN_MAX
 		_plotter.scale_factor = 40.0
 	if _path_follower and _plotter:
 		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	if hud_node:
-		hud_node.set_domain(0.0, 10.0)
+		hud_node.set_domain(START_DOMAIN_MIN, START_DOMAIN_MAX)
 		hud_node.set_math_keyboard_visible(true)
 	if not GameManager.tutorial_completed:
 		_setup_tutorial_manager()
@@ -179,9 +184,9 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 		var tween: Tween = create_tween()
 		tween.set_trans(Tween.TRANS_SINE)
 		tween.set_ease(Tween.EASE_OUT)
-		tween.tween_property(_portal_visual, "color", PORTAL_SUCCESS_COLOR, 0.2)
-		tween.parallel().tween_property(_portal_visual, "scale", Vector2(1.18, 1.18), 0.2)
-		tween.tween_property(_portal_visual, "scale", Vector2.ONE, 0.2)
+		tween.tween_property(_portal_visual, "color", PORTAL_SUCCESS_COLOR, PORTAL_ANIMATION_TIME)
+		tween.parallel().tween_property(_portal_visual, "scale", PORTAL_ANIMATION_SCALE, PORTAL_ANIMATION_TIME)
+		tween.tween_property(_portal_visual, "scale", Vector2.ONE, PORTAL_ANIMATION_TIME)
 	if hud_node:
 		hud_node.show_feedback("¡Misión Cumplida! Portal asegurado.", "success")
 	challenge_completed.emit()
