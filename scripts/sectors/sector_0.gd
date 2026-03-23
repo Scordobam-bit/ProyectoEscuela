@@ -10,6 +10,9 @@ const START_DOMAIN_MIN: float = 0.0
 const START_DOMAIN_MAX: float = 10.0
 const PORTAL_ANIMATION_TIME: float = 0.2
 const PORTAL_ANIMATION_SCALE: Vector2 = Vector2(1.18, 1.18)
+const HINT_TITLE: String = "Pista"
+const CONSTANT_FUNCTION_TOKEN: String = "f(x)=k"
+const CONSTANT_FUNCTION_REMINDER: String = "Recuerda: f(x)=k."
 
 var _tutorial_manager: TutorialManager = null
 @onready var _hud_unique: HUD = get_node_or_null("%HUD")
@@ -30,16 +33,9 @@ func _ready() -> void:
 	await super._ready()
 	if _hud_unique:
 		hud_node = _hud_unique
-	if _hud_unique:
-		if _hud_unique.formula_submitted.is_connected(_on_formula_submitted_hud):
-			_hud_unique.formula_submitted.disconnect(_on_formula_submitted_hud)
-		if not _hud_unique.request_plot.is_connected(_on_hud_request_plot):
-			_hud_unique.request_plot.connect(_on_hud_request_plot)
+		_connect_hud_plot_request(_hud_unique)
 	elif hud_node:
-		if hud_node.formula_submitted.is_connected(_on_formula_submitted_hud):
-			hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
-		if not hud_node.request_plot.is_connected(_on_hud_request_plot):
-			hud_node.request_plot.connect(_on_hud_request_plot)
+		_connect_hud_plot_request(hud_node)
 	_connect_goal_portal()
 
 
@@ -114,11 +110,7 @@ func _on_hud_request_plot(formula: String) -> void:
 		_plotter.domain_min = domain[0]
 		_plotter.domain_max = domain[1]
 		_plotter.set_formula_and_plot(normalized_formula)
-	var start_eval: Dictionary = MathEngine.evaluate(normalized_formula, SHIP_START_MATH.x)
-	if bool(start_eval.get("ok", false)):
-		var start_y: float = float(start_eval.get("value", NAN))
-		if not is_equal_approx(start_y, SHIP_START_MATH.y):
-			print("[SECTOR DIAGNOSTIC] Advertencia: f(0) = ", start_y, " y la nave debe iniciar en y = ", SHIP_START_MATH.y)
+	_validate_ship_start_alignment(normalized_formula)
 	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
 	_apply_trajectory_line(points)
@@ -221,7 +213,7 @@ func _on_theory_requested() -> void:
 
 func _on_hint_requested() -> void:
 	var hint_text: String = _ensure_constant_function_text(SectorDataManager.get_hint_text(0))
-	_show_constant_function_help("Pista", hint_text, "warning")
+	_show_constant_function_help(HINT_TITLE, hint_text, "warning")
 	GameManager.hints_used += 1
 
 
@@ -229,7 +221,7 @@ func _show_constant_function_help(title: String, message: String, feedback_type:
 	if not hud_node:
 		return
 	var feedback_message: String = message
-	if title == "Pista":
+	if title == HINT_TITLE:
 		feedback_message = "Pista: " + message
 	hud_node.show_feedback(feedback_message, feedback_type)
 	hud_node.set_mission_text(title, message)
@@ -237,11 +229,29 @@ func _show_constant_function_help(title: String, message: String, feedback_type:
 
 func _ensure_constant_function_text(message: String) -> String:
 	var trimmed: String = message.strip_edges()
-	if trimmed.findn("f(x)=k") != -1 or trimmed.findn("f(x) = k") != -1:
+	var constant_function_pattern: RegEx = RegEx.new()
+	constant_function_pattern.compile("(?i)f\\s*\\(\\s*x\\s*\\)\\s*=\\s*k(?![A-Za-z0-9_])")
+	if constant_function_pattern.search(trimmed) != null:
 		return trimmed
 	if trimmed.is_empty():
-		return "f(x)=k"
-	return trimmed + " Recuerda: f(x)=k."
+		return CONSTANT_FUNCTION_TOKEN
+	return trimmed + " " + CONSTANT_FUNCTION_REMINDER
+
+
+func _connect_hud_plot_request(target_hud: HUD) -> void:
+	if target_hud.formula_submitted.is_connected(_on_formula_submitted_hud):
+		target_hud.formula_submitted.disconnect(_on_formula_submitted_hud)
+	if not target_hud.request_plot.is_connected(_on_hud_request_plot):
+		target_hud.request_plot.connect(_on_hud_request_plot)
+
+
+func _validate_ship_start_alignment(formula: String) -> void:
+	var start_eval: Dictionary = MathEngine.evaluate(formula, SHIP_START_MATH.x)
+	if not bool(start_eval.get("ok", false)):
+		return
+	var start_y: float = float(start_eval.get("value", NAN))
+	if not is_equal_approx(start_y, SHIP_START_MATH.y):
+		print("[SECTOR DIAGNOSTIC] Advertencia: f(0) = ", start_y, " y la nave debe iniciar en y = ", SHIP_START_MATH.y)
 
 
 func _setup_tutorial_manager() -> void:
