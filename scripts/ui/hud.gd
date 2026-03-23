@@ -268,6 +268,7 @@ func _build_virtual_keyboard() -> void:
 	# ── Panel del teclado ────────────────────────────────────────────────
 	_keyboard_panel = preload("res://scenes/ui/math_keyboard.tscn").instantiate() as MathKeyboard
 	_keyboard_panel.name = "KeyboardPanel"
+	_keyboard_panel.unique_name_in_owner = true
 	_keyboard_panel.anchor_left   = 0.0
 	_keyboard_panel.anchor_top    = 1.0
 	_keyboard_panel.anchor_right  = 1.0
@@ -583,8 +584,7 @@ func _on_formula_submitted(formula: String) -> void:
 
 
 func _on_formula_focus_entered() -> void:
-	if _keyboard_panel and _keyboard_toggle_button and not _keyboard_toggle_button.disabled:
-		_set_keyboard_visible(true)
+	pass
 
 
 func _on_formula_text_changed(new_text: String) -> void:
@@ -603,6 +603,15 @@ func _on_formula_text_changed(new_text: String) -> void:
 
 
 func _on_formula_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_event.pressed \
+			and mouse_event.button_index == MOUSE_BUTTON_LEFT \
+			and _keyboard_panel \
+			and _keyboard_toggle_button \
+			and not _keyboard_toggle_button.disabled:
+			_set_keyboard_visible(true)
+			return
 	if not (event is InputEventKey):
 		return
 	var key_event: InputEventKey = event as InputEventKey

@@ -88,6 +88,11 @@ func _setup_challenges() -> void:
 	]
 
 
+func _ready() -> void:
+	await super._ready()
+	_position_meta_area()
+
+
 func _on_challenge_begin(challenge_index: int) -> void:
 	_clear_markers()
 	if _plotter:
@@ -152,7 +157,7 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 			_obstacle_manager.add_obstacle(Vector2( 4.0,  5.0), 0.8, "Centinela del Horizonte Gamma", T)
 			_obstacle_manager.add_obstacle(Vector2(-1.0,  2.0), 0.8, "Centinela del Horizonte Delta", T)
 		4:
-			# FUNCIÓN COMPUESTA FINAL: y = x (identidad)
+			# FUNCIÓN COMPUESTA FINAL: y = log(exp(x)+2)
 			_obstacle_manager.add_obstacle(Vector2( 0.0,  3.0), 0.8, "Guardián de la Singularidad Alfa", T)
 			_obstacle_manager.add_obstacle(Vector2( 3.0,  0.0), 0.8, "Guardián de la Singularidad Beta", T)
 			_obstacle_manager.add_obstacle(Vector2(-2.0,  2.0), 0.8, "Guardián de la Singularidad Gamma", T)
@@ -314,3 +319,9 @@ func _clear_markers() -> void:
 	_reference_plotter = null
 	_inverse_plotter = null
 	_symmetry_line = null
+
+
+func _position_meta_area() -> void:
+	var meta_area: Area2D = get_node_or_null("MetaArea")
+	if meta_area:
+		meta_area.position = Vector2(1040, 240)
