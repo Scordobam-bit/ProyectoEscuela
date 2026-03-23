@@ -45,6 +45,7 @@ signal challenge_started(challenge_index: int)
 
 var _current_challenge: int = 0
 var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subclases
+var _goal_triggered: bool = false
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
@@ -190,6 +191,7 @@ func _start_challenge(index: int) -> void:
 	if index < 0 or index >= _challenges.size():
 		return
 	_current_challenge = index
+	_goal_triggered = false
 	challenge_started.emit(index)
 
 	# Limpiar obstáculos previos y generar los del nuevo desafío
@@ -335,8 +337,9 @@ func _connect_goal_area() -> void:
 
 
 func _on_meta_area_body_entered(body: Node) -> void:
-	if body == null or not body.is_in_group("player_ship"):
+	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
+	_goal_triggered = true
 	challenge_completed.emit()
 	GameManager.unlock_next_level()
 
