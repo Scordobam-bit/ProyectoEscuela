@@ -1,6 +1,8 @@
 class_name Sector0Academia
 extends SectorBase
 
+const PLAYER_SHIP_GROUP: StringName = &"player_ship"
+
 var _tutorial_manager: TutorialManager = null
 @onready var _trajectory_path: Path2D = get_node_or_null("TrajectoryPath")
 @onready var _path_follower: PathFollow2D = get_node_or_null("TrajectoryPath/PathFollower")
@@ -21,7 +23,6 @@ func _ready() -> void:
 		if not hud_node.request_plot.is_connected(_on_hud_request_plot):
 			hud_node.request_plot.connect(_on_hud_request_plot)
 	_connect_goal_portal()
-	_clear_trajectory_path()
 
 
 func _process(delta: float) -> void:
@@ -96,9 +97,10 @@ func _build_trajectory_points(formula: String) -> PackedVector2Array:
 	var points: PackedVector2Array = PackedVector2Array()
 	if _plotter == null:
 		return points
-	var samples: int = maxi(_plotter.sample_count, 2)
-	var step: float = (_plotter.domain_max - _plotter.domain_min) / float(samples - 1)
-	for i in range(samples):
+	var trajectory_point_count: int = maxi(_plotter.sample_count, 2)
+	var step: float = (_plotter.domain_max - _plotter.domain_min) / float(trajectory_point_count - 1)
+	var use_y_clamp: bool = _plotter.y_clamp > 0.0
+	for i in range(trajectory_point_count):
 		var x: float = _plotter.domain_min + step * float(i)
 		var result: Dictionary = MathEngine.evaluate(formula, x)
 		if not result.get("ok", false):
@@ -106,7 +108,7 @@ func _build_trajectory_points(formula: String) -> PackedVector2Array:
 		var y: float = float(result.get("value", NAN))
 		if is_nan(y) or is_inf(y):
 			continue
-		if _plotter.y_clamp > 0.0 and absf(y) > _plotter.y_clamp:
+		if use_y_clamp and absf(y) > _plotter.y_clamp:
 			continue
 		points.append(_plotter.math_to_screen(Vector2(x, y)))
 	return points
@@ -145,7 +147,7 @@ func _connect_goal_portal() -> void:
 
 
 func _on_goal_portal_body_entered(body: Node) -> void:
-	if _portal_triggered or body == null or not body.is_in_group("player_ship"):
+	if _portal_triggered or not body.is_in_group(PLAYER_SHIP_GROUP):
 		return
 	_portal_triggered = true
 	_movement_active = false
