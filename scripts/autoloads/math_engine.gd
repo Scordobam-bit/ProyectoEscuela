@@ -26,6 +26,7 @@ signal formula_evaluated(formula: String, x: float, result: float)
 # ---------------------------------------------------------------------------
 
 const EULER_E: float = 2.718281828459045
+const PI_VALUE: float = 3.141592653589793
 const GOLDEN_RATIO: float = 1.6180339887498948
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
@@ -123,10 +124,10 @@ func _rewrite_math_constants(formula: String) -> String:
 		var token: String = formula.substr(start, i - start)
 		var lower_token: String = token.to_lower()
 		if lower_token == "pi":
-			output.append("3.141592")
+			output.append(str(PI_VALUE))
 			continue
 		if (token == "E" or token == "e") and not _is_scientific_exponent_marker(formula, start, i):
-			output.append("2.718281")
+			output.append(str(EULER_E))
 			continue
 		output.append(token)
 	return "".join(output)
@@ -265,8 +266,7 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 	end_idx -= 1
 	if end_idx < i:
 		return {}
-	var token_end: int = end_idx
-	var after_token: int = token_end + 1
+	var after_token: int = end_idx + 1
 	while after_token < formula.length() and formula.unicode_at(after_token) <= 32:
 		after_token += 1
 	if after_token < formula.length() and formula.substr(after_token, 1) == "(":

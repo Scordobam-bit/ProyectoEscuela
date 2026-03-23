@@ -754,6 +754,7 @@ func _build_reference_dialog() -> void:
 		+ "Trigonometría: sin(x), cos(x), tan(x)\n"
 		+ "Trig. inversa: asin(x), acos(x), atan(x)\n"
 		+ "Logaritmos: log(x), ln(x), log(base, x)\n"
+		+ "Valor absoluto: abs(x)\n"
 		+ "Constantes: PI, E\n"
 		+ "Dominio: ajusta [min, max] para enfocar la zona válida."
 	)

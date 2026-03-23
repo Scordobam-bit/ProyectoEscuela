@@ -128,7 +128,7 @@ func test_evaluate_ln_alias() -> bool:
 func test_evaluate_constants_pi_e() -> bool:
 	var pi_result: float = MathEngine.evaluate("PI", 0.0)
 	var e_result: float = MathEngine.evaluate("E", 0.0)
-	var ok: bool = _approx_equal(pi_result, 3.141592, 1e-6) and _approx_equal(e_result, 2.718281, 1e-6)
+	var ok: bool = _approx_equal(pi_result, PI, 1e-6) and _approx_equal(e_result, MathEngine.EULER_E, 1e-6)
 	return _assert(ok, "evaluate reconoce PI y E como constantes",
 		"PI=%s E=%s" % [pi_result, e_result])
 
