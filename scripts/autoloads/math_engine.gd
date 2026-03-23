@@ -305,9 +305,6 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 		i += 1
 	if i >= formula.length():
 		return {}
-	var _math_sign: String = ""
-	if formula.substr(i, 1) == "-":
-		_math_sign = "-"
 	var unary_sign: String = ""
 	if formula.substr(i, 1) == "-":
 		unary_sign = "-"
