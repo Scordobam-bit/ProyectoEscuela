@@ -10,11 +10,12 @@ layer = 20
 [node name="HUDPanel" type="PanelContainer" parent="."]
 anchor_right = 1.0
 offset_bottom = 200.0
-mouse_filter = 0
+mouse_filter = 1
 
 [node name="Margin" type="MarginContainer" parent="HUDPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 1
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
@@ -24,13 +25,16 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 1
 theme_override_constants/separation = 6
 
 [node name="FormulaRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="FormulaLabel" type="Label" parent="HUDPanel/Margin/VBox/FormulaRow"]
 layout_mode = 2
+mouse_filter = 1
 text = "f(x) = "
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -46,9 +50,11 @@ text = "EJECUTAR TRAYECTORIA"
 
 [node name="DomainRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="DomainLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
+mouse_filter = 1
 text = "Dominio: ["
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -62,6 +68,7 @@ value = -10.0
 
 [node name="DomainSepLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
+mouse_filter = 1
 text = " , "
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -75,6 +82,7 @@ value = 10.0
 
 [node name="DomainEndLabel" type="Label" parent="HUDPanel/Margin/VBox/DomainRow"]
 layout_mode = 2
+mouse_filter = 1
 text = "]"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -82,10 +90,11 @@ theme_override_constants/outline_size = 2
 [node name="MissionPanel" type="PanelContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 0
+mouse_filter = 1
 
 [node name="MissionMargin" type="MarginContainer" parent="HUDPanel/Margin/VBox/MissionPanel"]
 layout_mode = 2
+mouse_filter = 1
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 8
@@ -93,10 +102,12 @@ theme_override_constants/margin_bottom = 6
 
 [node name="MissionVBox" type="VBoxContainer" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin"]
 layout_mode = 2
+mouse_filter = 1
 theme_override_constants/separation = 8
 
 [node name="MissionTitleLabel" type="Label" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
 layout_mode = 2
+mouse_filter = 1
 text = "Objetivo de misión"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -104,6 +115,7 @@ theme_override_constants/outline_size = 2
 [node name="MissionDescriptionLabel" type="Label" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 autowrap_mode = 2
 text = "Sigue las instrucciones de la misión actual."
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -111,6 +123,7 @@ theme_override_constants/outline_size = 2
 
 [node name="ButtonRow" type="HBoxContainer" parent="HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox"]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="KeyboardToggleButton" type="Button" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
@@ -127,16 +140,19 @@ text = "💡 Pista"
 [node name="TopBar" type="HBoxContainer" parent="."]
 offset_bottom = 30.0
 offset_right = 1280.0
+mouse_filter = 1
 
 [node name="SectorLabel" type="Label" parent="TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 text = "Sector"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 
 [node name="ScoreLabel" type="Label" parent="TopBar"]
 layout_mode = 2
+mouse_filter = 1
 text = "Puntuación: 0"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -156,6 +172,7 @@ offset_right = 300.0
 offset_bottom = 30.0
 horizontal_alignment = 1
 visible = false
+mouse_filter = 1
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 
@@ -173,28 +190,34 @@ offset_top = -280.0
 offset_right = 350.0
 offset_bottom = 280.0
 visible = false
+mouse_filter = 1
 script = ExtResource("2")
 
 [node name="VBox" type="VBoxContainer" parent="TheoryPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 1
 
 [node name="TitleLabel" type="Label" parent="TheoryPanel/VBox"]
 layout_mode = 2
+mouse_filter = 1
 text = "Teoría"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="TheoryPanel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
 
 [node name="ContentLabel" type="RichTextLabel" parent="TheoryPanel/VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
 bbcode_enabled = true
 fit_content = true
 
 [node name="NavRow" type="HBoxContainer" parent="TheoryPanel/VBox"]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="PrevButton" type="Button" parent="TheoryPanel/VBox/NavRow"]
 layout_mode = 2
@@ -203,6 +226,7 @@ text = "◀ Anterior"
 [node name="PageLabel" type="Label" parent="TheoryPanel/VBox/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 horizontal_alignment = 1
 text = "1 / 1"
 
