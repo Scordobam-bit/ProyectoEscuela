@@ -142,7 +142,6 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 	if _path_follower:
 		if points.is_empty() and _plotter:
 			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
-		elif not points.is_empty():
 		elif _can_advance_path_follower():
 			_path_follower.progress_ratio = 0.0
 		elif points.size() == 1:

@@ -291,9 +291,6 @@ func _ensure_path_follow_ready() -> void:
 
 
 func _ensure_collision_body() -> void:
-	if self is CharacterBody2D:
-		_collision_body = self as CharacterBody2D
-		return
 	if _collision_body and is_instance_valid(_collision_body):
 		return
 	_collision_body = CharacterBody2D.new()

@@ -126,7 +126,6 @@ const _DEFAULT_Y_EXTENT_UNITS: float = 15.0
 var _function_line: Line2D = null
 var _x_axis_line: Line2D = null
 var _y_axis_line: Line2D = null
-var _grid_lines: Node2D = null
 var _expression: Expression = Expression.new()
 var _last_points: PackedVector2Array = PackedVector2Array()
 var _plot_valid: bool = false
@@ -142,7 +141,7 @@ var _original_line_color: Color = Color(0.0, 1.0, 0.8, 1.0)
 
 func _ready() -> void:
 	_build_visuals()
-	if auto_plot:
+	if auto_plot and MathEngine:
 		plot()
 
 
