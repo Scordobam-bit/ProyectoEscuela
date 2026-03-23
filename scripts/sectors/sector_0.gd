@@ -2,11 +2,17 @@ class_name Sector0Academia
 extends SectorBase
 
 const PLAYER_SHIP_GROUP: StringName = &"player_ship"
+const THEORY_TEXT: String = "Una función es una regla que asigna a cada valor de entrada (x) exactamente un valor de salida (y). En esta academia, tu fórmula define el camino de la nave."
+const HINT_TEXT: String = "El objetivo está a una altura constante. Prueba con una función constante como f(x) = 5 o similar para alcanzar el portal."
+const PORTAL_DEFAULT_COLOR: Color = Color(0.2, 1, 0.35, 0.8)
+const PORTAL_SUCCESS_COLOR: Color = Color(0.0, 1.0, 1.0, 1.0)
 
 var _tutorial_manager: TutorialManager = null
 @onready var _trajectory_path: Path2D = get_node_or_null("TrajectoryPath")
+@onready var _trajectory_line: Line2D = get_node_or_null("TrajectoryPath/TrajectoryLine")
 @onready var _path_follower: PathFollow2D = get_node_or_null("TrajectoryPath/PathFollower")
 @onready var _goal_portal: Area2D = get_node_or_null("GoalPortal")
+@onready var _portal_visual: Polygon2D = get_node_or_null("GoalPortal/PortalVisual")
 @onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/ShipBody")
 
 @export_range(0.01, 1.0, 0.01) var path_follow_speed: float = 0.08
@@ -48,7 +54,7 @@ func _setup_challenges() -> void:
 			"expected_formula": "5",
 			"feedback_correct": "¡Academia completada! Sector 1 desbloqueado.",
 			"feedback_wrong": "Intenta una función constante que pase por y = 5.",
-			"solution_hint": "Escribe solo: 5",
+			"solution_hint": HINT_TEXT,
 			"score": 50,
 			"waypoints": [],
 		},
@@ -89,6 +95,7 @@ func _on_hud_request_plot(formula: String) -> void:
 		_plotter.formula = normalized_formula
 	var points: PackedVector2Array = _build_trajectory_points(normalized_formula)
 	_apply_path_points(points)
+	_apply_trajectory_line(points)
 	if points.size() < 2 and hud_node:
 		hud_node.show_feedback("No se pudo generar una trayectoria válida.", "error")
 
@@ -130,6 +137,7 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 func _clear_trajectory_path() -> void:
 	_movement_active = false
 	_portal_triggered = false
+	_clear_trajectory_line()
 	if _trajectory_path == null:
 		return
 	if _trajectory_path.curve == null:
@@ -139,6 +147,21 @@ func _clear_trajectory_path() -> void:
 		_path_follower.progress_ratio = 0.0
 	if _ship_body:
 		_ship_body.position = Vector2.ZERO
+	if _portal_visual:
+		_portal_visual.color = PORTAL_DEFAULT_COLOR
+
+
+func _apply_trajectory_line(points: PackedVector2Array) -> void:
+	if _trajectory_line == null:
+		return
+	_trajectory_line.clear_points()
+	for pt in points:
+		_trajectory_line.add_point(pt)
+
+
+func _clear_trajectory_line() -> void:
+	if _trajectory_line:
+		_trajectory_line.clear_points()
 
 
 func _connect_goal_portal() -> void:
@@ -151,7 +174,33 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 		return
 	_portal_triggered = true
 	_movement_active = false
+	_goal_triggered = true
+	if _portal_visual:
+		_portal_visual.color = PORTAL_SUCCESS_COLOR
+	if hud_node:
+		hud_node.show_feedback("¡Misión Cumplida! Portal asegurado.", "success")
+	challenge_completed.emit()
+	var score: int = 50
+	if _current_challenge >= 0 and _current_challenge < _challenges.size():
+		score = int(_challenges[_current_challenge].get("score", score))
+	GameManager.complete_challenge(sector_index, _current_challenge, score)
+	await get_tree().create_timer(0.6).timeout
 	GameManager.unlock_next_level()
+
+
+func _on_theory_requested() -> void:
+	if hud_node:
+		hud_node.show_feedback(THEORY_TEXT, "info")
+		hud_node.set_mission_text("Teoría", THEORY_TEXT)
+	if theory_panel_node:
+		theory_panel_node.show_mission_briefing("s0_tutorial")
+
+
+func _on_hint_requested() -> void:
+	if hud_node:
+		hud_node.show_feedback("Pista: " + HINT_TEXT, "warning")
+		hud_node.set_mission_text("Pista", HINT_TEXT)
+	GameManager.hints_used += 1
 
 
 func _setup_tutorial_manager() -> void:
