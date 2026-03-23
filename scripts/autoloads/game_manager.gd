@@ -265,7 +265,9 @@ func save_progress() -> void:
 
 	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
-	config.load(SAVE_PATH)
+	var load_err: Error = config.load(SAVE_PATH)
+	if load_err != OK and load_err != ERR_FILE_NOT_FOUND:
+		push_warning("GameManager: no se pudo leer '%s' antes de guardar (error %d). Se reescribirá." % [SAVE_PATH, load_err])
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntuacion_total", total_score)
 	config.set_value("jugador", "pistas_usadas", hints_used)
