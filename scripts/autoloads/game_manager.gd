@@ -139,15 +139,13 @@ func go_to_sector(sector_index: int) -> void:
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
 	var scene_path: String = data.get("scene", "")
-	if not _is_scene_path_loadable(scene_path):
-		_handle_scene_load_failure(
-			"No se pudo cargar el sector solicitado. Regresando al menú principal.",
-			scene_path
-		)
+	if not _try_transition_to_scene(
+		scene_path,
+		"No se pudo cargar el sector solicitado. Regresando al menú principal."
+	):
 		return
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
-	SceneTransition.fade_to_scene(scene_path)
 
 
 func unlock_next_level() -> void:
@@ -348,14 +346,15 @@ func _sync_from_save_system() -> void:
 			completed_challenges[sid] = Array(range(sector_challenge_count))
 
 
-func _try_transition_to_scene(scene_path: String) -> void:
+func _try_transition_to_scene(
+	scene_path: String,
+	error_message: String = "No se pudo cargar la siguiente escena. Tu progreso ya fue guardado."
+) -> bool:
 	if not _is_scene_path_loadable(scene_path):
-		_handle_scene_load_failure(
-			"No se pudo cargar la siguiente escena. Tu progreso ya fue guardado.",
-			scene_path
-		)
-		return
+		_handle_scene_load_failure(error_message, scene_path)
+		return false
 	SceneTransition.fade_to_scene(scene_path)
+	return true
 
 
 func _is_scene_path_loadable(scene_path: String) -> bool:

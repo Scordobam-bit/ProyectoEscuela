@@ -29,7 +29,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
 @onready var _score_label:          Label              = $VBoxContainer/ScoreLabel
-var _locked_sector_dialog: AcceptDialog = null
+var _notification_dialog: AcceptDialog = null
 const SAVE_FILE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
@@ -73,12 +73,7 @@ func _on_sector_pressed(sector_index: int) -> void:
 	if SaveSystem.is_sector_unlocked(sector_index):
 		GameManager.go_to_sector(sector_index)
 		return
-	if not is_instance_valid(_locked_sector_dialog):
-		_locked_sector_dialog = AcceptDialog.new()
-		_locked_sector_dialog.title = "Sector bloqueado"
-		_locked_sector_dialog.dialog_text = "Debes completar el sector anterior para ver esta pista"
-		add_child(_locked_sector_dialog)
-	_locked_sector_dialog.popup_centered()
+	_show_notification("Sector bloqueado", "Debes completar el sector anterior para ver esta pista")
 
 
 ## Abre el Laboratorio Estelar (modo sandbox de exploración libre).
@@ -146,9 +141,13 @@ func _on_sector_unlocked(_sector_index: int) -> void:
 
 
 func _on_scene_transition_failed(message: String, _target_scene: String) -> void:
-	if not is_instance_valid(_locked_sector_dialog):
-		_locked_sector_dialog = AcceptDialog.new()
-		add_child(_locked_sector_dialog)
-	_locked_sector_dialog.title = "Error de carga"
-	_locked_sector_dialog.dialog_text = message
-	_locked_sector_dialog.popup_centered()
+	_show_notification("Error de carga", message)
+
+
+func _show_notification(title: String, message: String) -> void:
+	if not is_instance_valid(_notification_dialog):
+		_notification_dialog = AcceptDialog.new()
+		add_child(_notification_dialog)
+	_notification_dialog.title = title
+	_notification_dialog.dialog_text = message
+	_notification_dialog.popup_centered()
