@@ -142,10 +142,13 @@ func go_to_sector(sector_index: int) -> void:
 
 
 func unlock_next_level() -> void:
-	current_sector += 1
-	if current_sector >= 0 and current_sector < SECTOR_SCENE_PATHS.size():
+	var next_sector: int = current_sector + 1
+	if next_sector >= 0 and next_sector < SECTOR_SCENE_PATHS.size():
+		current_sector = next_sector
+		sector_changed.emit(current_sector)
 		get_tree().change_scene_to_file(SECTOR_SCENE_PATHS[current_sector])
 		return
+	current_sector = 0
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
