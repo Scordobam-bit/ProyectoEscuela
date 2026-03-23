@@ -46,6 +46,7 @@ signal challenge_started(challenge_index: int)
 var _current_challenge: int = 0
 var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subclases
 var _goal_triggered: bool = false
+var _sector_ready_for_portal: bool = false
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
@@ -193,6 +194,7 @@ func _start_challenge(index: int) -> void:
 		return
 	_current_challenge = index
 	_goal_triggered = false
+	_sector_ready_for_portal = false
 	challenge_started.emit(index)
 
 	# Limpiar obstáculos previos y generar los del nuevo desafío
@@ -250,6 +252,11 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 func _advance_challenge() -> void:
 	var next: int = _current_challenge + 1
 	if next >= _challenges.size():
+		_sector_ready_for_portal = true
+		if _meta_area == null:
+			challenge_completed.emit()
+			_on_sector_complete()
+			return
 		if hud_node:
 			hud_node.show_feedback("¡Desafíos completados! Navega al portal para cerrar el sector.", "success")
 	else:
@@ -356,7 +363,7 @@ func _connect_goal_area() -> void:
 func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
-	if _current_challenge < _challenges.size() - 1:
+	if not _sector_ready_for_portal:
 		if hud_node:
 			hud_node.show_feedback("Completa todos los desafíos antes de entrar al portal.", "warning")
 		return

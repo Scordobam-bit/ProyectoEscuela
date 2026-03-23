@@ -214,7 +214,7 @@ func set_path(path: Path2D) -> void:
 	if _has_parent_path_hierarchy():
 		if _path_node.curve == null:
 			_path_node.curve = Curve2D.new()
-		var source_curve: Curve2D = path.curve if path else null
+		var source_curve: Curve2D = path.curve
 		_path_node.curve.clear_points()
 		if source_curve:
 			for point_idx in range(source_curve.point_count):
@@ -223,7 +223,7 @@ func set_path(path: Path2D) -> void:
 		return
 	if _path_node and is_instance_valid(_path_node) and _owns_runtime_path:
 		_path_node.queue_free()
-	_owns_runtime_path = false
+		_owns_runtime_path = false
 	_path_node = path
 	_path_follow = null
 	_path_node.name = "TrajectoryPath"
@@ -253,8 +253,11 @@ func _rebuild_path_from_plotter() -> void:
 	if not plotter:
 		return
 	if _points.size() < 2:
+		stop()
+		_progress = 0.0
 		if _path_node and is_instance_valid(_path_node) and _path_node.curve:
 			_path_node.curve.clear_points()
+		_update_ship_position()
 		return
 	var path: Path2D = plotter.build_path2d()
 	set_path(path)

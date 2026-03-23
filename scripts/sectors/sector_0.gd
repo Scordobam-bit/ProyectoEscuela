@@ -139,10 +139,12 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 	_trajectory_path.curve.clear_points()
 	for pt in points:
 		_trajectory_path.curve.add_point(pt)
-	if _path_follower and _can_advance_path_follower():
-		_path_follower.progress_ratio = 0.0
-	elif _path_follower and points.is_empty() and _plotter:
+	if _path_follower and points.is_empty() and _plotter:
 		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
+	elif _path_follower and _can_advance_path_follower():
+		_path_follower.progress_ratio = 0.0
+	elif _path_follower and points.size() == 1:
+		_path_follower.position = points[0]
 	_movement_active = points.size() >= 2
 
 

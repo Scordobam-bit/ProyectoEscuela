@@ -610,7 +610,7 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 			and _keyboard_toggle_button \
 			and not _keyboard_toggle_button.disabled:
 			_set_keyboard_visible(true)
-		return
+			return
 	if not (event is InputEventKey):
 		return
 	var key_event: InputEventKey = event as InputEventKey
