@@ -63,6 +63,14 @@ const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 const _ALLOWED_SYMBOLS: String = "+-*/^().,_ ="
+const _CHAR_CODE_0: int = 48
+const _CHAR_CODE_9: int = 57
+const _CHAR_CODE_A_UPPER: int = 65
+const _CHAR_CODE_Z_UPPER: int = 90
+const _CHAR_CODE_A_LOWER: int = 97
+const _CHAR_CODE_Z_LOWER: int = 122
+const _CHAR_CODE_SPACE: int = 32
+const _CHAR_CODE_DEL: int = 127
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
@@ -83,9 +91,9 @@ var _is_sanitizing_input: bool = false
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	_plot_button.pressed.connect(_on_graficar_pressed)
-	_theory_button.pressed.connect(_on_teoria_pressed)
-	_hint_button.pressed.connect(_on_pista_pressed)
+	_plot_button.pressed.connect(_on_plot_pressed)
+	_theory_button.pressed.connect(_on_theory_pressed)
+	_hint_button.pressed.connect(_on_hint_pressed)
 	_keyboard_toggle_button.pressed.connect(_toggle_keyboard_panel)
 	_back_button.pressed.connect(_on_back_pressed)
 	_domain_min_spin.value_changed.connect(_on_domain_changed)
@@ -507,18 +515,6 @@ func _on_hint_pressed() -> void:
 	hint_requested.emit()
 
 
-func _on_graficar_pressed() -> void:
-	_on_plot_pressed()
-
-
-func _on_teoria_pressed() -> void:
-	_on_theory_pressed()
-
-
-func _on_pista_pressed() -> void:
-	_on_hint_pressed()
-
-
 func _on_back_pressed() -> void:
 	SceneTransition.fade_to_scene("res://scenes/main_menu.tscn")
 
@@ -552,10 +548,10 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 		var sel_from: int = _formula_input.get_selection_from_column()
 		var sel_to: int = _formula_input.get_selection_to_column()
 		if sel_from != sel_to:
-			var text_with_selection: String = _formula_input.text
+			var current_text: String = _formula_input.text
 			var from_col: int = mini(sel_from, sel_to)
 			var to_col: int = maxi(sel_from, sel_to)
-			_formula_input.text = text_with_selection.left(from_col) + text_with_selection.substr(to_col)
+			_formula_input.text = current_text.left(from_col) + current_text.substr(to_col)
 			_formula_input.caret_column = from_col
 			_formula_input.deselect()
 			_formula_input.accept_event()
@@ -580,21 +576,27 @@ func _on_domain_changed(_value: float) -> void:
 func _sanitize_formula_text(raw_text: String) -> String:
 	var out: PackedStringArray = []
 	for i in range(raw_text.length()):
-		var ch: String = raw_text.substr(i, 1)
-		if _is_allowed_math_char(ch):
-			out.append(ch)
+		var code: int = raw_text.unicode_at(i)
+		if _is_allowed_math_code(code):
+			out.append(char(code))
 	return out.join("")
 
 
 func _is_allowed_math_char(ch: String) -> bool:
 	if ch.is_empty():
 		return false
-	var code: int = ch.unicode_at(0)
-	if code < 32 or code == 127:
+	return _is_allowed_math_code(ch.unicode_at(0))
+
+
+func _is_allowed_math_code(code: int) -> bool:
+	if code < _CHAR_CODE_SPACE or code == _CHAR_CODE_DEL:
 		return false
+	var ch: String = char(code)
 	if _ALLOWED_SYMBOLS.contains(ch):
 		return true
-	if (code >= 48 and code <= 57) or (code >= 65 and code <= 90) or (code >= 97 and code <= 122):
+	if (code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9) \
+			or (code >= _CHAR_CODE_A_UPPER and code <= _CHAR_CODE_Z_UPPER) \
+			or (code >= _CHAR_CODE_A_LOWER and code <= _CHAR_CODE_Z_LOWER):
 		return true
 	return false
 

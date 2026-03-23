@@ -45,6 +45,9 @@ var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subcl
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
+const _HUD_PLOT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/FormulaRow/PlotButton"
+const _HUD_THEORY_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton"
+const _HUD_HINT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -294,15 +297,15 @@ func _connect_hud_buttons_in_code() -> void:
 		return
 	if not hud_node.is_node_ready():
 		await hud_node.ready
-	var plot_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/FormulaRow/PlotButton")
-	if plot_button and not plot_button.pressed.is_connected(hud_node._on_graficar_pressed):
-		plot_button.pressed.connect(hud_node._on_graficar_pressed)
-	var theory_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton")
-	if theory_button and not theory_button.pressed.is_connected(hud_node._on_teoria_pressed):
-		theory_button.pressed.connect(hud_node._on_teoria_pressed)
-	var hint_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton")
-	if hint_button and not hint_button.pressed.is_connected(hud_node._on_pista_pressed):
-		hint_button.pressed.connect(hud_node._on_pista_pressed)
+	var plot_button: Button = hud_node.get_node_or_null(_HUD_PLOT_BUTTON_PATH)
+	if plot_button and not plot_button.pressed.is_connected(hud_node._on_plot_pressed):
+		plot_button.pressed.connect(hud_node._on_plot_pressed)
+	var theory_button: Button = hud_node.get_node_or_null(_HUD_THEORY_BUTTON_PATH)
+	if theory_button and not theory_button.pressed.is_connected(hud_node._on_theory_pressed):
+		theory_button.pressed.connect(hud_node._on_theory_pressed)
+	var hint_button: Button = hud_node.get_node_or_null(_HUD_HINT_BUTTON_PATH)
+	if hint_button and not hint_button.pressed.is_connected(hud_node._on_hint_pressed):
+		hint_button.pressed.connect(hud_node._on_hint_pressed)
 
 
 func _connect_plotter() -> void:
