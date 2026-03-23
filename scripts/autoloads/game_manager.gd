@@ -261,9 +261,8 @@ func save_progress() -> void:
 	# Sincronizar puntuación con SaveSystem antes de guardar
 	SaveSystem.set_total_score(total_score)
 	SaveSystem.tutorial_completed = tutorial_completed
-	var unlocked_copy: Array[int] = SaveSystem.unlocked_sectors.duplicate()
 	var unlocked_level: int = 0
-	for level_index: int in unlocked_copy:
+	for level_index: int in SaveSystem.unlocked_sectors:
 		unlocked_level = maxi(unlocked_level, level_index)
 	SaveSystem.save_game_data()
 
@@ -293,11 +292,8 @@ func load_progress() -> void:
 		return   # Sin archivo de guardado previo — primera sesión
 
 	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
-	total_score         = config.get_value(
-		"jugador",
-		"puntos",
-		config.get_value("jugador", "puntuacion_total", 0)
-	)
+	var legacy_score: int = int(config.get_value("jugador", "puntuacion_total", 0))
+	total_score         = int(config.get_value("jugador", "puntos", legacy_score))
 	var unlocked_level: int = int(config.get_value("jugador", "nivel_desbloqueado", 0))
 	unlocked_level = clampi(unlocked_level, 0, get_last_sector_index())
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
