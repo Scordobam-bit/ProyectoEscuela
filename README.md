@@ -72,4 +72,4 @@ Juego educativo en Godot 4.x donde la trayectoria de la nave se define con funci
 
 - `MathEngine.evaluate("2^3", 0.0)` debe producir `{"ok": true, "value": 8.0, ...}`
 - `MathEngine.evaluate("log(2, 8)", 0.0)` debe producir `{"ok": true, "value": 3.0, ...}`
-
+- En caso de error de parseo/ejecución, `evaluate()` devuelve `ok=false` con `error` descriptivo y una salida segura.
