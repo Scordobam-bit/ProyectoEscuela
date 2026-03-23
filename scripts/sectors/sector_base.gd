@@ -33,9 +33,6 @@ signal challenge_started(challenge_index: int)
 # Referencias de Nodos (las subclases deben tenerlas en sus escenas)
 # ---------------------------------------------------------------------------
 
-@onready var _plotter: FunctionPlotter = $FunctionPlotter
-@onready var _ship: ShipController = get_node_or_null("%Ship")
-@onready var _meta_area: Area2D = get_node_or_null("GoalPortal")
 @onready var _plotter: FunctionPlotter = get_node_or_null("%FunctionPlotter") if has_node("%FunctionPlotter") else get_node_or_null("FunctionPlotter")
 @onready var _ship: ShipController = get_node_or_null("%Ship") if has_node("%Ship") else get_node_or_null("Ship")
 @onready var _meta_area: Area2D = get_node_or_null("%MetaArea") if has_node("%MetaArea") else get_node_or_null("MetaArea")

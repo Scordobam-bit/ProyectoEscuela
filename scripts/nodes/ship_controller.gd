@@ -213,6 +213,11 @@ func _on_plot_completed(points: PackedVector2Array) -> void:
 
 func set_path(path: Path2D) -> void:
 	if _owns_path_node and _path_node and is_instance_valid(_path_node):
+		_path_node.queue_free()
+		_owns_path_node = false
+		_owns_runtime_path = false
+		_path_node = null
+		_path_follow = null
 	if path == null:
 		return
 	if not is_inside_tree():
