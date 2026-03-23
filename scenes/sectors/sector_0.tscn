@@ -39,6 +39,7 @@ width = 1.0
 default_color = Color(0.35, 0.45, 0.7, 0.35)
 
 [node name="FunctionPlotter" type="Node2D" parent="."]
+unique_name_in_owner = true
 position = Vector2(640, 360)
 script = ExtResource("1")
 formula = ""
@@ -63,12 +64,14 @@ default_color = Color(0, 1, 0.8, 1)
 rotates = true
 loop = false
 
-[node name="Ship" type="CharacterBody2D" parent="TrajectoryPath/PathFollower" groups=["player_ship"]]
-script = ExtResource("4")
+[node name="Ship" type="Node2D" parent="TrajectoryPath/PathFollower"]
 unique_name_in_owner = true
+script = ExtResource("4")
 speed = 0.08
 auto_start = false
 rotate_to_direction = true
+
+[node name="ShipBody" type="CharacterBody2D" parent="TrajectoryPath/PathFollower" groups=["player_ship"]]
 collision_layer = 1
 collision_mask = 1
 
@@ -79,18 +82,19 @@ color = Color(0, 1, 0.8, 0.92)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TrajectoryPath/PathFollower/Ship"]
 shape = SubResource("CircleShape2D_ship")
 
-[node name="GoalPortal" type="Area2D" parent="."]
+[node name="MetaArea" type="Area2D" parent="."]
+unique_name_in_owner = true
 position = Vector2(1040, 160)
 collision_layer = 1
 collision_mask = 1
 monitoring = true
 monitorable = true
 
-[node name="PortalVisual" type="Polygon2D" parent="GoalPortal"]
+[node name="PortalVisual" type="Polygon2D" parent="MetaArea"]
 polygon = PackedVector2Array(0, -30, 22, -22, 30, 0, 22, 22, 0, 30, -22, 22, -30, 0, -22, -22)
 color = Color(0.2, 1, 0.35, 0.8)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="GoalPortal"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MetaArea"]
 shape = SubResource("CircleShape2D_goal")
 
 [node name="HUD_Layer" type="CanvasLayer" parent="."]

@@ -24,6 +24,9 @@ var _constant_function_pattern: RegEx = null
 @onready var _goal_portal: Area2D = get_node_or_null("GoalPortal")
 @onready var _portal_visual: Polygon2D = get_node_or_null("GoalPortal/PortalVisual")
 @onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/Ship")
+@onready var _goal_portal: Area2D = get_node_or_null("%MetaArea")
+@onready var _portal_visual: Polygon2D = get_node_or_null("MetaArea/PortalVisual")
+@onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/ShipBody")
 
 @export_range(0.01, 1.0, 0.01) var path_follow_speed: float = 0.08
 
@@ -45,7 +48,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _movement_active or _path_follower == null:
+	if not _movement_active or _path_follower == null or not _can_advance_path_follower():
 		return
 	_path_follower.progress_ratio = minf(_path_follower.progress_ratio + path_follow_speed * delta, 1.0)
 	if _path_follower.progress_ratio >= 1.0:
@@ -140,10 +143,12 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 	for pt in points:
 		_trajectory_path.curve.add_point(pt)
 	if _path_follower:
-		_path_follower.progress_ratio = 0.0
 		if points.is_empty() and _plotter:
 			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 		elif not points.is_empty():
+		elif _can_advance_path_follower():
+			_path_follower.progress_ratio = 0.0
+		elif points.size() == 1:
 			_path_follower.position = points[0]
 	_movement_active = points.size() >= 2
 
@@ -207,6 +212,7 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 	if _current_challenge >= 0 and _current_challenge < _challenges.size():
 		score = int(_challenges[_current_challenge].get("score", score))
 	GameManager.complete_challenge(sector_index, _current_challenge, score)
+	GameManager.register_sector_victory(sector_index)
 	await get_tree().create_timer(0.6).timeout
 	GameManager.unlock_next_level()
 
@@ -265,6 +271,14 @@ func _get_constant_function_pattern() -> RegEx:
 		_constant_function_pattern = RegEx.new()
 		_constant_function_pattern.compile(CONSTANT_FUNCTION_REGEX_PATTERN)
 	return _constant_function_pattern
+
+
+func _can_advance_path_follower() -> bool:
+	if _trajectory_path == null or _trajectory_path.curve == null:
+		return false
+	if _trajectory_path.curve.point_count < 2:
+		return false
+	return _trajectory_path.curve.get_baked_length() > 0.0
 
 
 func _setup_tutorial_manager() -> void:
