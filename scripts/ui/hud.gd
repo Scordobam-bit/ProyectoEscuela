@@ -27,15 +27,15 @@ signal hint_requested
 # ---------------------------------------------------------------------------
 
 @onready var _formula_input: LineEdit = $HUDPanel/Margin/VBox/FormulaRow/FormulaInput
-@onready var _plot_button: Button = $HUDPanel/Margin/VBox/FormulaRow/PlotButton
+@onready var _plot_button: Button = %BtnEjecutar
 @onready var _domain_min_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMinSpin
 @onready var _domain_max_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMaxSpin
 @onready var _sector_label: Label = $TopBar/SectorLabel
 @onready var _score_label: Label = $TopBar/ScoreLabel
 @onready var _back_button: Button = $BackButton
 @onready var _feedback_label: Label = $FeedbackLabel
-@onready var _theory_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton
-@onready var _hint_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton
+@onready var _theory_button: Button = %BtnTeoria
+@onready var _hint_button: Button = %BtnPista
 @onready var _mission_title_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionTitleLabel
 @onready var _mission_description_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionDescriptionLabel
 @onready var _keyboard_toggle_button: Button = $HUDPanel/Margin/VBox/KeyboardToggleButton
@@ -121,6 +121,7 @@ var _is_sanitizing_input: bool = false
 
 func _ready() -> void:
 	_force_non_interactive_mouse_ignore(self)
+	_force_all_panels_mouse_ignore(self)
 	_plot_button.pressed.connect(_on_plot_pressed)
 	_theory_button.pressed.connect(_on_theory_pressed)
 	_hint_button.pressed.connect(_on_hint_pressed)
@@ -558,6 +559,7 @@ func _on_plot_pressed() -> void:
 	if formula.is_empty():
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
+	print("[HUD] Botón Ejecutar presionado. Fórmula: ", _formula_input.text)
 	request_plot.emit(formula)
 	formula_submitted.emit(formula)
 
@@ -725,6 +727,13 @@ func _force_non_interactive_mouse_ignore(root: Node) -> void:
 		return
 	var control_node: Control = root as Control
 	control_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _force_all_panels_mouse_ignore(root: Node) -> void:
+	for child_node: Node in root.get_children():
+		_force_all_panels_mouse_ignore(child_node)
+	if root is PanelContainer:
+		(root as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _on_answer_validated(correct: bool, feedback: String) -> void:

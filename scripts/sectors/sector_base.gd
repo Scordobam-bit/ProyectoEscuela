@@ -49,9 +49,9 @@ var _goal_triggered: bool = false
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
-const _HUD_PLOT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/FormulaRow/PlotButton"
-const _HUD_THEORY_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton"
-const _HUD_HINT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton"
+const _HUD_PLOT_BUTTON_PATH: String = "%BtnEjecutar"
+const _HUD_THEORY_BUTTON_PATH: String = "%BtnTeoria"
+const _HUD_HINT_BUTTON_PATH: String = "%BtnPista"
 const _MIN_HUD_LAYER: int = 20
 const _THEORY_HINT_Z_OFFSET: int = 80
 

@@ -56,10 +56,12 @@ auto_start = false
 rotate_to_direction = true
 
 [node name="TrajectoryPath" type="Path2D" parent="."]
+unique_name_in_owner = true
 position = Vector2(640, 360)
 curve = SubResource("Curve2D_trajectory")
 
 [node name="TrajectoryLine" type="Line2D" parent="TrajectoryPath"]
+unique_name_in_owner = true
 width = 3.0
 default_color = Color(0, 1, 0.8, 1)
 
@@ -96,3 +98,4 @@ shape = SubResource("CircleShape2D_goal")
 layer = 20
 
 [node name="HUD" parent="HUD_Layer" instance=ExtResource("3")]
+unique_name_in_owner = true
