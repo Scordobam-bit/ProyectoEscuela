@@ -110,6 +110,11 @@ layout_mode = 2
 text = "v1.0  |  Godot 4.6  |  GDScript 2.0  |  5 Sectores"
 horizontal_alignment = 1
 
+[node name="ScoreLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Puntuación: 0"
+horizontal_alignment = 1
+
 [node name="ConfirmClearDialog" type="ConfirmationDialog" parent="."]
 title = "Borrar Progreso"
 size = Vector2(420, 130)

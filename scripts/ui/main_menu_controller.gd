@@ -28,13 +28,16 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _lab_button:           Button             = $VBoxContainer/LabButton
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
+@onready var _score_label:          Label              = $VBoxContainer/ScoreLabel
 var _locked_sector_dialog: AcceptDialog = null
+const SAVE_FILE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	load_game()
 	_connect_buttons()
 	_refresh_sector_states()
 
@@ -42,6 +45,11 @@ func _ready() -> void:
 	SaveSystem.progress_loaded.connect(_refresh_sector_states)
 	SaveSystem.progress_cleared.connect(_refresh_sector_states)
 	SaveSystem.sector_unlocked.connect(_on_sector_unlocked)
+
+
+func load_game() -> void:
+	SaveSystem.load_game_data(SAVE_FILE_PATH)
+	GameManager.total_score = SaveSystem.total_score
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +109,7 @@ func _refresh_sector_states() -> void:
 	_apply_sector_state(_sector3_button, 3, "Sector 3: Sintonizador de Púlsares")
 	_apply_sector_state(_sector4_button, 4, "Sector 4: Estación de Acoplamiento")
 	_apply_sector_state(_sector5_button, 5, "Sector 5: Horizonte de Sucesos")
+	_score_label.text = "Puntuación: %d" % SaveSystem.total_score
 
 
 ## Aplica el estado visual correcto a un botón de sector.

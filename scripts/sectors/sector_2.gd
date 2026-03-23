@@ -64,6 +64,11 @@ func _setup_challenges() -> void:
 	]
 
 
+func _ready() -> void:
+	await super._ready()
+	_position_meta_area()
+
+
 # ---------------------------------------------------------------------------
 # Override: Inicio de Desafío
 # ---------------------------------------------------------------------------
@@ -208,3 +213,9 @@ func _clear_markers() -> void:
 			m.queue_free()
 	_particle_markers.clear()
 	_reference_plotter = null
+
+
+func _position_meta_area() -> void:
+	var meta_area: Area2D = get_node_or_null("MetaArea")
+	if meta_area:
+		meta_area.position = Vector2(1040, 220)

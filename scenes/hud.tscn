@@ -136,6 +136,7 @@ mouse_filter = 2
 alignment = 1
 
 [node name="KeyboardToggleButton" type="Button" parent="HUDPanel/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "⌨ Teclado Matemático"
 

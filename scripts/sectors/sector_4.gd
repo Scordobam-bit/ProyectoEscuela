@@ -1,25 +1,22 @@
 ## Sector4DockingStation.gd
 ## =========================
-## Sector 4: Estación de Acoplamiento — Operaciones de Funciones (Suma, Resta, División) y Composición
+## Sector 4: Estación de Acoplamiento — Logaritmos y Exponenciales
 ##
 ## Pedagogía
 ## ---------
-## Dos funciones f y g pueden combinarse:
-##   (f+g)(x) = f(x)+g(x)    dominio: D_f ∩ D_g
-##   (f−g)(x) = f(x)−g(x)    dominio: D_f ∩ D_g
-##   (f/g)(x) = f(x)/g(x)    dominio: D_f ∩ D_g \ {g(x)=0}
-##   (f∘g)(x) = f(g(x))      dominio: {x∈D_g : g(x)∈D_f}
+## La función exponencial y = e^x y el logaritmo natural y = ln(x) son funciones
+## inversas y modelan crecimiento/aceleración y escalas multiplicativas.
 ##
 ## Desafíos
 ## --------
-## 1. Calcular y graficar (f+g)(x) donde f(x)=x² y g(x)=3x−1.
-## 2. Calcular (f/g)(x) e identificar la asíntota.
-## 3. JEFE: Hallar la composición (f∘g)(x) e ingresarla para desbloquear la esclusa de aire.
+## 1. Exponencial básica exp(x).
+## 2. Logaritmo natural log(x).
+## 3. JEFE: combinación log(exp(x) + 1).
 class_name Sector4DockingStation
 extends SectorBase
 
-var _f_formula: String = "x^2"
-var _g_formula: String = "3*x - 1"
+var _f_formula: String = "exp(x)"
+var _g_formula: String = "log(x)"
 var _markers: Array[Node2D] = []
 
 func _setup_challenges() -> void:
@@ -29,37 +26,39 @@ func _setup_challenges() -> void:
 	_challenges = [
 		{
 			"briefing_key": "s4_tutorial",
-			"instruction": "Desafío 1: f(x) = x²  y  g(x) = 3x − 1.\n" +
-				"Calcula y grafica (f + g)(x).",
-			"hint": "x^2 + 3*x - 1",
-			"expected_formula": "x^2 + 3*x - 1",
-			"feedback_correct": "¡Suma calculada correctamente! Vector de aproximación de acoplamiento alineado.",
-			"feedback_wrong": "Suma: (f+g)(x) = f(x) + g(x) = x² + 3x − 1",
-			"solution_hint": "(f+g)(x) = x² + (3x − 1) = x² + 3x − 1",
+			"instruction": "Desafío 1: Activa los propulsores exponenciales graficando f(x) = exp(x).",
+			"hint": "exp(x)",
+			"expected_formula": "exp(x)",
+			"feedback_correct": "¡Exponencial establecida! Telemetría de crecimiento calibrada.",
+			"feedback_wrong": "Usa la función exponencial natural: exp(x).",
+			"solution_hint": "f(x) = exp(x)",
 			"score": 200,
 		},
 		{
-			"instruction": "Desafío 2: f(x) = x + 1  y  g(x) = x − 1.\n" +
-				"Ingresa (f/g)(x). ¡Nota: hay una asíntota vertical!",
-			"hint": "(x + 1) / (x - 1)",
-			"expected_formula": "(x + 1) / (x - 1)",
-			"feedback_correct": "¡Cociente correcto! Asíntota en x=1 registrada en el diario de navegación.",
-			"feedback_wrong": "(f/g)(x) = (x+1)/(x−1). Cuidado con la división por cero en x=1.",
-			"solution_hint": "(f/g)(x) = (x+1)/(x−1)",
+			"instruction": "Desafío 2: Estabiliza el escáner logarítmico graficando g(x) = log(x).\n" +
+				"Recuerda: dominio x > 0.",
+			"hint": "log(x)",
+			"expected_formula": "log(x)",
+			"feedback_correct": "¡Logaritmo confirmado! Dominio positivo registrado.",
+			"feedback_wrong": "Usa log(x) y recuerda que x debe ser mayor que 0.",
+			"solution_hint": "g(x) = log(x), con dominio x > 0",
 			"score": 250,
 		},
 		{
-			"instruction": "DESAFÍO JEFE: f(x) = √x  y  g(x) = x² − 4.\n" +
-				"Calcula (f∘g)(x) = f(g(x)) e ingresa la fórmula compuesta.\n" +
-				"Recuerda la restricción de dominio: g(x) ≥ 0.",
-			"hint": "sqrt(x^2 - 4)",
-			"expected_formula": "sqrt(x^2 - 4)",
-			"feedback_correct": "¡ESCLUSA DE AIRE DESBLOQUEADA! ¡Composición dominada! ¡Sector 4 completado!",
-			"feedback_wrong": "(f∘g)(x) = f(g(x)) = √(x²−4). Reemplaza x en f(x)=√x con g(x).",
-			"solution_hint": "f(g(x)) = √(g(x)) = √(x² − 4)",
+			"instruction": "DESAFÍO JEFE: Combina ambos sistemas con h(x) = log(exp(x) + 1).",
+			"hint": "log(exp(x) + 1)",
+			"expected_formula": "log(exp(x) + 1)",
+			"feedback_correct": "¡ESCLUSA DE AIRE DESBLOQUEADA! Logaritmos y exponenciales dominados.",
+			"feedback_wrong": "Ingresa exactamente la combinación: log(exp(x) + 1).",
+			"solution_hint": "h(x) = log(exp(x) + 1)",
 			"score": 400,
 		},
 	]
+
+
+func _ready() -> void:
+	await super._ready()
+	_position_meta_area()
 
 
 func _on_challenge_begin(challenge_index: int) -> void:
@@ -72,14 +71,11 @@ func _on_challenge_begin(challenge_index: int) -> void:
 
 	match challenge_index:
 		0:
-			# Mostrar curvas de referencia f y g
 			_show_ref_curve(_f_formula, Color(0.2, 0.6, 1.0, 0.4))
-			_show_ref_curve(_g_formula, Color(1.0, 0.6, 0.2, 0.4))
 		1:
-			_show_ref_curve("x + 1", Color(0.2, 0.6, 1.0, 0.4))
-			_show_ref_curve("x - 1", Color(1.0, 0.6, 0.2, 0.4))
+			_show_ref_curve(_g_formula, Color(1.0, 0.6, 0.2, 0.4))
 		2:
-			_show_ref_curve("x^2 - 4", Color(0.8, 0.4, 1.0, 0.4))
+			_show_ref_curve("log(exp(x) + 1)", Color(0.8, 0.4, 1.0, 0.4))
 
 
 # ---------------------------------------------------------------------------
@@ -93,18 +89,18 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 	var T: int = GestorObstaculos.TipoObstaculo.ASTEROIDE
 	match challenge_index:
 		0:
-			# Desafío 1: y = x² + 3x − 1
+			# Desafío 1: y = exp(x)
 			_obstacle_manager.add_obstacle(Vector2( 0.0,  2.0), 0.9, "Escombro Orbital Alfa", T)
 			_obstacle_manager.add_obstacle(Vector2( 0.0, -4.0), 0.9, "Escombro Orbital Beta", T)
 			_obstacle_manager.add_obstacle(Vector2( 2.0,  3.0), 0.9, "Escombro Orbital Gamma", T)
 			_obstacle_manager.add_obstacle(Vector2(-3.0,  4.0), 0.9, "Escombro Orbital Delta", T)
 		1:
-			# Desafío 2: y = (x+1)/(x−1)
+			# Desafío 2: y = log(x)
 			_obstacle_manager.add_obstacle(Vector2( 3.5, -2.0), 0.9, "Residuo de Acoplamiento Alfa", T)
 			_obstacle_manager.add_obstacle(Vector2(-2.0,  5.0), 0.9, "Residuo de Acoplamiento Beta", T)
 			_obstacle_manager.add_obstacle(Vector2( 4.0,  0.0), 0.9, "Residuo de Acoplamiento Gamma", T)
 		2:
-			# Jefe: y = sqrt(x²−4)
+			# Jefe: y = log(exp(x)+1)
 			_obstacle_manager.add_obstacle(Vector2( 3.5,  5.0), 0.9, "Escudo de Acoplamiento Alfa", T)
 			_obstacle_manager.add_obstacle(Vector2(-3.5,  5.0), 0.9, "Escudo de Acoplamiento Beta", T)
 			_obstacle_manager.add_obstacle(Vector2( 5.0,  0.5), 0.9, "Escudo de Acoplamiento Gamma", T)
@@ -114,16 +110,13 @@ func _on_formula_submitted_sector(formula: String) -> void:
 	if hud_node and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			0:
-				var expected: String = MathEngine.operation_sum(_f_formula, _g_formula)
-				hud_node.show_feedback(
-					"Suma (MathEngine): %s" % expected, "info"
-				)
+				hud_node.show_feedback("Referencia: exp(x) modela crecimiento acelerado.", "info")
 			1:
 				hud_node.show_feedback(
-					"El dominio del cociente excluye x = 1 (división por cero)", "warning"
+					"Recuerda: log(x) solo está definido para x > 0.", "warning"
 				)
 			2:
-				var composed: String = MathEngine.compose("sqrt(x)", "x^2 - 4")
+				var composed: String = MathEngine.compose("log(x)", "exp(x) + 1")
 				hud_node.show_feedback(
 					"Composición f∘g: %s" % composed, "info"
 				)
@@ -150,3 +143,9 @@ func _clear_markers() -> void:
 		if is_instance_valid(m):
 			m.queue_free()
 	_markers.clear()
+
+
+func _position_meta_area() -> void:
+	var meta_area: Area2D = get_node_or_null("MetaArea")
+	if meta_area:
+		meta_area.position = Vector2(1060, 210)

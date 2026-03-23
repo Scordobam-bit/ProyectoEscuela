@@ -33,9 +33,9 @@ signal challenge_started(challenge_index: int)
 # Referencias de Nodos (las subclases deben tenerlas en sus escenas)
 # ---------------------------------------------------------------------------
 
-@onready var _plotter: FunctionPlotter = $FunctionPlotter
-@onready var _ship: ShipController = $Ship
-@onready var _meta_area: Area2D = get_node_or_null("MetaArea")
+@onready var _plotter: FunctionPlotter = get_node_or_null("%FunctionPlotter") if has_node("%FunctionPlotter") else get_node_or_null("FunctionPlotter")
+@onready var _ship: ShipController = get_node_or_null("%Ship") if has_node("%Ship") else get_node_or_null("Ship")
+@onready var _meta_area: Area2D = get_node_or_null("%MetaArea") if has_node("%MetaArea") else get_node_or_null("MetaArea")
 @export var hud_node: HUD
 @export var theory_panel_node: TheoryPanel
 
@@ -46,6 +46,7 @@ signal challenge_started(challenge_index: int)
 var _current_challenge: int = 0
 var _challenges: Array = []   # Arreglo de Diccionarios, rellenado por las subclases
 var _goal_triggered: bool = false
+var _sector_ready_for_portal: bool = false
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
@@ -193,6 +194,7 @@ func _start_challenge(index: int) -> void:
 		return
 	_current_challenge = index
 	_goal_triggered = false
+	_sector_ready_for_portal = false
 	challenge_started.emit(index)
 
 	# Limpiar obstáculos previos y generar los del nuevo desafío
@@ -250,7 +252,13 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 func _advance_challenge() -> void:
 	var next: int = _current_challenge + 1
 	if next >= _challenges.size():
-		_on_sector_complete()
+		_sector_ready_for_portal = true
+		if _meta_area == null:
+			challenge_completed.emit()
+			_on_sector_complete()
+			return
+		if hud_node:
+			hud_node.show_feedback("¡Desafíos completados! Navega al portal para cerrar el sector.", "success")
 	else:
 		_start_challenge(next)
 
@@ -259,12 +267,7 @@ func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	level_completed.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
-
-	# Registrar sector completado en SaveSystem (desbloquea el siguiente automáticamente)
-	SaveSystem.mark_sector_complete(sector_index)
-
-	# Guardar progreso automáticamente al completar cada sector
-	GameManager.save_progress()
+	GameManager.register_sector_victory(sector_index)
 
 	# Calcular puntuación ganada en este sector
 	var score_earned: int = 0
@@ -355,12 +358,17 @@ func _connect_goal_area() -> void:
 func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
+	if not _sector_ready_for_portal:
+		if hud_node:
+			hud_node.show_feedback("Completa todos los desafíos antes de entrar al portal.", "warning")
+		return
 	_goal_triggered = true
 	challenge_completed.emit()
-	GameManager.unlock_next_level()
+	_on_sector_complete()
 
 
 func _on_formula_submitted_hud(formula: String) -> void:
+	print("[SECTOR] Botón Ejecutar recibido en sector %d. Fórmula: %s" % [sector_index, formula])
 	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
 	if not MathEngine.is_valid_formula(formula):
 		if hud_node:

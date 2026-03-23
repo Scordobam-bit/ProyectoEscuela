@@ -105,7 +105,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
-const SAVE_PATH: String = "user://planet_waves_save.cfg"
+const SAVE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -265,6 +265,9 @@ func save_progress() -> void:
 
 	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
+	var load_err: Error = config.load(SAVE_PATH)
+	if load_err != OK and load_err != ERR_FILE_NOT_FOUND:
+		push_warning("GameManager: no se pudo leer '%s' antes de guardar (error %d). Se reescribirá." % [SAVE_PATH, load_err])
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntuacion_total", total_score)
 	config.set_value("jugador", "pistas_usadas", hints_used)
@@ -277,6 +280,12 @@ func save_progress() -> void:
 	var err: Error = config.save(SAVE_PATH)
 	if err != OK:
 		push_warning("GameManager: no se pudo guardar el progreso en '%s' (error %d)" % [SAVE_PATH, err])
+
+
+## Registra una victoria de sector y persiste progreso/desbloqueo de forma centralizada.
+func register_sector_victory(sector_index: int) -> void:
+	SaveSystem.mark_sector_complete(sector_index)
+	save_progress()
 
 
 ## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
