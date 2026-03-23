@@ -56,10 +56,15 @@ var _last_delta: float = 0.016   # Delta en caché para uso en callbacks fuera d
 var _path_node: Path2D = null
 var _path_follow: PathFollow2D = null
 var _collision_body: CharacterBody2D = null
+var _owns_runtime_path: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
+
+func _enter_tree() -> void:
+	_bind_to_parent_path_hierarchy()
+
 
 func _ready() -> void:
 	add_to_group("player_ship")
@@ -167,7 +172,7 @@ func _load_points() -> void:
 
 func _update_ship_position() -> void:
 	var world_pos: Vector2 = get_position_at(_progress)
-	if _path_follow != null:
+	if _can_use_path_follow():
 		_path_follow.progress_ratio = _progress
 		world_pos = _path_follow.global_position
 	elif plotter:
@@ -204,18 +209,30 @@ func _on_plot_completed(points: PackedVector2Array) -> void:
 
 
 func set_path(path: Path2D) -> void:
-	if _path_node and is_instance_valid(_path_node):
+	if path == null:
+		return
+	if _has_parent_path_hierarchy():
+		if _path_node.curve == null:
+			_path_node.curve = Curve2D.new()
+		var source_curve: Curve2D = path.curve if path else null
+		_path_node.curve.clear_points()
+		if source_curve:
+			for point_idx in range(source_curve.point_count):
+				_path_node.curve.add_point(source_curve.get_point_position(point_idx))
+		_path_follow.progress_ratio = _progress
+		return
+	if _path_node and is_instance_valid(_path_node) and _owns_runtime_path:
 		_path_node.queue_free()
+	_owns_runtime_path = false
 	_path_node = path
 	_path_follow = null
-	if _path_node == null:
-		return
 	_path_node.name = "TrajectoryPath"
 	var host: Node = plotter.get_parent() if plotter and plotter.get_parent() else get_parent()
 	if host:
 		host.add_child(_path_node)
 	else:
 		add_child(_path_node)
+	_owns_runtime_path = true
 	if plotter:
 		_path_node.global_position = plotter.global_position
 	_path_follow = PathFollow2D.new()
@@ -234,6 +251,10 @@ func follow_path(path: Path2D, restart: bool = true) -> void:
 
 func _rebuild_path_from_plotter() -> void:
 	if not plotter:
+		return
+	if _points.size() < 2:
+		if _path_node and is_instance_valid(_path_node) and _path_node.curve:
+			_path_node.curve.clear_points()
 		return
 	var path: Path2D = plotter.build_path2d()
 	set_path(path)
@@ -254,3 +275,33 @@ func _ensure_collision_body() -> void:
 	shape_node.shape = circle
 	_collision_body.add_child(shape_node)
 	add_child(_collision_body)
+
+
+func _bind_to_parent_path_hierarchy() -> void:
+	var parent_follow: PathFollow2D = get_parent() as PathFollow2D
+	if parent_follow == null:
+		return
+	var parent_path: Path2D = parent_follow.get_parent() as Path2D
+	if parent_path == null:
+		return
+	_path_follow = parent_follow
+	_path_node = parent_path
+	_owns_runtime_path = false
+
+
+func _has_parent_path_hierarchy() -> bool:
+	return _path_follow != null \
+		and is_instance_valid(_path_follow) \
+		and _path_node != null \
+		and is_instance_valid(_path_node) \
+		and _path_follow.get_parent() == _path_node
+
+
+func _can_use_path_follow() -> bool:
+	if not _has_parent_path_hierarchy():
+		return false
+	if _path_node.curve == null:
+		return false
+	if _path_node.curve.point_count < 2:
+		return false
+	return _path_node.curve.get_baked_length() > 0.0

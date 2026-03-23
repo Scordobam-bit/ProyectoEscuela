@@ -105,7 +105,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
-const SAVE_PATH: String = "user://planet_waves_save.cfg"
+const SAVE_PATH: String = "user://save.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -265,6 +265,7 @@ func save_progress() -> void:
 
 	# Guardar datos complementarios de GameManager (desafíos individuales)
 	var config: ConfigFile = ConfigFile.new()
+	config.load(SAVE_PATH)
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntuacion_total", total_score)
 	config.set_value("jugador", "pistas_usadas", hints_used)

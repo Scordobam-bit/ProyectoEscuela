@@ -33,9 +33,9 @@ signal challenge_started(challenge_index: int)
 # Referencias de Nodos (las subclases deben tenerlas en sus escenas)
 # ---------------------------------------------------------------------------
 
-@onready var _plotter: FunctionPlotter = $FunctionPlotter
-@onready var _ship: ShipController = $Ship
-@onready var _meta_area: Area2D = get_node_or_null("MetaArea")
+@onready var _plotter: FunctionPlotter = get_node_or_null("%FunctionPlotter") if has_node("%FunctionPlotter") else get_node_or_null("FunctionPlotter")
+@onready var _ship: ShipController = get_node_or_null("%Ship") if has_node("%Ship") else get_node_or_null("Ship")
+@onready var _meta_area: Area2D = get_node_or_null("%MetaArea") if has_node("%MetaArea") else get_node_or_null("MetaArea")
 @export var hud_node: HUD
 @export var theory_panel_node: TheoryPanel
 
@@ -250,7 +250,8 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 func _advance_challenge() -> void:
 	var next: int = _current_challenge + 1
 	if next >= _challenges.size():
-		_on_sector_complete()
+		if hud_node:
+			hud_node.show_feedback("¡Desafíos completados! Navega al portal para cerrar el sector.", "success")
 	else:
 		_start_challenge(next)
 
@@ -355,9 +356,13 @@ func _connect_goal_area() -> void:
 func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
+	if _current_challenge < _challenges.size() - 1:
+		if hud_node:
+			hud_node.show_feedback("Completa todos los desafíos antes de entrar al portal.", "warning")
+		return
 	_goal_triggered = true
 	challenge_completed.emit()
-	GameManager.unlock_next_level()
+	_on_sector_complete()
 
 
 func _on_formula_submitted_hud(formula: String) -> void:

@@ -42,7 +42,6 @@ const _CHAR_CODE_DOT: int = 46
 # Estado privado
 # ---------------------------------------------------------------------------
 
-var _expr: Expression = Expression.new()
 var _power_rightmost_caret_regex: RegEx = null
 
 # ---------------------------------------------------------------------------
@@ -53,17 +52,18 @@ var _power_rightmost_caret_regex: RegEx = null
 ## Devuelve {"ok": bool, "value": Variant, "error": String}
 func evaluate(formula: String, x_val: float = 0.0) -> Dictionary:
 	var normalized: String = _normalize_formula(formula)
-	var err: Error = _expr.parse(normalized, ["x"])
+	var expr: Expression = Expression.new()
+	var err: Error = expr.parse(normalized, ["x"])
 	if err != OK:
-		var parse_error: String = "Expression.parse error: %s" % _expr.get_error_text()
+		var parse_error: String = "Expression.parse error: %s" % expr.get_error_text()
 		push_warning(parse_error)
 		return {
 			"ok": false,
 			"value": NAN,
 			"error": parse_error,
 		}
-	var result: Variant = _expr.execute([x_val])
-	if _expr.has_execute_failed():
+	var result: Variant = expr.execute([x_val])
+	if expr.has_execute_failed():
 		push_warning("Expression.execute failed")
 		return {
 			"ok": false,
@@ -98,7 +98,8 @@ func evaluate_value(formula: String, x_val: float = 0.0) -> float:
 
 ## Devuelve true si la fórmula se analiza sin errores.
 func is_valid_formula(formula: String) -> bool:
-	return _expr.parse(_normalize_formula(formula), ["x"]) == OK
+	var expr: Expression = Expression.new()
+	return expr.parse(_normalize_formula(formula), ["x"]) == OK
 
 
 ## Devuelve la fórmula normalizada que realmente consume Expression.
@@ -113,12 +114,13 @@ func normalize_formula(formula: String) -> String:
 func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloat64Array:
 	var results: PackedFloat64Array = PackedFloat64Array()
 	var normalized: String = _normalize_formula(formula)
-	var err: Error = _expr.parse(normalized, ["x"])
+	var expr: Expression = Expression.new()
+	var err: Error = expr.parse(normalized, ["x"])
 	if err != OK:
 		return results
 	for x in x_values:
-		var res: Variant = _expr.execute([x])
-		if _expr.has_execute_failed():
+		var res: Variant = expr.execute([x])
+		if expr.has_execute_failed():
 			results.append(NAN)
 		else:
 			var y: float = float(res)

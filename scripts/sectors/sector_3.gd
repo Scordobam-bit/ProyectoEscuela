@@ -66,6 +66,11 @@ func _setup_challenges() -> void:
 	]
 
 
+func _ready() -> void:
+	await super._ready()
+	_position_meta_area()
+
+
 func _on_challenge_begin(challenge_index: int) -> void:
 	_clear_markers()
 	if _plotter:
@@ -142,3 +147,9 @@ func _clear_markers() -> void:
 			m.queue_free()
 	_markers.clear()
 	_reference_plotter = null
+
+
+func _position_meta_area() -> void:
+	var meta_area: Area2D = get_node_or_null("MetaArea")
+	if meta_area:
+		meta_area.position = Vector2(1080, 190)
