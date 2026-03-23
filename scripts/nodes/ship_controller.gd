@@ -167,11 +167,11 @@ func _load_points() -> void:
 
 func _update_ship_position() -> void:
 	var world_pos: Vector2 = get_position_at(_progress)
-	if plotter:
-		world_pos += plotter.global_position
 	if _path_follow != null:
 		_path_follow.progress_ratio = _progress
 		world_pos = _path_follow.global_position
+	elif plotter:
+		world_pos += plotter.global_position
 	# Desplazar por la posición global del graficador si es un nodo hermano
 	var target_node: Node2D = ship_sprite if ship_sprite else self
 	target_node.global_position = world_pos

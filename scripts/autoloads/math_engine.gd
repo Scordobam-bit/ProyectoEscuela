@@ -27,6 +27,7 @@ signal formula_evaluated(formula: String, x: float, result: float)
 
 const EULER_E: float = 2.718281828459045
 const PI_VALUE: float = 3.141592653589793
+const TAU_VALUE: float = 6.283185307179586
 const GOLDEN_RATIO: float = 1.6180339887498948
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
@@ -167,7 +168,7 @@ func _rewrite_math_constants(formula: String) -> String:
 			output.append(str(PI_VALUE))
 			continue
 		if token == "TAU":
-			output.append(str(TAU))
+			output.append(str(TAU_VALUE))
 			continue
 		if token == "E" and not _is_scientific_exponent_marker(formula, start, i):
 			output.append(str(EULER_E))
@@ -257,10 +258,11 @@ func _rewrite_power_operator(formula: String) -> String:
 
 
 func _ensure_non_empty_formula(value: String) -> String:
-	if value.strip_edges().is_empty():
+	var trimmed: String = value.strip_edges()
+	if trimmed.is_empty():
 		push_warning("MathEngine: normalización produjo fórmula vacía; se usa expresión segura '0'.")
 		return "0"
-	return value
+	return trimmed
 
 
 func _extract_power_left(formula: String, start_idx: int) -> Dictionary:
