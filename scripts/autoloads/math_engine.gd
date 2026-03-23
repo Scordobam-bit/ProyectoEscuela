@@ -323,7 +323,6 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 			return {}
 		return {
 			"end": close_idx,
-			"expr": math_sign + formula.substr(i, close_idx - i + 1),
 			"expr": unary_sign + formula.substr(i, close_idx - i + 1),
 		}
 	var end_idx: int = i
@@ -342,7 +341,6 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 		end_idx = fn_close_idx
 	return {
 		"end": end_idx,
-		"expr": math_sign + formula.substr(i, end_idx - i + 1),
 		"expr": unary_sign + formula.substr(i, end_idx - i + 1),
 	}
 
