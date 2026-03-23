@@ -55,6 +55,8 @@ const _HUD_HINT_BUTTON_PATH: String = "HUDPanel/Margin/VBox/MissionPanel/Mission
 
 func _ready() -> void:
 	await get_tree().process_frame
+	if hud_node and hud_node.layer < 20:
+		hud_node.layer = 20
 	_connect_hud_buttons_in_code()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
