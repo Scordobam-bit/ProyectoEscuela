@@ -13,8 +13,10 @@ const PORTAL_ANIMATION_SCALE: Vector2 = Vector2(1.18, 1.18)
 const HINT_TITLE: String = "Pista"
 const CONSTANT_FUNCTION_TOKEN: String = "f(x)=k"
 const CONSTANT_FUNCTION_REMINDER: String = "Recuerda: f(x)=k."
+const CONSTANT_FUNCTION_REGEX_PATTERN: String = "(?i)f\\s*\\(\\s*x\\s*\\)\\s*=\\s*k(?![A-Za-z0-9_])"
 
 var _tutorial_manager: TutorialManager = null
+var _constant_function_pattern: RegEx = null
 @onready var _hud_unique: HUD = get_node_or_null("%HUD")
 @onready var _trajectory_path: Path2D = get_node_or_null("%TrajectoryPath")
 @onready var _trajectory_line: Line2D = get_node_or_null("%TrajectoryLine")
@@ -99,7 +101,6 @@ func _on_formula_submitted_sector(_formula: String) -> void:
 
 func _on_hud_request_plot(formula: String) -> void:
 	print("[SECTOR] Señal recibida correctamente. Iniciando graficación...")
-	print("[SECTOR DIAGNOSTIC] Señal recibida. Procesando fórmula...")
 	var normalized_formula: String = formula.strip_edges()
 	if normalized_formula.is_empty():
 		if hud_node:
@@ -233,9 +234,8 @@ func _show_constant_function_help(title: String, message: String, feedback_type:
 
 func _ensure_constant_function_text(message: String) -> String:
 	var trimmed: String = message.strip_edges()
-	var constant_function_pattern: RegEx = RegEx.new()
-	constant_function_pattern.compile("(?i)f\\s*\\(\\s*x\\s*\\)\\s*=\\s*k(?![A-Za-z0-9_])")
-	if constant_function_pattern.search(trimmed) != null:
+	var pattern: RegEx = _get_constant_function_pattern()
+	if pattern.search(trimmed) != null:
 		return trimmed
 	if trimmed.is_empty():
 		return CONSTANT_FUNCTION_TOKEN
@@ -256,6 +256,13 @@ func _validate_ship_start_alignment(formula: String) -> void:
 	var start_y: float = float(start_eval.get("value", NAN))
 	if not is_equal_approx(start_y, SHIP_START_MATH.y):
 		print("[SECTOR DIAGNOSTIC] Advertencia: f(0) = ", start_y, " y la nave debe iniciar en y = ", SHIP_START_MATH.y)
+
+
+func _get_constant_function_pattern() -> RegEx:
+	if _constant_function_pattern == null:
+		_constant_function_pattern = RegEx.new()
+		_constant_function_pattern.compile(CONSTANT_FUNCTION_REGEX_PATTERN)
+	return _constant_function_pattern
 
 
 func _setup_tutorial_manager() -> void:

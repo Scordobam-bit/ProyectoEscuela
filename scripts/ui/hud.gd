@@ -559,9 +559,7 @@ func _on_plot_pressed() -> void:
 	if formula.is_empty():
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
-	var line_edit: LineEdit = _formula_input
-	print("[HUD] Botón Ejecutar presionado. Fórmula: ", line_edit.text)
-	print("[HUD DIAGNOSTIC] Botón presionado. Enviando: ", formula)
+	print("[HUD] Botón Ejecutar presionado. Fórmula: ", _formula_input.text)
 	request_plot.emit(formula)
 	formula_submitted.emit(formula)
 
