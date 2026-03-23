@@ -63,7 +63,36 @@ const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
 const _ALLOWED_SYMBOLS: String = "+-*/^().,"
-const _ALLOWED_LETTERS: String = "xsincotalgXSINCOTALG"
+const _ALLOWED_LETTERS: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const _ALLOWED_WORDS_LOWER: PackedStringArray = [
+	"x", "sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "sqrt", "exp", "abs", "pow", "e", "pi",
+]
+const _SECTOR_MISSIONS: Dictionary = {
+	0: {
+		"title": "Objetivo - Academia",
+		"description": "Una función es una máquina: entra x y sale un único valor y. Para abrir el primer portal, prueba una función constante como 5.",
+	},
+	1: {
+		"title": "Objetivo - Sector 1",
+		"description": "Traza funciones lineales precisas para navegar el cinturón de asteroides.",
+	},
+	2: {
+		"title": "Objetivo - Sector 2",
+		"description": "Controla parábolas y raíces para escapar de pozos gravitatorios.",
+	},
+	3: {
+		"title": "Objetivo - Sector 3",
+		"description": "Aplica transformaciones a funciones para sintonizar pulsos.",
+	},
+	4: {
+		"title": "Objetivo - Sector 4",
+		"description": "Combina y compón funciones para completar maniobras de acoplamiento.",
+	},
+	5: {
+		"title": "Objetivo - Sector 5",
+		"description": "Resuelve inversas, logaritmos y trigonometría para cruzar el horizonte.",
+	},
+}
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
 const _CHAR_CODE_SPACE: int = 32
@@ -105,6 +134,7 @@ func _ready() -> void:
 	GameManager.challenge_completed.connect(_on_challenge_completed)
 
 	_update_sector_display(GameManager.current_sector)
+	update_mission_display(GameManager.current_sector)
 	_update_score_display()
 	_build_detail_label()
 	_build_syntax_ui()
@@ -199,7 +229,8 @@ func _build_syntax_ui() -> void:
 		"[b]Potencias:[/b]       [color=#ffcc00]x^2[/color]  o  [color=#ffcc00]pow(x, 2)[/color]\n"
 		+ "[b]Raíces:[/b]         [color=#ffcc00]sqrt(x)[/color]\n"
 		+ "[b]Trigonometría:[/b]  [color=#ffcc00]sin(x)[/color],  [color=#ffcc00]cos(x)[/color],  [color=#ffcc00]tan(x)[/color]\n"
-		+ "[b]Logaritmo:[/b]      [color=#ffcc00]log(x)[/color]  ←  ln(x)\n"
+		+ "[b]Trig. inversa:[/b]  [color=#ffcc00]asin(x)[/color], [color=#ffcc00]acos(x)[/color], [color=#ffcc00]atan(x)[/color]\n"
+		+ "[b]Logaritmo:[/b]      [color=#ffcc00]log(x)[/color] (ln) o [color=#ffcc00]log(base, x)[/color]\n"
 		+ "[b]Exponencial:[/b]    [color=#ffcc00]exp(x)[/color]  ←  eˣ\n"
 		+ "[b]Constantes:[/b]     [color=#ffcc00]PI[/color],  [color=#ffcc00]E[/color]\n"
 		+ "[b]Multiplicar:[/b]    [color=#ffcc00]2*x[/color]  — [color=#ff6644]¡nunca escribas 2x sin el *![/color]\n"
@@ -315,6 +346,17 @@ func _set_keyboard_visible(new_visible: bool) -> void:
 func set_mission_text(title: String, description: String) -> void:
 	_mission_title_label.text = title
 	_mission_description_label.text = description
+
+
+func update_mission_display(sector_index: int = GameManager.current_sector) -> void:
+	if _SECTOR_MISSIONS.has(sector_index):
+		var mission: Dictionary = _SECTOR_MISSIONS[sector_index]
+		set_mission_text(
+			mission.get("title", "Objetivo de misión"),
+			mission.get("description", "Sigue las instrucciones de la misión actual.")
+		)
+		return
+	set_mission_text("Objetivo de misión", "Sigue las instrucciones de la misión actual.")
 
 
 ## Establece el texto de fórmula en el cuadro de entrada (p. ej., para mostrar una pista).
@@ -545,6 +587,9 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 		_on_plot_pressed()
 		get_viewport().set_input_as_handled()
 		return
+	if key_event.keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
+		get_viewport().set_input_as_handled()
+		return
 	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
 		get_viewport().set_input_as_handled()
 		return
@@ -588,12 +633,41 @@ func _on_domain_changed(_value: float) -> void:
 
 
 func _sanitize_formula_text(raw_text: String) -> String:
-	var out: PackedStringArray = []
+	var char_filtered: PackedStringArray = []
 	for i in range(raw_text.length()):
 		var code: int = raw_text.unicode_at(i)
 		if _is_allowed_math_code(code):
-			out.append(char(code))
-	return "".join(out)
+			char_filtered.append(char(code))
+	return _sanitize_math_words("".join(char_filtered))
+
+
+func _sanitize_math_words(text: String) -> String:
+	var output: PackedStringArray = []
+	var current_word: PackedStringArray = []
+	for i in range(text.length()):
+		var ch: String = text.substr(i, 1)
+		if _ALLOWED_LETTERS.contains(ch):
+			current_word.append(ch)
+			continue
+		_append_sanitized_word(output, "".join(current_word), true)
+		current_word.clear()
+		output.append(ch)
+	_append_sanitized_word(output, "".join(current_word), true)
+	return "".join(output)
+
+
+func _append_sanitized_word(output: PackedStringArray, word: String, allow_prefix: bool) -> void:
+	if word.is_empty():
+		return
+	var lower_word: String = word.to_lower()
+	if lower_word in _ALLOWED_WORDS_LOWER:
+		output.append(word)
+		return
+	if allow_prefix:
+		for allowed_word in _ALLOWED_WORDS_LOWER:
+			if allowed_word.begins_with(lower_word):
+				output.append(word)
+				return
 
 
 func _is_allowed_math_char(ch: String) -> bool:
@@ -622,6 +696,7 @@ func _on_answer_validated(correct: bool, feedback: String) -> void:
 
 func _on_sector_changed(sector_index: int) -> void:
 	_update_sector_display(sector_index)
+	update_mission_display(sector_index)
 
 
 func _on_challenge_completed(_sector: int, _challenge: int) -> void:
