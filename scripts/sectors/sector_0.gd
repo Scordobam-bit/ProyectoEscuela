@@ -207,8 +207,7 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 	if _current_challenge >= 0 and _current_challenge < _challenges.size():
 		score = int(_challenges[_current_challenge].get("score", score))
 	GameManager.complete_challenge(sector_index, _current_challenge, score)
-	SaveSystem.mark_sector_complete(sector_index)
-	GameManager.save_progress()
+	GameManager.register_sector_victory(sector_index)
 	await get_tree().create_timer(0.6).timeout
 	GameManager.unlock_next_level()
 

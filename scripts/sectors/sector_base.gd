@@ -267,12 +267,7 @@ func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	level_completed.emit(sector_index)
 	GameManager.complete_challenge(sector_index, _current_challenge)
-
-	# Registrar sector completado en SaveSystem (desbloquea el siguiente automáticamente)
-	SaveSystem.mark_sector_complete(sector_index)
-
-	# Guardar progreso automáticamente al completar cada sector
-	GameManager.save_progress()
+	GameManager.register_sector_victory(sector_index)
 
 	# Calcular puntuación ganada en este sector
 	var score_earned: int = 0

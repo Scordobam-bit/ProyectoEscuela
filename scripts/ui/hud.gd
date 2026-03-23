@@ -268,6 +268,7 @@ func _build_virtual_keyboard() -> void:
 	# ── Panel del teclado ────────────────────────────────────────────────
 	_keyboard_panel = preload("res://scenes/ui/math_keyboard.tscn").instantiate() as MathKeyboard
 	_keyboard_panel.name = "KeyboardPanel"
+	_keyboard_panel.unique_name_in_owner = true
 	_keyboard_panel.anchor_left   = 0.0
 	_keyboard_panel.anchor_top    = 1.0
 	_keyboard_panel.anchor_right  = 1.0

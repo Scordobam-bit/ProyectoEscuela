@@ -57,6 +57,7 @@ var _path_node: Path2D = null
 var _path_follow: PathFollow2D = null
 var _collision_body: CharacterBody2D = null
 var _owns_runtime_path: bool = false
+var _path_connection_error_logged: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -211,6 +212,9 @@ func _on_plot_completed(points: PackedVector2Array) -> void:
 func set_path(path: Path2D) -> void:
 	if path == null:
 		return
+	if not is_inside_tree():
+		_report_path_connection_issue("set_path() se llamó fuera del SceneTree; se omitió asignación de trayectoria.")
+		return
 	if _has_parent_path_hierarchy():
 		if _path_node.curve == null:
 			_path_node.curve = Curve2D.new()
@@ -286,15 +290,21 @@ func _ensure_collision_body() -> void:
 func _ensure_path_connection() -> void:
 	if _has_parent_path_hierarchy():
 		return
-	var parent_follow: PathFollow2D = get_parent() as PathFollow2D
-	if parent_follow == null:
+	if not is_inside_tree():
 		return
-	var parent_path: Path2D = parent_follow.get_parent() as Path2D
-	if parent_path == null:
-		return
-	_path_follow = parent_follow
-	_path_node = parent_path
-	_owns_runtime_path = false
+	var current: Node = self
+	while current:
+		var candidate_follow: PathFollow2D = current as PathFollow2D
+		if candidate_follow:
+			var candidate_path: Path2D = candidate_follow.get_parent() as Path2D
+			if candidate_path:
+				_path_follow = candidate_follow
+				_path_node = candidate_path
+				_owns_runtime_path = false
+				_path_connection_error_logged = false
+				return
+		current = current.get_parent()
+	_report_path_connection_issue("No se encontró jerarquía Path2D -> PathFollow2D para ShipController.")
 
 
 func _has_parent_path_hierarchy() -> bool:
@@ -309,8 +319,17 @@ func _can_use_path_follow() -> bool:
 	_ensure_path_connection()
 	if not _has_parent_path_hierarchy():
 		return false
+	if not _path_follow.is_inside_tree() or not _path_node.is_inside_tree():
+		return false
 	if _path_node.curve == null:
 		return false
 	if _path_node.curve.point_count < 2:
 		return false
 	return _path_node.curve.get_baked_length() > 0.0
+
+
+func _report_path_connection_issue(message: String) -> void:
+	if _path_connection_error_logged:
+		return
+	_path_connection_error_logged = true
+	push_warning("ShipController: " + message)

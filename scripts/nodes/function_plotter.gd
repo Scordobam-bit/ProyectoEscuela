@@ -258,6 +258,9 @@ func _rebuild_axes() -> void:
 func plot() -> void:
 	if not is_inside_tree():
 		return
+	if not MathEngine:
+		plot_failed.emit("MathEngine no está inicializado todavía.")
+		return
 	if not _function_line:
 		_build_visuals()
 
@@ -394,6 +397,8 @@ func build_path2d() -> Path2D:
 ## Llamar con la fórmula correcta (verde) cuando el jugador cometió un error.
 func show_reference_line(ref_formula: String, ref_color: Color = Color(0.0, 1.0, 0.3, 0.7)) -> void:
 	if not is_inside_tree():
+		return
+	if not MathEngine:
 		return
 
 	# Eliminar referencia previa si existe

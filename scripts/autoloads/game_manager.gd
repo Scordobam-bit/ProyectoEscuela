@@ -282,6 +282,12 @@ func save_progress() -> void:
 		push_warning("GameManager: no se pudo guardar el progreso en '%s' (error %d)" % [SAVE_PATH, err])
 
 
+## Registra una victoria de sector y persiste progreso/desbloqueo de forma centralizada.
+func register_sector_victory(sector_index: int) -> void:
+	SaveSystem.mark_sector_complete(sector_index)
+	save_progress()
+
+
 ## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
 func load_progress() -> void:
 	var config: ConfigFile = ConfigFile.new()
