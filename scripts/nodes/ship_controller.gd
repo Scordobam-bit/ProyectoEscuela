@@ -226,6 +226,12 @@ func set_path(path: Path2D) -> void:
 	_path_node.add_child(_path_follow)
 
 
+func follow_path(path: Path2D, restart: bool = true) -> void:
+	set_path(path)
+	if restart:
+		reset(true)
+
+
 func _rebuild_path_from_plotter() -> void:
 	if not plotter:
 		return
