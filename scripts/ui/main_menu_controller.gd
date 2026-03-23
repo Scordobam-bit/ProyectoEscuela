@@ -38,8 +38,6 @@ const SAVE_FILE_PATH: String = "user://save_data.cfg"
 
 func _ready() -> void:
 	load_game()
-	if GameManager.scene_transition_failed.is_connected(_on_scene_transition_failed):
-		GameManager.scene_transition_failed.disconnect(_on_scene_transition_failed)
 	GameManager.scene_transition_failed.connect(_on_scene_transition_failed)
 	_connect_buttons()
 	_refresh_sector_states()

@@ -138,7 +138,7 @@ func go_to_sector(sector_index: int) -> void:
 	if data.is_empty():
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
-	var scene_path: String = str(data.get("scene", ""))
+	var scene_path: String = data.get("scene", "")
 	if not _is_scene_path_loadable(scene_path):
 		_handle_scene_load_failure(
 			"No se pudo cargar el sector solicitado. Regresando al menú principal.",
