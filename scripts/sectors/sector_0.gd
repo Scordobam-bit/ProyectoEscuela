@@ -12,8 +12,9 @@ const PORTAL_ANIMATION_TIME: float = 0.2
 const PORTAL_ANIMATION_SCALE: Vector2 = Vector2(1.18, 1.18)
 
 var _tutorial_manager: TutorialManager = null
-@onready var _trajectory_path: Path2D = get_node_or_null("TrajectoryPath")
-@onready var _trajectory_line: Line2D = get_node_or_null("TrajectoryPath/TrajectoryLine")
+@onready var _hud_unique: HUD = get_node_or_null("%HUD")
+@onready var _trajectory_path: Path2D = get_node_or_null("%TrajectoryPath")
+@onready var _trajectory_line: Line2D = get_node_or_null("%TrajectoryLine")
 @onready var _path_follower: PathFollow2D = get_node_or_null("TrajectoryPath/PathFollower")
 @onready var _goal_portal: Area2D = get_node_or_null("GoalPortal")
 @onready var _portal_visual: Polygon2D = get_node_or_null("GoalPortal/PortalVisual")
@@ -27,7 +28,14 @@ var _portal_triggered: bool = false
 
 func _ready() -> void:
 	await super._ready()
-	if hud_node:
+	if _hud_unique:
+		hud_node = _hud_unique
+	if _hud_unique:
+		if _hud_unique.formula_submitted.is_connected(_on_formula_submitted_hud):
+			_hud_unique.formula_submitted.disconnect(_on_formula_submitted_hud)
+		if not _hud_unique.request_plot.is_connected(_on_hud_request_plot):
+			_hud_unique.request_plot.connect(_on_hud_request_plot)
+	elif hud_node:
 		if hud_node.formula_submitted.is_connected(_on_formula_submitted_hud):
 			hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
 		if not hud_node.request_plot.is_connected(_on_hud_request_plot):
@@ -91,6 +99,7 @@ func _on_formula_submitted_sector(_formula: String) -> void:
 
 
 func _on_hud_request_plot(formula: String) -> void:
+	print("[SECTOR DIAGNOSTIC] Señal recibida. Procesando fórmula...")
 	var normalized_formula: String = formula.strip_edges()
 	if normalized_formula.is_empty():
 		if hud_node:
@@ -105,6 +114,11 @@ func _on_hud_request_plot(formula: String) -> void:
 		_plotter.domain_min = domain[0]
 		_plotter.domain_max = domain[1]
 		_plotter.set_formula_and_plot(normalized_formula)
+	var start_eval: Dictionary = MathEngine.evaluate(normalized_formula, SHIP_START_MATH.x)
+	if bool(start_eval.get("ok", false)):
+		var start_y: float = float(start_eval.get("value", NAN))
+		if not is_equal_approx(start_y, SHIP_START_MATH.y):
+			print("[SECTOR DIAGNOSTIC] Advertencia: f(0) = ", start_y, " y la nave debe iniciar en y = ", SHIP_START_MATH.y)
 	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
 	_apply_trajectory_line(points)
@@ -199,20 +213,35 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 
 
 func _on_theory_requested() -> void:
-	var theory_text: String = SectorDataManager.get_theory_text(0)
-	if hud_node:
-		hud_node.show_feedback(theory_text, "info")
-		hud_node.set_mission_text("Teoría", theory_text)
+	var theory_text: String = _ensure_constant_function_text(SectorDataManager.get_theory_text(0))
+	_show_constant_function_help("Teoría", theory_text, "info")
 	if theory_panel_node:
 		theory_panel_node.show_mission_briefing("s0_tutorial")
 
 
 func _on_hint_requested() -> void:
-	var hint_text: String = SectorDataManager.get_hint_text(0)
-	if hud_node:
-		hud_node.show_feedback("Pista: " + hint_text, "warning")
-		hud_node.set_mission_text("Pista", hint_text)
+	var hint_text: String = _ensure_constant_function_text(SectorDataManager.get_hint_text(0))
+	_show_constant_function_help("Pista", hint_text, "warning")
 	GameManager.hints_used += 1
+
+
+func _show_constant_function_help(title: String, message: String, feedback_type: String) -> void:
+	if not hud_node:
+		return
+	var feedback_message: String = message
+	if title == "Pista":
+		feedback_message = "Pista: " + message
+	hud_node.show_feedback(feedback_message, feedback_type)
+	hud_node.set_mission_text(title, message)
+
+
+func _ensure_constant_function_text(message: String) -> String:
+	var trimmed: String = message.strip_edges()
+	if trimmed.findn("f(x)=k") != -1 or trimmed.findn("f(x) = k") != -1:
+		return trimmed
+	if trimmed.is_empty():
+		return "f(x)=k"
+	return trimmed + " Recuerda: f(x)=k."
 
 
 func _setup_tutorial_manager() -> void:

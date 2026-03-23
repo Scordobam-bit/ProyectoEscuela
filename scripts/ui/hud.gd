@@ -27,15 +27,15 @@ signal hint_requested
 # ---------------------------------------------------------------------------
 
 @onready var _formula_input: LineEdit = $HUDPanel/Margin/VBox/FormulaRow/FormulaInput
-@onready var _plot_button: Button = $HUDPanel/Margin/VBox/FormulaRow/PlotButton
+@onready var _plot_button: Button = %BtnEjecutar
 @onready var _domain_min_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMinSpin
 @onready var _domain_max_spin: SpinBox = $HUDPanel/Margin/VBox/DomainRow/DomainMaxSpin
 @onready var _sector_label: Label = $TopBar/SectorLabel
 @onready var _score_label: Label = $TopBar/ScoreLabel
 @onready var _back_button: Button = $BackButton
 @onready var _feedback_label: Label = $FeedbackLabel
-@onready var _theory_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton
-@onready var _hint_button: Button = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton
+@onready var _theory_button: Button = %BtnTeoria
+@onready var _hint_button: Button = %BtnPista
 @onready var _mission_title_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionTitleLabel
 @onready var _mission_description_label: Label = $HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/MissionDescriptionLabel
 @onready var _keyboard_toggle_button: Button = $HUDPanel/Margin/VBox/KeyboardToggleButton
@@ -558,6 +558,7 @@ func _on_plot_pressed() -> void:
 	if formula.is_empty():
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
+	print("[HUD DIAGNOSTIC] Botón presionado. Enviando: ", formula)
 	request_plot.emit(formula)
 	formula_submitted.emit(formula)
 
