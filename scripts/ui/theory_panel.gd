@@ -374,6 +374,20 @@ donde  e ≈ 2.71828… (número de Euler)
 ## Diccionario de briefings lúdicos. Clave: "s{sector}_c{challenge}".
 ## Cada entrada: { "title": String, "content": String (BBCode) }
 const MISSION_BRIEFINGS: Dictionary = {
+	"s0_tutorial": {
+		"title": "🛫 Sector 0 — Academia de Vuelo",
+		"content": """[b]Fase A — Controles[/b]
+Usa el teclado físico o el virtual. Escribe tu función y presiona [color=#ffcc00]GRAFICAR[/color].
+Si quieres borrar, usa [color=#ffcc00]Backspace[/color].
+
+[b]Fase B — Objetivo[/b]
+Tu meta es el [color=#00ff66]portal verde[/color]. Debes calcular la función que pase exactamente por sus coordenadas.
+Ejemplo: si el portal está en altura [color=#ffcc00]5[/color], una función constante [color=#ffcc00]5[/color] te llevará directo.
+
+[b]Fase C — Progresión[/b]
+Al completar esta academia se desbloquea el [color=#00ffcc]Sector 1[/color].
+Cada sector siguiente enseña un concepto nuevo: lineal, cuadrática y más."""
+	},
 	# ── Tutoriales obligatorios por sector ─────────────────────────────────
 	"s1_tutorial": {
 		"title": "🚀 Sector 1 — ¿Qué es una Función? (El Sistema de Navegación)",
@@ -775,9 +789,9 @@ func show_mission_briefing(briefing_key: String) -> void:
 
 ## Muestra la teoría para el índice de sector dado (carga todos los temas de ese sector).
 func show_sector_theory(sector_index: int) -> void:
-	if sector_index < 1 or sector_index > GameManager.SECTORS.size():
+	var data: Dictionary = GameManager.get_sector_data(sector_index)
+	if data.is_empty():
 		return
-	var data: Dictionary = GameManager.SECTORS[sector_index - 1]
 	_topic_keys.clear()
 	_topic_keys.assign(data["topics"])
 	_current_page = 0

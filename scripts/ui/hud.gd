@@ -59,9 +59,18 @@ signal hint_requested
 const FEEDBACK_DURATION: float = 5.0
 # Desplazamiento vertical del HUD (en píxeles) al abrir el teclado para evitar
 # que el LineEdit quede demasiado cerca del panel inferior.
-const KEYBOARD_VISIBLE_HUD_OFFSET: float = 26.0
+const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
+const _ALLOWED_SYMBOLS: String = "+-*/^().,_ ="
+const _CHAR_CODE_0: int = 48
+const _CHAR_CODE_9: int = 57
+const _CHAR_CODE_A_UPPER: int = 65
+const _CHAR_CODE_Z_UPPER: int = 90
+const _CHAR_CODE_A_LOWER: int = 97
+const _CHAR_CODE_Z_LOWER: int = 122
+const _CHAR_CODE_SPACE: int = 32
+const _CHAR_CODE_DEL: int = 127
 
 # Etiqueta secundaria para la explicación detallada del error.
 var _detail_label: Label = null
@@ -75,6 +84,7 @@ var _keyboard_panel: MathKeyboard = null
 var _base_hud_panel_y: float = 0.0
 var _hud_move_tween: Tween = null
 const BACK_BUTTON_Z_INDEX: int = 1000
+var _is_sanitizing_input: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -89,6 +99,8 @@ func _ready() -> void:
 	_domain_min_spin.value_changed.connect(_on_domain_changed)
 	_domain_max_spin.value_changed.connect(_on_domain_changed)
 	_formula_input.text_submitted.connect(_on_formula_submitted)
+	_formula_input.text_changed.connect(_on_formula_text_changed)
+	_formula_input.gui_input.connect(_on_formula_gui_input)
 	_feedback_timer.timeout.connect(_clear_feedback)
 
 	GameManager.answer_validated.connect(_on_answer_validated)
@@ -107,6 +119,14 @@ func _ready() -> void:
 	_apply_label_outline(_sector_label)
 	_apply_label_outline(_score_label)
 	_back_button.z_index = BACK_BUTTON_Z_INDEX
+	_back_button.anchor_left = 0.0
+	_back_button.anchor_top = 0.0
+	_back_button.anchor_right = 0.0
+	_back_button.anchor_bottom = 0.0
+	_back_button.offset_left = 12.0
+	_back_button.offset_top = 12.0
+	_back_button.offset_right = 140.0
+	_back_button.offset_bottom = 44.0
 
 
 func _build_detail_label() -> void:
@@ -390,7 +410,7 @@ func _toggle_syntax_panel() -> void:
 		_syntax_panel.visible = new_visible
 		# Cerrar el teclado virtual si se abre el panel de sintaxis
 		if new_visible and _keyboard_panel:
-			_keyboard_panel.visible = false
+			_set_keyboard_visible(false)
 
 
 # ---------------------------------------------------------------------------
@@ -503,11 +523,82 @@ func _on_formula_submitted(formula: String) -> void:
 	formula_submitted.emit(formula.strip_edges())
 
 
+func _on_formula_text_changed(new_text: String) -> void:
+	if _is_sanitizing_input:
+		return
+	var sanitized: String = _sanitize_formula_text(new_text)
+	if sanitized == new_text:
+		return
+	_is_sanitizing_input = true
+	var prev_caret: int = _formula_input.caret_column
+	var left_raw: String = new_text.left(prev_caret)
+	var left_sanitized: String = _sanitize_formula_text(left_raw)
+	_formula_input.text = sanitized
+	_formula_input.caret_column = clampi(left_sanitized.length(), 0, sanitized.length())
+	_is_sanitizing_input = false
+
+
+func _on_formula_gui_input(event: InputEvent) -> void:
+	if not (event is InputEventKey):
+		return
+	var key_event: InputEventKey = event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return
+	if key_event.keycode == KEY_BACKSPACE:
+		var sel_from: int = _formula_input.get_selection_from_column()
+		var sel_to: int = _formula_input.get_selection_to_column()
+		if sel_from != sel_to:
+			var current_text: String = _formula_input.text
+			var from_col: int = mini(sel_from, sel_to)
+			var to_col: int = maxi(sel_from, sel_to)
+			_formula_input.text = current_text.left(from_col) + current_text.substr(to_col)
+			_formula_input.caret_column = from_col
+			_formula_input.deselect()
+			_formula_input.accept_event()
+			return
+		var caret: int = _formula_input.caret_column
+		if caret <= 0:
+			_formula_input.accept_event()
+			return
+		var text: String = _formula_input.text
+		_formula_input.text = text.left(caret - 1) + text.substr(caret)
+		_formula_input.caret_column = caret - 1
+		_formula_input.accept_event()
+
+
 func _on_domain_changed(_value: float) -> void:
 	var min_x: float = _domain_min_spin.value
 	var max_x: float = _domain_max_spin.value
 	if min_x < max_x:
 		domain_changed.emit(min_x, max_x)
+
+
+func _sanitize_formula_text(raw_text: String) -> String:
+	var out: PackedStringArray = []
+	for i in range(raw_text.length()):
+		var code: int = raw_text.unicode_at(i)
+		if _is_allowed_math_code(code):
+			out.append(char(code))
+	return out.join("")
+
+
+func _is_allowed_math_char(ch: String) -> bool:
+	if ch.is_empty():
+		return false
+	return _is_allowed_math_code(ch.unicode_at(0))
+
+
+func _is_allowed_math_code(code: int) -> bool:
+	if code < _CHAR_CODE_SPACE or code == _CHAR_CODE_DEL:
+		return false
+	var ch: String = char(code)
+	if _ALLOWED_SYMBOLS.contains(ch):
+		return true
+	if (code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9) \
+			or (code >= _CHAR_CODE_A_UPPER and code <= _CHAR_CODE_Z_UPPER) \
+			or (code >= _CHAR_CODE_A_LOWER and code <= _CHAR_CODE_Z_LOWER):
+		return true
+	return false
 
 
 func _on_answer_validated(correct: bool, feedback: String) -> void:
@@ -524,9 +615,9 @@ func _on_challenge_completed(_sector: int, _challenge: int) -> void:
 
 
 func _update_sector_display(sector_index: int) -> void:
-	if sector_index < 1 or sector_index > GameManager.SECTORS.size():
+	var data: Dictionary = GameManager.get_sector_data(sector_index)
+	if data.is_empty():
 		return
-	var data: Dictionary = GameManager.SECTORS[sector_index - 1]
 	_sector_label.text = "Sector %d: %s" % [sector_index, data["name"]]
 	_sector_label.add_theme_color_override("font_color", data["color"])
 

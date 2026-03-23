@@ -20,6 +20,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 # ---------------------------------------------------------------------------
 
 @onready var _start_button:         Button             = $VBoxContainer/StartButton
+@onready var _sector0_button:       Button             = $VBoxContainer/Sector0Button
 @onready var _sector2_button:       Button             = $VBoxContainer/Sector2Button
 @onready var _sector3_button:       Button             = $VBoxContainer/Sector3Button
 @onready var _sector4_button:       Button             = $VBoxContainer/Sector4Button
@@ -47,6 +48,7 @@ func _ready() -> void:
 # ---------------------------------------------------------------------------
 
 func _connect_buttons() -> void:
+	_sector0_button.pressed.connect( func() -> void: GameManager.go_to_sector(0))
 	_start_button.pressed.connect(   func() -> void: GameManager.go_to_sector(1))
 	_sector2_button.pressed.connect( func() -> void: GameManager.go_to_sector(2))
 	_sector3_button.pressed.connect( func() -> void: GameManager.go_to_sector(3))
@@ -80,6 +82,7 @@ func _on_clear_confirmed() -> void:
 
 ## Actualiza el estado visual (color, texto, habilitado/deshabilitado) de cada botón de sector.
 func _refresh_sector_states() -> void:
+	_apply_sector_state(_sector0_button, 0, "ACADEMIA: APRENDE A VOLAR")
 	_apply_sector_state(_start_button,   1, "INICIAR MISIÓN (Sector 1)")
 	_apply_sector_state(_sector2_button, 2, "Sector 2: Pozos Gravitatorios")
 	_apply_sector_state(_sector3_button, 3, "Sector 3: Sintonizador de Púlsares")

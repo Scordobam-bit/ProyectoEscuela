@@ -36,7 +36,7 @@ signal sector_unlocked(sector_index: int)
 const SAVE_FILE: String = "user://save_data.cfg"
 
 ## Índice del primer sector (siempre desbloqueado).
-const FIRST_SECTOR: int = 1
+const FIRST_SECTOR: int = 0
 
 ## Número total de sectores de Planet Waves. Actualizar si se agregan sectores futuros.
 const TOTAL_SECTORS: int = 5
@@ -46,8 +46,8 @@ const TOTAL_SECTORS: int = 5
 # ---------------------------------------------------------------------------
 
 ## Conjunto de sectores desbloqueados (accesibles desde el menú principal).
-## El Sector 1 está desbloqueado por defecto.
-var unlocked_sectors: Array[int] = [1]
+## El Sector 0 está desbloqueado por defecto.
+var unlocked_sectors: Array[int] = [FIRST_SECTOR]
 
 ## Conjunto de sectores completados exitosamente.
 var completed_sectors: Array[int] = []
@@ -189,13 +189,13 @@ func load_game_data(path: String = SAVE_FILE) -> void:
 	total_score         = config.get_value("jugador",  "puntuacion_total",    0)
 	tutorial_completed  = config.get_value("jugador",  "tutorial_completado", false)
 
-	var loaded_unlocked: Array = config.get_value("sectores", "desbloqueados", [1])
+	var loaded_unlocked: Array = config.get_value("sectores", "desbloqueados", [FIRST_SECTOR])
 	unlocked_sectors.clear()
 	for idx: int in loaded_unlocked:
 		if idx not in unlocked_sectors:
 			unlocked_sectors.append(idx)
 	if FIRST_SECTOR not in unlocked_sectors:
-		unlocked_sectors.append(FIRST_SECTOR)   # Sector 1 siempre desbloqueado
+		unlocked_sectors.append(FIRST_SECTOR)   # Sector 0 siempre desbloqueado
 	unlocked_sectors.sort()
 
 	var loaded_completed: Array = config.get_value("sectores", "completados", [])

@@ -10,7 +10,7 @@ layer = 20
 [node name="HUDPanel" type="PanelContainer" parent="."]
 anchor_right = 1.0
 offset_bottom = 200.0
-mouse_filter = 1
+mouse_filter = 0
 
 [node name="Margin" type="MarginContainer" parent="HUDPanel"]
 anchor_right = 1.0
@@ -82,7 +82,7 @@ theme_override_constants/outline_size = 2
 [node name="MissionPanel" type="PanelContainer" parent="HUDPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 1
+mouse_filter = 0
 
 [node name="MissionMargin" type="MarginContainer" parent="HUDPanel/Margin/VBox/MissionPanel"]
 layout_mode = 2

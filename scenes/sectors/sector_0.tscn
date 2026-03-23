@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/nodes/function_plotter.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/nodes/ship_controller.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/sectors/sector_0.gd" id="4"]
+
+[node name="Sector0Academia" type="Node2D"]
+script = ExtResource("4")
+hud_node = NodePath("HUD")
+theory_panel_node = NodePath("HUD/TheoryPanel")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.01, 0.03, 0.1, 1)
+
+[node name="StarField" type="Node2D" parent="."]
+
+[node name="FunctionPlotter" type="Node2D" parent="."]
+position = Vector2(640, 360)
+script = ExtResource("1")
+formula = "x"
+domain_min = -10.0
+domain_max = 10.0
+scale_factor = 40.0
+line_color = Color(0, 1, 0.8, 1)
+line_width = 2.5
+show_axes = true
+
+[node name="Ship" type="Node2D" parent="."]
+script = ExtResource("2")
+speed = 0.08
+auto_start = false
+rotate_to_direction = true
+
+[node name="ShipSprite" type="Polygon2D" parent="Ship"]
+polygon = PackedVector2Array(0, -12, -7, 8, 0, 4, 7, 8)
+color = Color(0, 1, 0.8, 0.9)
+
+[node name="HUD" parent="." instance=ExtResource("3")]

@@ -62,6 +62,7 @@ const SECTOR_CONCEPTS: Dictionary = {
 
 ## Títulos de misión por sector para la pantalla de resultados.
 const SECTOR_MISSION_NAMES: Dictionary = {
+	0: "Academia de Vuelo",
 	1: "Cinturón de Asteroides",
 	2: "Pozos Gravitatorios",
 	3: "Sintonizador de Púlsares",
@@ -204,9 +205,9 @@ func _build_ui() -> void:
 
 	var continue_btn: Button = Button.new()
 	continue_btn.name = "ContinueButton"
-	continue_btn.text = "Siguiente Sector  ▶"
-	continue_btn.custom_minimum_size = Vector2(200.0, 44.0)
-	continue_btn.add_theme_font_size_override("font_size", 16)
+	continue_btn.text = "SIGUIENTE NIVEL  ▶"
+	continue_btn.custom_minimum_size = Vector2(320.0, 64.0)
+	continue_btn.add_theme_font_size_override("font_size", 22)
 	continue_btn.pressed.connect(_on_continue_pressed)
 	vbox.add_child(continue_btn)
 
@@ -247,10 +248,10 @@ func _populate_ui() -> void:
 
 	# Actualizar botón según si hay sector siguiente o se va al menú
 	var continue_btn: Button = vbox.get_node("ContinueButton")
-	if _sector_index >= GameManager.SECTORS.size():
+	if _sector_index >= GameManager.get_last_sector_index():
 		continue_btn.text = "🏠  Volver al Menú Principal"
 	else:
-		continue_btn.text = "Sector %d  ▶" % (_sector_index + 1)
+		continue_btn.text = "SIGUIENTE NIVEL — SECTOR %d  ▶" % (_sector_index + 1)
 
 
 ## Genera la lista de conceptos pedagógicos para el sector completado.
