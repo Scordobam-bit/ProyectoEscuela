@@ -52,6 +52,7 @@ var _obstacle_manager: GestorObstaculos = null
 
 func _ready() -> void:
 	await get_tree().process_frame
+	_connect_hud_buttons_in_code()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
 	_setup_parallax_stars()
@@ -268,7 +269,7 @@ func _on_sector_complete() -> void:
 	await panel.continue_pressed
 
 	var next_sector: int = sector_index + 1
-	if next_sector <= GameManager.SECTORS.size():
+	if next_sector <= GameManager.get_last_sector_index():
 		GameManager.go_to_sector(next_sector)
 	else:
 		# Sector final completado → volver al menú principal con fundido
@@ -286,6 +287,22 @@ func _connect_hud() -> void:
 	hud_node.domain_changed.connect(_on_domain_changed)
 	hud_node.theory_requested.connect(_on_theory_requested)
 	hud_node.hint_requested.connect(_on_hint_requested)
+
+
+func _connect_hud_buttons_in_code() -> void:
+	if not hud_node:
+		return
+	if not hud_node.is_node_ready():
+		await hud_node.ready
+	var plot_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/FormulaRow/PlotButton")
+	if plot_button and not plot_button.pressed.is_connected(hud_node._on_graficar_pressed):
+		plot_button.pressed.connect(hud_node._on_graficar_pressed)
+	var theory_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/TheoryButton")
+	if theory_button and not theory_button.pressed.is_connected(hud_node._on_teoria_pressed):
+		theory_button.pressed.connect(hud_node._on_teoria_pressed)
+	var hint_button: Button = hud_node.get_node_or_null("HUDPanel/Margin/VBox/MissionPanel/MissionMargin/MissionVBox/ButtonRow/HintButton")
+	if hint_button and not hint_button.pressed.is_connected(hud_node._on_pista_pressed):
+		hint_button.pressed.connect(hud_node._on_pista_pressed)
 
 
 func _connect_plotter() -> void:

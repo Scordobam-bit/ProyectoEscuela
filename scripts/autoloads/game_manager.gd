@@ -29,6 +29,14 @@ signal inspector_values_changed(sector_index: int, domain_min: float, domain_max
 ## Datos inmutables que describen cada sector del currículo.
 const SECTORS: Array[Dictionary] = [
 	{
+		"index": 0,
+		"name": "Academia de Vuelo",
+		"subtitle": "Introducción y Controles",
+		"scene": "res://scenes/sectors/sector_0.tscn",
+		"color": Color(0.5, 0.9, 1.0),
+		"topics": ["intro_functions"]
+	},
+	{
 		"index": 1,
 		"name": "Cinturón de Asteroides",
 		"subtitle": "Líneas y Fundamentos",
@@ -74,7 +82,7 @@ const SECTORS: Array[Dictionary] = [
 # Estado del Jugador
 # ---------------------------------------------------------------------------
 
-var current_sector: int = 1
+var current_sector: int = 0
 var completed_challenges: Dictionary = {}   # sector_index → Array[int]
 var total_score: int = 0
 var hints_used: int = 0
@@ -115,18 +123,35 @@ func _initialise_progress() -> void:
 
 ## Transiciona a la escena del sector especificado con fundido a negro.
 func go_to_sector(sector_index: int) -> void:
-	if sector_index < 1 or sector_index > SECTORS.size():
+	var data: Dictionary = get_sector_data(sector_index)
+	if data.is_empty():
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
-	var scene_path: String = SECTORS[sector_index - 1]["scene"]
+	var scene_path: String = data["scene"]
 	SceneTransition.fade_to_scene(scene_path)
 
 
 ## Devuelve el diccionario de datos del sector actual.
 func get_current_sector_data() -> Dictionary:
-	return SECTORS[current_sector - 1]
+	return get_sector_data(current_sector)
+
+
+## Devuelve el diccionario de datos del sector solicitado.
+func get_sector_data(sector_index: int) -> Dictionary:
+	for sector_data: Dictionary in SECTORS:
+		if sector_data.get("index", -1) == sector_index:
+			return sector_data
+	return {}
+
+
+## Devuelve el mayor índice de sector definido en SECTORS.
+func get_last_sector_index() -> int:
+	var last_index: int = -1
+	for sector_data: Dictionary in SECTORS:
+		last_index = maxi(last_index, int(sector_data.get("index", -1)))
+	return last_index
 
 
 ## Devuelve true si todos los desafíos de un sector están completados.
@@ -203,7 +228,7 @@ func reset_to_defaults() -> void:
 	total_score        = 0
 	hints_used         = 0
 	tutorial_completed = false
-	current_sector     = 1
+	current_sector     = 0
 	for sid: int in completed_challenges.keys():
 		completed_challenges[sid] = []
 

@@ -33,7 +33,7 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -220.0
-offset_top = -260.0
+offset_top = -292.0
 offset_right = 220.0
 offset_bottom = 280.0
 alignment = 1
@@ -52,6 +52,11 @@ horizontal_alignment = 1
 [node name="Spacer1" type="Control" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
+
+[node name="Sector0Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(300, 52)
+text = "ACADEMIA: APRENDE A VOLAR"
 
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
