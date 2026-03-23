@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameManager="*res://scripts/autoloads/game_manager.gd"
 MathEngine="*res://scripts/autoloads/math_engine.gd"
+SectorDataManager="*res://scripts/autoloads/sector_data_manager.gd"
 SaveSystem="*res://scripts/autoloads/save_system.gd"
 SceneTransition="*res://scripts/autoloads/scene_transition.gd"
 

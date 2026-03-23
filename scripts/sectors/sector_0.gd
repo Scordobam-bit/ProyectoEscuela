@@ -2,8 +2,6 @@ class_name Sector0Academia
 extends SectorBase
 
 const PLAYER_SHIP_GROUP: StringName = &"player_ship"
-const THEORY_TEXT: String = "Una función es una regla que asigna a cada valor de entrada (x) exactamente un valor de salida (y). En esta academia, tu fórmula define el camino de la nave."
-const HINT_TEXT: String = "El objetivo está a una altura constante. Prueba con una función constante como f(x) = 5 o similar para alcanzar el portal."
 const PORTAL_DEFAULT_COLOR: Color = Color(0.2, 1, 0.35, 0.8)
 const PORTAL_SUCCESS_COLOR: Color = Color(0.0, 1.0, 1.0, 1.0)
 
@@ -54,7 +52,7 @@ func _setup_challenges() -> void:
 			"expected_formula": "5",
 			"feedback_correct": "¡Academia completada! Sector 1 desbloqueado.",
 			"feedback_wrong": "Intenta una función constante que pase por y = 5.",
-			"solution_hint": HINT_TEXT,
+			"solution_hint": SectorDataManager.get_hint_text(0),
 			"score": 50,
 			"waypoints": [],
 		},
@@ -189,17 +187,19 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 
 
 func _on_theory_requested() -> void:
+	var theory_text: String = SectorDataManager.get_theory_text(0)
 	if hud_node:
-		hud_node.show_feedback(THEORY_TEXT, "info")
-		hud_node.set_mission_text("Teoría", THEORY_TEXT)
+		hud_node.show_feedback(theory_text, "info")
+		hud_node.set_mission_text("Teoría", theory_text)
 	if theory_panel_node:
 		theory_panel_node.show_mission_briefing("s0_tutorial")
 
 
 func _on_hint_requested() -> void:
+	var hint_text: String = SectorDataManager.get_hint_text(0)
 	if hud_node:
-		hud_node.show_feedback("Pista: " + HINT_TEXT, "warning")
-		hud_node.set_mission_text("Pista", HINT_TEXT)
+		hud_node.show_feedback("Pista: " + hint_text, "warning")
+		hud_node.set_mission_text("Pista", hint_text)
 	GameManager.hints_used += 1
 
 
