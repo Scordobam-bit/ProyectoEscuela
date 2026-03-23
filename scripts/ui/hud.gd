@@ -544,13 +544,9 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 	var key_event: InputEventKey = event as InputEventKey
 	if not key_event.pressed or key_event.echo:
 		return
-	if key_event.unicode == 0 and (
-			key_event.keycode == KEY_ALT
-			or key_event.keycode == KEY_ALT_GR
-			or key_event.keycode == KEY_CTRL
-			or key_event.keycode == KEY_SHIFT
-			or key_event.keycode == KEY_META
-		):
+	if key_event.keycode in [
+		KEY_ALT, KEY_ALT_GR, KEY_CTRL, KEY_SHIFT, KEY_META
+	]:
 		_formula_input.accept_event()
 		return
 	if key_event.keycode == KEY_BACKSPACE:
