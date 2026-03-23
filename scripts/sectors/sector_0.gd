@@ -10,8 +10,8 @@ func _setup_challenges() -> void:
 			"briefing_key": "s0_tutorial",
 			"instruction":
 				(
-					"Academia de Vuelo: Traza una función constante que lleve la nave al portal verde.\n"
-					+ "Objetivo inicial: altura y = 5."
+					"Para avanzar, escribe una función f(x) que trace tu ruta. Usa Backspace para corregir y el botón 'Graficar' para ejecutar tu vuelo.\n"
+					+ "Llega al portal verde. Si el portal está a una altura de 5, prueba escribiendo simplemente '5'."
 				),
 			"hint": "5",
 			"expected_formula": "5",

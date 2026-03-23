@@ -544,6 +544,15 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 	var key_event: InputEventKey = event as InputEventKey
 	if not key_event.pressed or key_event.echo:
 		return
+	if key_event.unicode == 0 and (
+			key_event.keycode == KEY_ALT
+			or key_event.keycode == KEY_ALT_GR
+			or key_event.keycode == KEY_CTRL
+			or key_event.keycode == KEY_SHIFT
+			or key_event.keycode == KEY_META
+		):
+		_formula_input.accept_event()
+		return
 	if key_event.keycode == KEY_BACKSPACE:
 		var sel_from: int = _formula_input.get_selection_from_column()
 		var sel_to: int = _formula_input.get_selection_to_column()
@@ -579,7 +588,7 @@ func _sanitize_formula_text(raw_text: String) -> String:
 		var code: int = raw_text.unicode_at(i)
 		if _is_allowed_math_code(code):
 			out.append(char(code))
-	return out.join("")
+	return "".join(out)
 
 
 func _is_allowed_math_char(ch: String) -> bool:

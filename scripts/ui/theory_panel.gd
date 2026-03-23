@@ -377,12 +377,11 @@ const MISSION_BRIEFINGS: Dictionary = {
 	"s0_tutorial": {
 		"title": "🛫 Sector 0 — Academia de Vuelo",
 		"content": """[b]Fase A — Controles[/b]
-Usa el teclado físico o el virtual. Escribe tu función y presiona [color=#ffcc00]GRAFICAR[/color].
-Si quieres borrar, usa [color=#ffcc00]Backspace[/color].
+Para avanzar, escribe una función [color=#ffcc00]f(x)[/color] que trace tu ruta.
+Usa [color=#ffcc00]Backspace[/color] para corregir y el botón [color=#ffcc00]Graficar[/color] para ejecutar tu vuelo.
 
 [b]Fase B — Objetivo[/b]
-Tu meta es el [color=#00ff66]portal verde[/color]. Debes calcular la función que pase exactamente por sus coordenadas.
-Ejemplo: si el portal está en altura [color=#ffcc00]5[/color], una función constante [color=#ffcc00]5[/color] te llevará directo.
+Llega al [color=#00ff66]portal verde[/color]. Si el portal está a una altura de [color=#ffcc00]5[/color], prueba escribiendo simplemente [color=#ffcc00]5[/color].
 
 [b]Fase C — Progresión[/b]
 Al completar esta academia se desbloquea el [color=#00ffcc]Sector 1[/color].
