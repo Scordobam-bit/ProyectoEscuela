@@ -90,32 +90,19 @@ func _on_hud_request_plot(formula: String) -> void:
 			hud_node.show_feedback("¡Comando inválido! " + MathEngine.get_friendly_error_message(normalized_formula), "error")
 		return
 	if _plotter:
-		_plotter.formula = normalized_formula
-	var points: PackedVector2Array = _build_trajectory_points(normalized_formula)
+		_plotter.set_formula_and_plot(normalized_formula)
+	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
 	_apply_trajectory_line(points)
 	if points.size() < 2 and hud_node:
 		hud_node.show_feedback("No se pudo generar una trayectoria válida.", "error")
 
 
-func _build_trajectory_points(formula: String) -> PackedVector2Array:
+func _build_trajectory_points() -> PackedVector2Array:
 	var points: PackedVector2Array = PackedVector2Array()
-	if _plotter == null:
+	if _plotter == null or not _plotter.is_plot_valid():
 		return points
-	var trajectory_point_count: int = maxi(_plotter.sample_count, 2)
-	var step: float = (_plotter.domain_max - _plotter.domain_min) / float(trajectory_point_count - 1)
-	var use_y_clamp: bool = _plotter.y_clamp > 0.0
-	for i in range(trajectory_point_count):
-		var x: float = _plotter.domain_min + step * float(i)
-		var result: Dictionary = MathEngine.evaluate(formula, x)
-		if not result.get("ok", false):
-			continue
-		var y: float = float(result.get("value", NAN))
-		if is_nan(y) or is_inf(y):
-			continue
-		if use_y_clamp and absf(y) > _plotter.y_clamp:
-			continue
-		points.append(_plotter.math_to_screen(Vector2(x, y)))
+	points = _plotter.get_screen_points()
 	return points
 
 
