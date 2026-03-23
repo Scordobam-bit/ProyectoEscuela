@@ -1,6 +1,8 @@
 class_name Sector0Academia
 extends SectorBase
 
+var _tutorial_manager: TutorialManager = null
+
 
 func _setup_challenges() -> void:
 	sector_index = 0
@@ -29,7 +31,27 @@ func _on_challenge_begin(_challenge_index: int) -> void:
 		_plotter.domain_min = -10.0
 		_plotter.domain_max = 10.0
 		_plotter.scale_factor = 40.0
+	if not GameManager.tutorial_completed:
+		_setup_tutorial_manager()
+		if _tutorial_manager:
+			_tutorial_manager.start()
 
 
 func _setup_obstacles_for_challenge(_challenge_index: int) -> void:
 	pass
+
+
+func _setup_tutorial_manager() -> void:
+	if _tutorial_manager:
+		return
+	_tutorial_manager = TutorialManager.new()
+	_tutorial_manager.name = "TutorialManager"
+	add_child(_tutorial_manager)
+	if hud_node:
+		_tutorial_manager.setup(hud_node)
+	_tutorial_manager.guide_completed.connect(_on_tutorial_guide_finished)
+	_tutorial_manager.guide_skipped.connect(_on_tutorial_guide_finished)
+
+
+func _on_tutorial_guide_finished() -> void:
+	GameManager.tutorial_completed = true

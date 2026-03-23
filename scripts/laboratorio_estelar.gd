@@ -73,6 +73,12 @@ var _trail_index: int = 0
 var _trails_count_label: Label = null
 
 const _KEYBOARD_BOTTOM_OFFSET: float = -224.0
+const _ALLOWED_SYMBOLS: String = "+-*/^().,"
+const _ALLOWED_LETTERS: String = "xsincotalgXSINCOTALG"
+const _CHAR_CODE_0: int = 48
+const _CHAR_CODE_9: int = 57
+const _CHAR_CODE_SPACE: int = 32
+const _CHAR_CODE_DEL: int = 127
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -258,6 +264,7 @@ func _build_hud() -> void:
 		input.placeholder_text = _get_placeholder(i)
 		input.add_theme_color_override("font_color", LABEL_COLORS[i])
 		input.text_submitted.connect(_on_formula_submitted.bind(i))
+		input.text_changed.connect(_on_formula_text_changed.bind(input))
 		input.focus_entered.connect(_on_formula_input_focus_entered)
 		input.gui_input.connect(_on_formula_input_gui_input.bind(input))
 		row.add_child(input)
@@ -534,15 +541,66 @@ func _on_formula_input_focus_entered() -> void:
 		_active_formula_input = _formula_inputs[0]
 
 
+func _on_formula_text_changed(new_text: String, input: LineEdit) -> void:
+	var sanitized: String = _sanitize_formula_text(new_text)
+	if sanitized == new_text:
+		return
+	var prev_caret: int = input.caret_column
+	var left_raw: String = new_text.left(prev_caret)
+	var left_sanitized: String = _sanitize_formula_text(left_raw)
+	input.text = sanitized
+	input.caret_column = clampi(left_sanitized.length(), 0, sanitized.length())
+
+
 func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 	var key_event: InputEventKey = event as InputEventKey
 	if key_event == null:
 		return
 	if not key_event.pressed or key_event.echo:
 		return
+	if key_event.keycode == KEY_ENTER or key_event.keycode == KEY_KP_ENTER:
+		var index: int = _formula_inputs.find(input)
+		if index >= 0:
+			_on_plot_pressed(index)
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.keycode < KEY_SPACE and key_event.keycode != KEY_BACKSPACE:
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.keycode == KEY_BACKSPACE:
+		var sel_from: int = input.get_selection_from_column()
+		var sel_to: int = input.get_selection_to_column()
+		if sel_from != sel_to:
+			var current_text: String = input.text
+			var from_col: int = mini(sel_from, sel_to)
+			var to_col: int = maxi(sel_from, sel_to)
+			input.text = current_text.left(from_col) + current_text.substr(to_col)
+			input.caret_column = from_col
+			input.deselect()
+			get_viewport().set_input_as_handled()
+			return
+		var caret: int = input.caret_column
+		if caret <= 0:
+			get_viewport().set_input_as_handled()
+			return
+		var text: String = input.text
+		input.text = text.left(caret - 1) + text.substr(caret)
+		input.caret_column = caret - 1
+		get_viewport().set_input_as_handled()
+		return
 	if key_event.keycode == KEY_SLASH or key_event.unicode == int('/'):
 		_insert_fraction_at_cursor(input)
 		get_viewport().set_input_as_handled()
+		return
+	if key_event.unicode <= 0:
+		get_viewport().set_input_as_handled()
+		return
+	if not _is_allowed_math_code(key_event.unicode):
+		get_viewport().set_input_as_handled()
+		return
 
 
 func _toggle_keyboard_visibility(visible: bool) -> void:
@@ -613,3 +671,25 @@ func _apply_label_outline(label: Label) -> void:
 		return
 	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
 	label.add_theme_constant_override("outline_size", 2)
+
+
+func _sanitize_formula_text(raw_text: String) -> String:
+	var out: PackedStringArray = []
+	for i in range(raw_text.length()):
+		var code: int = raw_text.unicode_at(i)
+		if _is_allowed_math_code(code):
+			out.append(char(code))
+	return "".join(out)
+
+
+func _is_allowed_math_code(code: int) -> bool:
+	if code < _CHAR_CODE_SPACE or code == _CHAR_CODE_DEL:
+		return false
+	var ch: String = char(code)
+	if _ALLOWED_SYMBOLS.contains(ch):
+		return true
+	if code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9:
+		return true
+	if _ALLOWED_LETTERS.contains(ch):
+		return true
+	return false

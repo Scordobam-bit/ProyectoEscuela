@@ -55,6 +55,8 @@ signal plot_failed(error_message: String)
 @export var domain_min: float = -10.0:
 	set(value):
 		domain_min = value
+		_rebuild_axes()
+		queue_redraw()
 		if auto_plot and is_inside_tree():
 			plot()
 
@@ -62,6 +64,8 @@ signal plot_failed(error_message: String)
 @export var domain_max: float = 10.0:
 	set(value):
 		domain_max = value
+		_rebuild_axes()
+		queue_redraw()
 		if auto_plot and is_inside_tree():
 			plot()
 
@@ -77,6 +81,8 @@ signal plot_failed(error_message: String)
 @export var scale_factor: float = 50.0:
 	set(value):
 		scale_factor = maxf(value, 0.001)
+		_rebuild_axes()
+		queue_redraw()
 		if auto_plot and is_inside_tree():
 			plot()
 
@@ -105,6 +111,13 @@ signal plot_failed(error_message: String)
 
 ## Color de los ejes de coordenadas.
 @export var axis_color: Color = Color(0.4, 0.4, 0.6, 0.7)
+@export var grid_color: Color = Color(0.32, 0.38, 0.55, 0.28)
+@export_range(10, 24, 1) var axis_label_font_size: int = 13
+@export var axis_tick_half_length: float = 4.0
+@export var axis_label_color: Color = Color(0.86, 0.9, 1.0, 0.95)
+@export var axis_label_offset: float = 8.0
+@export var axis_label_y_side_offset: float = 3.0
+const _DEFAULT_Y_EXTENT_UNITS: float = 15.0
 
 # ---------------------------------------------------------------------------
 # Miembros privados
@@ -131,6 +144,48 @@ func _ready() -> void:
 	_build_visuals()
 	if auto_plot:
 		plot()
+
+
+func _draw() -> void:
+	if not show_axes:
+		return
+	var y_units: int = _get_y_extent_units()
+	var y_extent_px: float = float(y_units) * scale_factor
+	var min_x_tick: int = int(ceil(domain_min))
+	var max_x_tick: int = int(floor(domain_max))
+	var tick_half_len: float = axis_tick_half_length
+	for x_tick in range(min_x_tick, max_x_tick + 1):
+		var x_pos: float = float(x_tick) * scale_factor
+		if x_tick != 0:
+			draw_line(
+				Vector2(x_pos, -y_extent_px),
+				Vector2(x_pos, y_extent_px),
+				grid_color,
+				1.0
+			)
+		draw_line(
+			Vector2(x_pos, -tick_half_len),
+			Vector2(x_pos, tick_half_len),
+			axis_color,
+			1.2
+		)
+		_draw_axis_label(Vector2(x_pos, axis_label_offset), str(x_tick), true)
+	for y_tick in range(-y_units, y_units + 1):
+		var y_pos: float = -float(y_tick) * scale_factor
+		if y_tick != 0:
+			draw_line(
+				Vector2(float(min_x_tick) * scale_factor, y_pos),
+				Vector2(float(max_x_tick) * scale_factor, y_pos),
+				grid_color,
+				1.0
+			)
+		draw_line(
+			Vector2(-tick_half_len, y_pos),
+			Vector2(tick_half_len, y_pos),
+			axis_color,
+			1.2
+		)
+		_draw_axis_label(Vector2(axis_label_offset, y_pos), str(y_tick), false)
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +227,7 @@ func _rebuild_axes() -> void:
 
 	var x0: float = domain_min * scale_factor
 	var x1: float = domain_max * scale_factor
-	var y_extent: float = (y_clamp if y_clamp > 0.0 else 15.0) * scale_factor
+	var y_extent: float = (y_clamp if y_clamp > 0.0 else _DEFAULT_Y_EXTENT_UNITS) * scale_factor
 
 	# Eje horizontal (X)
 	_x_axis_line = Line2D.new()
@@ -191,6 +246,7 @@ func _rebuild_axes() -> void:
 	_y_axis_line.add_point(Vector2(0.0, -y_extent))
 	_y_axis_line.add_point(Vector2(0.0,  y_extent))
 	add_child(_y_axis_line)
+	queue_redraw()
 
 
 # ---------------------------------------------------------------------------
@@ -263,6 +319,7 @@ func plot() -> void:
 	_render_segments(segments)
 
 	_plot_valid = true
+	queue_redraw()
 	plot_completed.emit(_last_points)
 
 
@@ -446,3 +503,36 @@ func _render_segments(segments: Array[PackedVector2Array]) -> void:
 		for pt in segments[i]:
 			seg_line.add_point(pt)
 		add_child(seg_line)
+
+
+func _get_y_extent_units() -> int:
+	var y_extent_units: int = int(ceil(y_clamp if y_clamp > 0.0 else _DEFAULT_Y_EXTENT_UNITS))
+	return maxi(y_extent_units, 1)
+
+
+func _draw_axis_label(anchor: Vector2, text: String, is_x_axis: bool) -> void:
+	var fallback_font: Font = ThemeDB.fallback_font
+	if fallback_font == null:
+		return
+	var text_size: Vector2 = fallback_font.get_string_size(
+		text,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1.0,
+		axis_label_font_size
+	)
+	var draw_pos: Vector2 = anchor
+	if is_x_axis:
+		draw_pos.x -= text_size.x * 0.5
+		draw_pos.y += text_size.y
+	else:
+		draw_pos.x += axis_label_y_side_offset
+		draw_pos.y += text_size.y * 0.5
+	draw_string(
+		fallback_font,
+		draw_pos,
+		text,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1.0,
+		axis_label_font_size,
+		axis_label_color
+	)
