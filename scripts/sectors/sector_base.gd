@@ -12,6 +12,7 @@ extends Node2D
 ## Emitida cuando todos los desafíos de este sector se completan.
 signal sector_complete(sector_index: int)
 signal level_completed(sector_index: int)
+signal challenge_completed
 
 ## Emitida cuando un único desafío se completa.
 signal challenge_done(challenge_index: int)
@@ -34,6 +35,7 @@ signal challenge_started(challenge_index: int)
 
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
 @onready var _ship: ShipController = $Ship
+@onready var _meta_area: Area2D = get_node_or_null("MetaArea")
 @export var hud_node: HUD
 @export var theory_panel_node: TheoryPanel
 
@@ -62,6 +64,7 @@ func _ready() -> void:
 	if hud_node and hud_node.layer < _MIN_HUD_LAYER:
 		hud_node.layer = _MIN_HUD_LAYER
 	_connect_hud_buttons_in_code()
+	_connect_goal_area()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
 	_setup_parallax_stars()
@@ -322,6 +325,20 @@ func _connect_plotter() -> void:
 	_plotter.plot_failed.connect(_on_plot_failed)
 	if _ship:
 		_ship.attach_to_plotter(_plotter)
+
+
+func _connect_goal_area() -> void:
+	if not _meta_area:
+		return
+	if not _meta_area.body_entered.is_connected(_on_meta_area_body_entered):
+		_meta_area.body_entered.connect(_on_meta_area_body_entered)
+
+
+func _on_meta_area_body_entered(body: Node) -> void:
+	if body == null or not body.is_in_group("player_ship"):
+		return
+	challenge_completed.emit()
+	GameManager.unlock_next_level()
 
 
 func _on_formula_submitted_hud(formula: String) -> void:

@@ -113,7 +113,7 @@ func _on_formula_submitted_sector(formula: String) -> void:
 	if hud_node and MathEngine.is_valid_formula(formula):
 		# Mostrar comparación evaluada en un punto de prueba
 		var sample_x: float = 1.0
-		var player_y: float = MathEngine.evaluate(formula, sample_x)
+		var player_y: float = MathEngine.evaluate_value(formula, sample_x)
 		hud_node.show_feedback(
 			"En x=1: tu f(1) = %s" % MathEngine.format_float(player_y), "info"
 		)
