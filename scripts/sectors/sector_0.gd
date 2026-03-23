@@ -21,8 +21,8 @@ var _constant_function_pattern: RegEx = null
 @onready var _trajectory_path: Path2D = get_node_or_null("%TrajectoryPath")
 @onready var _trajectory_line: Line2D = get_node_or_null("%TrajectoryLine")
 @onready var _path_follower: PathFollow2D = get_node_or_null("TrajectoryPath/PathFollower")
-@onready var _goal_portal: Area2D = get_node_or_null("GoalPortal")
-@onready var _portal_visual: Polygon2D = get_node_or_null("GoalPortal/PortalVisual")
+@onready var _goal_portal: Area2D = get_node_or_null("%MetaArea")
+@onready var _portal_visual: Polygon2D = get_node_or_null("MetaArea/PortalVisual")
 @onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/ShipBody")
 
 @export_range(0.01, 1.0, 0.01) var path_follow_speed: float = 0.08
@@ -84,7 +84,6 @@ func _on_challenge_begin(_challenge_index: int) -> void:
 		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	if hud_node:
 		hud_node.set_domain(START_DOMAIN_MIN, START_DOMAIN_MAX)
-		hud_node.set_math_keyboard_visible(false)
 	if not GameManager.tutorial_completed:
 		_setup_tutorial_manager()
 		if _tutorial_manager:
@@ -139,12 +138,13 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 	_trajectory_path.curve.clear_points()
 	for pt in points:
 		_trajectory_path.curve.add_point(pt)
-	if _path_follower and points.is_empty() and _plotter:
-		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
-	elif _path_follower and _can_advance_path_follower():
-		_path_follower.progress_ratio = 0.0
-	elif _path_follower and points.size() == 1:
-		_path_follower.position = points[0]
+	if _path_follower:
+		if points.is_empty() and _plotter:
+			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
+		elif _can_advance_path_follower():
+			_path_follower.progress_ratio = 0.0
+		elif points.size() == 1:
+			_path_follower.position = points[0]
 	_movement_active = points.size() >= 2
 
 

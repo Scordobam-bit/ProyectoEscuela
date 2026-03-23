@@ -9,7 +9,7 @@
 ##   • Mantener el listado de conceptos matemáticos dominados (Logros).
 ##   • Proporcionar una función de "Borrar Progreso" para reiniciar desde cero.
 ##
-## Archivo de guardado: user://save.cfg  (formato ConfigFile de Godot)
+## Archivo de guardado: user://save_data.cfg  (formato ConfigFile de Godot)
 extends Node
 
 # ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ signal sector_unlocked(sector_index: int)
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado en la carpeta de datos del usuario.
-const SAVE_FILE: String = "user://save.cfg"
+const SAVE_FILE: String = "user://save_data.cfg"
 
 ## Índice del primer sector (siempre desbloqueado).
 const FIRST_SECTOR: int = 0
@@ -240,11 +240,11 @@ func clear_progress() -> void:
 		if err != OK:
 			push_warning("SaveSystem: no se pudo eliminar '%s' (error %d)." % [SAVE_FILE, err])
 
-	# También limpiar el archivo legado de GameManager si existe
-	var legacy_path: String = "user://planet_waves_save.cfg"
-	if FileAccess.file_exists(legacy_path):
-		var err2: Error = DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_path))
-		if err2 != OK:
-			push_warning("SaveSystem: no se pudo eliminar legado '%s' (error %d)." % [legacy_path, err2])
+	# También limpiar archivos legados si existen
+	for legacy_path in ["user://save.cfg", "user://planet_waves_save.cfg"]:
+		if FileAccess.file_exists(legacy_path):
+			var err2: Error = DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_path))
+			if err2 != OK:
+				push_warning("SaveSystem: no se pudo eliminar legado '%s' (error %d)." % [legacy_path, err2])
 
 	progress_cleared.emit()

@@ -105,7 +105,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
-const SAVE_PATH: String = "user://save.cfg"
+const SAVE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida

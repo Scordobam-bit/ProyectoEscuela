@@ -63,7 +63,7 @@ var _owns_runtime_path: bool = false
 # ---------------------------------------------------------------------------
 
 func _enter_tree() -> void:
-	_bind_to_parent_path_hierarchy()
+	_ensure_path_connection()
 
 
 func _ready() -> void:
@@ -219,7 +219,8 @@ func set_path(path: Path2D) -> void:
 		if source_curve:
 			for point_idx in range(source_curve.point_count):
 				_path_node.curve.add_point(source_curve.get_point_position(point_idx))
-		_path_follow.progress_ratio = _progress
+		if _can_use_path_follow():
+			_path_follow.progress_ratio = _progress
 		return
 	if _path_node and is_instance_valid(_path_node) and _owns_runtime_path:
 		_path_node.queue_free()
@@ -239,8 +240,9 @@ func set_path(path: Path2D) -> void:
 	_path_follow.name = "TrajectoryFollow"
 	_path_follow.rotates = false
 	_path_follow.loop = false
-	_path_follow.progress_ratio = _progress
 	_path_node.add_child(_path_follow)
+	if _can_use_path_follow():
+		_path_follow.progress_ratio = _progress
 
 
 func follow_path(path: Path2D, restart: bool = true) -> void:
@@ -250,6 +252,7 @@ func follow_path(path: Path2D, restart: bool = true) -> void:
 
 
 func _rebuild_path_from_plotter() -> void:
+	_ensure_path_connection()
 	if not plotter:
 		return
 	if _points.size() < 2:
@@ -280,7 +283,9 @@ func _ensure_collision_body() -> void:
 	add_child(_collision_body)
 
 
-func _bind_to_parent_path_hierarchy() -> void:
+func _ensure_path_connection() -> void:
+	if _has_parent_path_hierarchy():
+		return
 	var parent_follow: PathFollow2D = get_parent() as PathFollow2D
 	if parent_follow == null:
 		return
@@ -301,6 +306,7 @@ func _has_parent_path_hierarchy() -> bool:
 
 
 func _can_use_path_follow() -> bool:
+	_ensure_path_connection()
 	if not _has_parent_path_hierarchy():
 		return false
 	if _path_node.curve == null:

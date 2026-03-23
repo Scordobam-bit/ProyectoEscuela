@@ -373,6 +373,7 @@ func _on_meta_area_body_entered(body: Node) -> void:
 
 
 func _on_formula_submitted_hud(formula: String) -> void:
+	print("[SECTOR] Botón Ejecutar recibido en sector %d. Fórmula: %s" % [sector_index, formula])
 	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
 	if not MathEngine.is_valid_formula(formula):
 		if hud_node:
