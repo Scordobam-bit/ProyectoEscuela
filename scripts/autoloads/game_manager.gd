@@ -17,7 +17,8 @@ signal challenge_completed(sector_index: int, challenge_index: int)
 signal answer_validated(correct: bool, feedback: String)
 
 ## Emitida para solicitar la actualización del panel de teoría.
-signal theory_requested(sector_index: int, topic_key: String)
+# TODO: Rehabilitar cuando exista un emisor/consumidor activo centralizado para teoría.
+# signal theory_requested(sector_index: int, topic_key: String)
 
 ## Emitida cuando el jugador modifica valores de inspección del HUD (p. ej. dominio).
 signal inspector_values_changed(sector_index: int, domain_min: float, domain_max: float)
