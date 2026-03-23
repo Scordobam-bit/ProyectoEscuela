@@ -62,13 +62,10 @@ const FEEDBACK_DURATION: float = 5.0
 const KEYBOARD_VISIBLE_HUD_OFFSET: float = 100.0
 const _EMPTY_FRACTION_CURSOR_OFFSET: int = 4
 const _WRAPPED_FRACTION_CURSOR_OFFSET: int = 5
-const _ALLOWED_SYMBOLS: String = "+-*/^().,_ ="
+const _ALLOWED_SYMBOLS: String = "+-*/^().,"
+const _ALLOWED_LETTERS: String = "xsincotalgXSINCOTALG"
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
-const _CHAR_CODE_A_UPPER: int = 65
-const _CHAR_CODE_Z_UPPER: int = 90
-const _CHAR_CODE_A_LOWER: int = 97
-const _CHAR_CODE_Z_LOWER: int = 122
 const _CHAR_CODE_SPACE: int = 32
 const _CHAR_CODE_DEL: int = 127
 
@@ -544,10 +541,15 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 	var key_event: InputEventKey = event as InputEventKey
 	if not key_event.pressed or key_event.echo:
 		return
-	if key_event.keycode in [
-		KEY_ALT, KEY_ALT_GR, KEY_CTRL, KEY_SHIFT, KEY_META
-	]:
-		_formula_input.accept_event()
+	if key_event.keycode == KEY_ENTER or key_event.keycode == KEY_KP_ENTER:
+		_on_plot_pressed()
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.keycode < KEY_SPACE and key_event.keycode not in [KEY_BACKSPACE, KEY_ENTER, KEY_KP_ENTER]:
+		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode == KEY_BACKSPACE:
 		var sel_from: int = _formula_input.get_selection_from_column()
@@ -559,16 +561,22 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 			_formula_input.text = current_text.left(from_col) + current_text.substr(to_col)
 			_formula_input.caret_column = from_col
 			_formula_input.deselect()
-			_formula_input.accept_event()
+			get_viewport().set_input_as_handled()
 			return
 		var caret: int = _formula_input.caret_column
 		if caret <= 0:
-			_formula_input.accept_event()
+			get_viewport().set_input_as_handled()
 			return
 		var text: String = _formula_input.text
 		_formula_input.text = text.left(caret - 1) + text.substr(caret)
 		_formula_input.caret_column = caret - 1
-		_formula_input.accept_event()
+		get_viewport().set_input_as_handled()
+		return
+	if key_event.unicode <= 0:
+		get_viewport().set_input_as_handled()
+		return
+	if not _is_allowed_math_code(key_event.unicode):
+		get_viewport().set_input_as_handled()
 
 
 func _on_domain_changed(_value: float) -> void:
@@ -599,9 +607,9 @@ func _is_allowed_math_code(code: int) -> bool:
 	var ch: String = char(code)
 	if _ALLOWED_SYMBOLS.contains(ch):
 		return true
-	if (code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9) \
-			or (code >= _CHAR_CODE_A_UPPER and code <= _CHAR_CODE_Z_UPPER) \
-			or (code >= _CHAR_CODE_A_LOWER and code <= _CHAR_CODE_Z_LOWER):
+	if code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9:
+		return true
+	if _ALLOWED_LETTERS.contains(ch):
 		return true
 	return false
 
