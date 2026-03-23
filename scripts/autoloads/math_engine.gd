@@ -27,6 +27,14 @@ signal formula_evaluated(formula: String, x: float, result: float)
 
 const EULER_E: float = 2.718281828459045
 const GOLDEN_RATIO: float = 1.6180339887498948
+const _CHAR_CODE_0: int = 48
+const _CHAR_CODE_9: int = 57
+const _CHAR_CODE_UPPER_A: int = 65
+const _CHAR_CODE_UPPER_Z: int = 90
+const _CHAR_CODE_LOWER_A: int = 97
+const _CHAR_CODE_LOWER_Z: int = 122
+const _CHAR_CODE_UNDERSCORE: int = 95
+const _CHAR_CODE_DOT: int = 46
 
 # ---------------------------------------------------------------------------
 # Estado privado
@@ -221,7 +229,11 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 
 
 func _is_identifier_or_number_code(code: int) -> bool:
-	return (code >= 48 and code <= 57) or (code >= 65 and code <= 90) or (code >= 97 and code <= 122) or code == 95 or code == 46
+	return (code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9) \
+		or (code >= _CHAR_CODE_UPPER_A and code <= _CHAR_CODE_UPPER_Z) \
+		or (code >= _CHAR_CODE_LOWER_A and code <= _CHAR_CODE_LOWER_Z) \
+		or code == _CHAR_CODE_UNDERSCORE \
+		or code == _CHAR_CODE_DOT
 
 
 func _is_log_call_start(formula: String, index: int) -> bool:

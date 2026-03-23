@@ -230,7 +230,7 @@ func _build_syntax_ui() -> void:
 		+ "[b]Raíces:[/b]         [color=#ffcc00]sqrt(x)[/color]\n"
 		+ "[b]Trigonometría:[/b]  [color=#ffcc00]sin(x)[/color],  [color=#ffcc00]cos(x)[/color],  [color=#ffcc00]tan(x)[/color]\n"
 		+ "[b]Trig. inversa:[/b]  [color=#ffcc00]asin(x)[/color], [color=#ffcc00]acos(x)[/color], [color=#ffcc00]atan(x)[/color]\n"
-		+ "[b]Logaritmo:[/b]      [color=#ffcc00]log(x)[/color] (ln) o [color=#ffcc00]log(base, x)[/color]\n"
+		+ "[b]Logaritmo:[/b]      [color=#ffcc00]log(x)[/color] (ln) o [color=#ffcc00]log(base, x)[/color] = ln(x)/ln(base)\n"
 		+ "[b]Exponencial:[/b]    [color=#ffcc00]exp(x)[/color]  ←  eˣ\n"
 		+ "[b]Constantes:[/b]     [color=#ffcc00]PI[/color],  [color=#ffcc00]E[/color]\n"
 		+ "[b]Multiplicar:[/b]    [color=#ffcc00]2*x[/color]  — [color=#ff6644]¡nunca escribas 2x sin el *![/color]\n"

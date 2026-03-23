@@ -389,7 +389,7 @@ Llega al [color=#00ff66]portal verde[/color]. Para empezar, usa una función con
 [color=#ffcc00]f(x) = 5[/color] (escribe solo [color=#ffcc00]5[/color]).
 
 [b]Pista rápida[/b]
-Si el portal está a altura 5, una función constante mantiene la nave en esa altura en todo x."""
+Si el portal está a altura [color=#ffcc00]5[/color], una función constante mantiene la nave en esa altura en todo x."""
 	},
 	# ── Tutoriales obligatorios por sector ─────────────────────────────────
 	"s1_tutorial": {
