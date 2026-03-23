@@ -88,21 +88,21 @@ func _approx_equal(a: float, b: float, tol: float = TOLERANCE) -> bool:
 # ---------------------------------------------------------------------------
 
 func test_evaluate_basic() -> bool:
-	var result: float = MathEngine.evaluate("2*x + 1", 3.0)
+	var result: float = MathEngine.evaluate_value("2*x + 1", 3.0)
 	return _assert(_approx_equal(result, 7.0), "evaluate('2*x+1', 3) == 7",
 		"got %s" % result)
 
 
 func test_evaluate_sin() -> bool:
-	var result: float = MathEngine.evaluate("sin(x)", PI / 2.0)
+	var result: float = MathEngine.evaluate_value("sin(x)", PI / 2.0)
 	return _assert(_approx_equal(result, 1.0, 1e-6), "evaluate('sin(x)', PI/2) ≈ 1",
 		"got %s" % result)
 
 
 func test_evaluate_inverse_trig() -> bool:
-	var asin_val: float = MathEngine.evaluate("asin(x)", 0.5)
-	var acos_val: float = MathEngine.evaluate("acos(x)", 0.5)
-	var atan_val: float = MathEngine.evaluate("atan(x)", 1.0)
+	var asin_val: float = MathEngine.evaluate_value("asin(x)", 0.5)
+	var acos_val: float = MathEngine.evaluate_value("acos(x)", 0.5)
+	var atan_val: float = MathEngine.evaluate_value("atan(x)", 1.0)
 	var ok: bool = _approx_equal(asin_val, PI / 6.0, 1e-6) \
 		and _approx_equal(acos_val, PI / 3.0, 1e-6) \
 		and _approx_equal(atan_val, PI / 4.0, 1e-6)
@@ -111,51 +111,51 @@ func test_evaluate_inverse_trig() -> bool:
 
 
 func test_evaluate_inverse_trig_out_of_domain() -> bool:
-	var asin_val: float = MathEngine.evaluate("asin(x)", 2.0)
-	var acos_val: float = MathEngine.evaluate("acos(x)", -2.0)
+	var asin_val: float = MathEngine.evaluate_value("asin(x)", 2.0)
+	var acos_val: float = MathEngine.evaluate_value("acos(x)", -2.0)
 	return _assert(is_nan(asin_val) and is_nan(acos_val),
 		"evaluate asin/acos fuera de dominio devuelve NAN",
 		"asin=%s acos=%s" % [asin_val, acos_val])
 
 
 func test_evaluate_ln_alias() -> bool:
-	var result: float = MathEngine.evaluate("ln(x)", MathEngine.EULER_E)
+	var result: float = MathEngine.evaluate_value("ln(x)", MathEngine.EULER_E)
 	return _assert(_approx_equal(result, 1.0, 1e-6),
 		"evaluate('ln(x)', e) ≈ 1",
 		"got %s" % result)
 
 
 func test_evaluate_constants_pi_e() -> bool:
-	var pi_result: float = MathEngine.evaluate("PI", 0.0)
-	var e_result: float = MathEngine.evaluate("E", 0.0)
+	var pi_result: float = MathEngine.evaluate_value("PI", 0.0)
+	var e_result: float = MathEngine.evaluate_value("E", 0.0)
 	var ok: bool = _approx_equal(pi_result, PI, 1e-6) and _approx_equal(e_result, MathEngine.EULER_E, 1e-6)
 	return _assert(ok, "evaluate reconoce PI y E como constantes",
 		"PI=%s E=%s" % [pi_result, e_result])
 
 
 func test_evaluate_log_with_base() -> bool:
-	var result: float = MathEngine.evaluate("log(2, x)", 8.0)
+	var result: float = MathEngine.evaluate_value("log(2, x)", 8.0)
 	return _assert(_approx_equal(result, 3.0, 1e-6),
 		"evaluate('log(2, x)', 8) == 3",
 		"got %s" % result)
 
 
 func test_evaluate_power_operator_rewrite() -> bool:
-	var result: float = MathEngine.evaluate("sin(x)^2", PI / 2.0)
+	var result: float = MathEngine.evaluate_value("sin(x)^2", PI / 2.0)
 	return _assert(_approx_equal(result, 1.0, 1e-6),
 		"evaluate('sin(x)^2', PI/2) == 1",
 		"got %s" % result)
 
 
 func test_evaluate_power_operator_nested_right_associative() -> bool:
-	var result: float = MathEngine.evaluate("x^x^2", 2.0)
+	var result: float = MathEngine.evaluate_value("x^x^2", 2.0)
 	return _assert(_approx_equal(result, 16.0, 1e-6),
 		"evaluate('x^x^2', 2) == 16 (asociatividad derecha)",
 		"got %s" % result)
 
 
 func test_evaluate_rational_continuous_fraction() -> bool:
-	var value: float = MathEngine.evaluate("x/(x+3)", 3.0)
+	var value: float = MathEngine.evaluate_value("x/(x+3)", 3.0)
 	return _assert(_approx_equal(value, 0.5, 1e-6),
 		"evaluate('x/(x+3)', 3) == 0.5",
 		"got %s" % value)
@@ -164,7 +164,7 @@ func test_evaluate_rational_continuous_fraction() -> bool:
 func test_evaluate_non_standard_ambiguous_division_as_rational() -> bool:
 	## Este proyecto normaliza intencionalmente "x/x+3" como "x/(x+3)"
 	## para reforzar la lectura de fracción continua en el currículo.
-	var value: float = MathEngine.evaluate("x/x+3", 3.0)
+	var value: float = MathEngine.evaluate_value("x/x+3", 3.0)
 	return _assert(_approx_equal(value, 0.5, 1e-6),
 		"evaluate('x/x+3', 3) se interpreta como x/(x+3)",
 		"got %s" % value)
@@ -203,7 +203,7 @@ func test_compose_quadratic_in_sin() -> bool:
 	## sin(x^2) con x=sqrt(PI/2) ≈ 1
 	var composed: String = MathEngine.compose("sin(x)", "x^2")
 	# sin((sqrt(PI/2))^2) = sin(PI/2) = 1
-	var val: float = MathEngine.evaluate(composed, sqrt(PI / 2.0))
+	var val: float = MathEngine.evaluate_value(composed, sqrt(PI / 2.0))
 	return _assert(_approx_equal(val, 1.0, 1e-5),
 		"eval(compose('sin(x)','x^2'), sqrt(PI/2)) ≈ 1",
 		"got %s from formula '%s'" % [val, composed])
@@ -225,7 +225,7 @@ func test_transform_shift_horizontal_exp() -> bool:
 func test_transform_shift_horizontal_sin() -> bool:
 	## Verificar evaluación: sin(x-PI/2) en x=PI = sin(PI/2) = 1
 	var formula: String = MathEngine.transform_shift_horizontal("sin(x)", PI / 2.0)
-	var val: float = MathEngine.evaluate(formula, PI)
+	var val: float = MathEngine.evaluate_value(formula, PI)
 	return _assert(_approx_equal(val, 1.0, 1e-5),
 		"eval(transform_shift_horizontal('sin(x)', PI/2), PI) ≈ 1",
 		"got %s from formula '%s'" % [val, formula])

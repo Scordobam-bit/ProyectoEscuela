@@ -27,6 +27,7 @@ signal formula_evaluated(formula: String, x: float, result: float)
 
 const EULER_E: float = 2.718281828459045
 const PI_VALUE: float = 3.141592653589793
+const TAU_VALUE: float = 6.283185307179586
 const GOLDEN_RATIO: float = 1.6180339887498948
 const _CHAR_CODE_0: int = 48
 const _CHAR_CODE_9: int = 57
@@ -49,18 +50,50 @@ var _power_rightmost_caret_regex: RegEx = null
 # ---------------------------------------------------------------------------
 
 ## Evalúa una cadena de fórmula en un valor x dado.
-## Devuelve NAN si el análisis o la ejecución fallan.
-func evaluate(formula: String, x_val: float) -> float:
+## Devuelve {"ok": bool, "value": Variant, "error": String}
+func evaluate(formula: String, x_val: float = 0.0) -> Dictionary:
 	var normalized: String = _normalize_formula(formula)
 	var err: Error = _expr.parse(normalized, ["x"])
 	if err != OK:
-		return NAN
+		var parse_error: String = "Expression.parse error: %s" % _expr.get_error_text()
+		push_warning(parse_error)
+		return {
+			"ok": false,
+			"value": NAN,
+			"error": parse_error,
+		}
 	var result: Variant = _expr.execute([x_val])
 	if _expr.has_execute_failed():
-		return NAN
+		push_warning("Expression.execute failed")
+		return {
+			"ok": false,
+			"value": NAN,
+			"error": "Expression.execute failed",
+		}
+	if not (result is float or result is int):
+		push_warning("Resultado no numérico")
+		return {
+			"ok": false,
+			"value": NAN,
+			"error": "Resultado no numérico",
+		}
 	var y: float = float(result)
+	if is_nan(y) or is_inf(y):
+		push_warning("Error de dominio matemático (p. ej. asin/acos fuera de rango o log no válido).")
+		return {
+			"ok": false,
+			"value": NAN,
+			"error": "Error de dominio matemático (p. ej. asin/acos fuera de rango o log no válido).",
+		}
 	formula_evaluated.emit(normalized, x_val, y)
-	return y
+	return {"ok": true, "value": y, "error": ""}
+
+
+func evaluate_value(formula: String, x_val: float = 0.0) -> float:
+	var result: Dictionary = evaluate(formula, x_val)
+	if not bool(result.get("ok", false)):
+		return NAN
+	return float(result.get("value", NAN))
 
 
 ## Devuelve true si la fórmula se analiza sin errores.
@@ -88,7 +121,8 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 		if _expr.has_execute_failed():
 			results.append(NAN)
 		else:
-			results.append(float(res))
+			var y: float = float(res)
+			results.append(y if (not is_nan(y) and not is_inf(y)) else NAN)
 	return results
 
 
@@ -96,8 +130,9 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 ## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" y "x/x-3" -> "(x)/(x-3)".
 func _normalize_formula(formula: String) -> String:
 	var f: String = formula.strip_edges()
+	f = _ensure_non_empty_formula(f)
 	f = _rewrite_math_constants(f)
-	f = _rewrite_ln_alias(f)
+	f = _rewrite_function_aliases(f)
 	f = _rewrite_log_with_base(f)
 	f = _rewrite_power_operator(f)
 	var simple_rational: RegEx = RegEx.new()
@@ -109,8 +144,8 @@ func _normalize_formula(formula: String) -> String:
 		var denominator_op: String = match.get_string(3).strip_edges()
 		var denominator_tail: String = match.get_string(4).strip_edges()
 		if not numerator.is_empty() and not denominator_base.is_empty() and not denominator_tail.is_empty():
-			return "(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail]
-	return f
+			return _ensure_non_empty_formula("(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail])
+	return _ensure_non_empty_formula(f)
 
 
 func _rewrite_math_constants(formula: String) -> String:
@@ -129,15 +164,17 @@ func _rewrite_math_constants(formula: String) -> String:
 		while i < formula.length() and _is_identifier_or_number_code(formula.unicode_at(i)):
 			i += 1
 		var token: String = formula.substr(start, i - start)
-		var lower_token: String = token.to_lower()
-		if lower_token == "pi":
+		if token == "PI":
 			output.append(str(PI_VALUE))
 			continue
-		if (token == "E" or token == "e") and not _is_scientific_exponent_marker(formula, start, i):
+		if token == "TAU":
+			output.append(str(TAU_VALUE))
+			continue
+		if token == "E" and not _is_scientific_exponent_marker(formula, start, i):
 			output.append(str(EULER_E))
 			continue
 		output.append(token)
-	return "".join(output)
+	return _ensure_non_empty_formula("".join(output))
 
 
 func _is_scientific_exponent_marker(formula: String, token_start: int, token_end: int) -> bool:
@@ -151,10 +188,18 @@ func _is_scientific_exponent_marker(formula: String, token_start: int, token_end
 	return prev_is_digit and next_is_sign_or_digit
 
 
-func _rewrite_ln_alias(formula: String) -> String:
-	var re: RegEx = RegEx.new()
-	re.compile("(?i)\\bln\\s*\\(")
-	return re.sub(formula, "log(", true)
+func _rewrite_function_aliases(formula: String) -> String:
+	var output: String = formula
+	var alias_regex: RegEx = RegEx.new()
+	alias_regex.compile("(?i)\\bln\\s*\\(")
+	output = alias_regex.sub(output, "log(", true)
+	alias_regex.compile("(?i)\\barcsin\\s*\\(")
+	output = alias_regex.sub(output, "asin(", true)
+	alias_regex.compile("(?i)\\barccos\\s*\\(")
+	output = alias_regex.sub(output, "acos(", true)
+	alias_regex.compile("(?i)\\barctan\\s*\\(")
+	output = alias_regex.sub(output, "atan(", true)
+	return _ensure_non_empty_formula(output)
 
 
 func _rewrite_log_with_base(formula: String) -> String:
@@ -185,7 +230,7 @@ func _rewrite_log_with_base(formula: String) -> String:
 			continue
 		output.append("(log(%s)/log(%s))" % [value_expr, base_expr])
 		i = close_paren + 1
-	return "".join(output)
+	return _ensure_non_empty_formula("".join(output))
 
 
 func _rewrite_power_operator(formula: String) -> String:
@@ -209,7 +254,15 @@ func _rewrite_power_operator(formula: String) -> String:
 		var start_idx: int = left_part["start"]
 		var end_idx: int = right_part["end"]
 		rewritten = rewritten.left(start_idx) + "pow(%s, %s)" % [left_expr, right_expr] + rewritten.substr(end_idx + 1)
-	return rewritten
+	return _ensure_non_empty_formula(rewritten)
+
+
+func _ensure_non_empty_formula(value: String) -> String:
+	var trimmed: String = value.strip_edges()
+	if trimmed.is_empty():
+		push_warning("MathEngine: normalización produjo fórmula vacía; se usa expresión segura '0'.")
+		return "0"
+	return trimmed
 
 
 func _extract_power_left(formula: String, start_idx: int) -> Dictionary:
@@ -370,7 +423,7 @@ func linspace(x_min: float, x_max: float, n: int) -> PackedFloat64Array:
 ## Usa diferenciación numérica de dos puntos — funciona para cualquier f diferenciable.
 func get_slope_and_intercept(formula: String) -> Dictionary:
 	var m: float = numerical_derivative(formula, 0.0)
-	var b: float = evaluate(formula, 0.0)
+	var b: float = evaluate_value(formula, 0.0)
 	return {"slope": m, "intercept": b}
 
 
@@ -393,7 +446,7 @@ func find_vertex(formula: String, search_min: float = -50.0,
 		func(x: float) -> float: return numerical_derivative(formula, x),
 		search_min, search_max, tolerance
 	)
-	var vertex_y: float = evaluate(formula, root_x)
+	var vertex_y: float = evaluate_value(formula, root_x)
 	return Vector2(root_x, vertex_y)
 
 
@@ -404,11 +457,11 @@ func find_roots(formula: String, x_min: float = -10.0, x_max: float = 10.0,
 	var roots: PackedFloat64Array = PackedFloat64Array()
 	var step: float = (x_max - x_min) / float(steps)
 	var prev_x: float = x_min
-	var prev_y: float = evaluate(formula, x_min)
+	var prev_y: float = evaluate_value(formula, x_min)
 
 	for i in range(1, steps + 1):
 		var curr_x: float = x_min + step * float(i)
-		var curr_y: float = evaluate(formula, curr_x)
+		var curr_y: float = evaluate_value(formula, curr_x)
 
 		if is_nan(prev_y) or is_nan(curr_y):
 			prev_x = curr_x
@@ -418,7 +471,7 @@ func find_roots(formula: String, x_min: float = -10.0, x_max: float = 10.0,
 		# Se detectó un cambio de signo → existe una raíz en este intervalo
 		if prev_y * curr_y < 0.0:
 			var root: float = find_root_bisect(
-				func(x: float) -> float: return evaluate(formula, x),
+				func(x: float) -> float: return evaluate_value(formula, x),
 				prev_x, curr_x, tolerance
 			)
 			if not is_nan(root):
@@ -545,8 +598,8 @@ func find_inverse(formula: String, target_y: float,
 	# Definimos g(x) = f(x) - target_y y buscamos su raíz.
 	var x0: float = x_guess - 0.1
 	var x1: float = x_guess + 0.1
-	var g0: float = evaluate(formula, x0) - target_y
-	var g1: float = evaluate(formula, x1) - target_y
+	var g0: float = evaluate_value(formula, x0) - target_y
+	var g1: float = evaluate_value(formula, x1) - target_y
 
 	for _i in range(max_iters):
 		if is_nan(g0) or is_nan(g1):
@@ -554,7 +607,7 @@ func find_inverse(formula: String, target_y: float,
 		if absf(g1 - g0) < 1e-15:
 			return NAN
 		var x2: float = x1 - g1 * (x1 - x0) / (g1 - g0)
-		var g2: float = evaluate(formula, x2) - target_y
+		var g2: float = evaluate_value(formula, x2) - target_y
 		if absf(g2) < tolerance:
 			return x2
 		x0 = x1
@@ -598,8 +651,8 @@ func check_injectivity(formula: String, x_min: float = -5.0,
 
 ## Primera derivada numérica usando diferencias centrales: f'(x) ≈ (f(x+h)-f(x-h))/(2h)
 func numerical_derivative(formula: String, x_val: float, h: float = 1e-5) -> float:
-	var f_plus:  float = evaluate(formula, x_val + h)
-	var f_minus: float = evaluate(formula, x_val - h)
+	var f_plus:  float = evaluate_value(formula, x_val + h)
+	var f_minus: float = evaluate_value(formula, x_val - h)
 	if is_nan(f_plus) or is_nan(f_minus):
 		return NAN
 	return (f_plus - f_minus) / (2.0 * h)
@@ -607,9 +660,9 @@ func numerical_derivative(formula: String, x_val: float, h: float = 1e-5) -> flo
 
 ## Segunda derivada numérica: f''(x) ≈ (f(x+h) - 2f(x) + f(x-h)) / h²
 func numerical_second_derivative(formula: String, x_val: float, h: float = 1e-4) -> float:
-	var f_plus:  float = evaluate(formula, x_val + h)
-	var f_zero:  float = evaluate(formula, x_val)
-	var f_minus: float = evaluate(formula, x_val - h)
+	var f_plus:  float = evaluate_value(formula, x_val + h)
+	var f_zero:  float = evaluate_value(formula, x_val)
+	var f_minus: float = evaluate_value(formula, x_val - h)
 	if is_nan(f_plus) or is_nan(f_zero) or is_nan(f_minus):
 		return NAN
 	return (f_plus - 2.0 * f_zero + f_minus) / (h * h)
@@ -645,10 +698,10 @@ func integrate_simpson(formula: String, a: float, b: float, n: int = 100) -> flo
 	if n % 2 != 0:
 		n += 1
 	var h: float = (b - a) / float(n)
-	var total: float = evaluate(formula, a) + evaluate(formula, b)
+	var total: float = evaluate_value(formula, a) + evaluate_value(formula, b)
 	for i in range(1, n):
 		var x: float = a + h * float(i)
-		var fx: float = evaluate(formula, x)
+		var fx: float = evaluate_value(formula, x)
 		if is_nan(fx):
 			continue
 		total += fx * (4.0 if i % 2 != 0 else 2.0)

@@ -77,6 +77,14 @@ const SECTORS: Array[Dictionary] = [
 		"topics": ["injectivity", "inverses", "exponentials", "logarithms", "inverse_trig"]
 	},
 ]
+const SECTOR_SCENE_PATHS: PackedStringArray = [
+	"res://scenes/sectors/sector_0.tscn",
+	"res://scenes/sectors/sector_1_asteroid_belt.tscn",
+	"res://scenes/sectors/sector_2_gravity_wells.tscn",
+	"res://scenes/sectors/sector_3_pulsar_tuner.tscn",
+	"res://scenes/sectors/sector_4_docking_station.tscn",
+	"res://scenes/sectors/sector_5_event_horizon.tscn",
+]
 
 # ---------------------------------------------------------------------------
 # Estado del Jugador
@@ -133,6 +141,17 @@ func go_to_sector(sector_index: int) -> void:
 	SceneTransition.fade_to_scene(scene_path)
 
 
+func unlock_next_level() -> void:
+	var next_sector: int = current_sector + 1
+	if next_sector >= 0 and next_sector < SECTOR_SCENE_PATHS.size():
+		current_sector = next_sector
+		sector_changed.emit(current_sector)
+		get_tree().change_scene_to_file(SECTOR_SCENE_PATHS[current_sector])
+		return
+	current_sector = 0
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+
 ## Devuelve el diccionario de datos del sector actual.
 func get_current_sector_data() -> Dictionary:
 	return get_sector_data(current_sector)
@@ -184,8 +203,8 @@ func validate_formula(player_formula: String, expected_formula: String,
 	var step: float = (x_max - x_min) / float(test_points - 1)
 	for i in range(test_points):
 		var x: float = x_min + step * float(i)
-		var player_y: float = MathEngine.evaluate(player_formula, x)
-		var expected_y: float = MathEngine.evaluate(expected_formula, x)
+		var player_y: float = MathEngine.evaluate_value(player_formula, x)
+		var expected_y: float = MathEngine.evaluate_value(expected_formula, x)
 		if is_nan(player_y) or is_nan(expected_y):
 			continue
 		if absf(player_y - expected_y) > tolerance:

@@ -14,6 +14,7 @@ extends Node2D
 
 ## Emitida cuando la nave llega al final de la trayectoria.
 signal trajectory_completed
+signal reached_goal
 
 ## Emitida cada fotograma con el progreso actual [0, 1].
 signal progress_updated(progress: float)
@@ -52,12 +53,17 @@ var _moving: bool = false
 var _points: PackedVector2Array = PackedVector2Array()
 var _target_rotation: float = 0.0
 var _last_delta: float = 0.016   # Delta en caché para uso en callbacks fuera de _process
+var _path_node: Path2D = null
+var _path_follow: PathFollow2D = null
+var _collision_body: CharacterBody2D = null
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	add_to_group("player_ship")
+	_ensure_collision_body()
 	if plotter:
 		_connect_plotter(plotter)
 	if auto_start and _points.size() > 1:
@@ -70,6 +76,7 @@ func _process(delta: float) -> void:
 		return
 
 	_progress += speed * delta
+	_progress = clampf(_progress, 0.0, 1.0)
 	progress_updated.emit(_progress)
 
 	if _progress >= 1.0:
@@ -78,6 +85,7 @@ func _process(delta: float) -> void:
 		if not loop:
 			_moving = false
 			trajectory_completed.emit()
+			reached_goal.emit()
 		return
 
 	_update_ship_position()
@@ -152,15 +160,23 @@ func _disconnect_plotter(p: FunctionPlotter) -> void:
 func _load_points() -> void:
 	if plotter and plotter.is_plot_valid():
 		_points = plotter.get_screen_points()
+		_rebuild_path_from_plotter()
 		_progress = 0.0
 		_update_ship_position()
 
 
 func _update_ship_position() -> void:
 	var world_pos: Vector2 = get_position_at(_progress)
+	if _path_follow != null:
+		_path_follow.progress_ratio = _progress
+		world_pos = _path_follow.global_position
+	elif plotter:
+		world_pos += plotter.global_position
 	# Desplazar por la posición global del graficador si es un nodo hermano
 	var target_node: Node2D = ship_sprite if ship_sprite else self
-	target_node.position = world_pos
+	target_node.global_position = world_pos
+	if _collision_body and is_instance_valid(_collision_body):
+		_collision_body.global_position = world_pos
 
 	if rotate_to_direction and _points.size() >= 2:
 		var ahead_t: float = clampf(_progress + 0.01, 0.0, 1.0)
@@ -180,7 +196,61 @@ func _update_ship_position() -> void:
 
 func _on_plot_completed(points: PackedVector2Array) -> void:
 	_points = points
+	_rebuild_path_from_plotter()
 	_progress = 0.0
 	_update_ship_position()
 	if auto_start:
 		start()
+
+
+func set_path(path: Path2D) -> void:
+	if _path_node and is_instance_valid(_path_node):
+		_path_node.queue_free()
+	_path_node = path
+	_path_follow = null
+	if _path_node == null:
+		return
+	_path_node.name = "TrajectoryPath"
+	var host: Node = plotter.get_parent() if plotter and plotter.get_parent() else get_parent()
+	if host:
+		host.add_child(_path_node)
+	else:
+		add_child(_path_node)
+	if plotter:
+		_path_node.global_position = plotter.global_position
+	_path_follow = PathFollow2D.new()
+	_path_follow.name = "TrajectoryFollow"
+	_path_follow.rotates = false
+	_path_follow.loop = false
+	_path_follow.progress_ratio = _progress
+	_path_node.add_child(_path_follow)
+
+
+func follow_path(path: Path2D, restart: bool = true) -> void:
+	set_path(path)
+	if restart:
+		reset(true)
+
+
+func _rebuild_path_from_plotter() -> void:
+	if not plotter:
+		return
+	var path: Path2D = plotter.build_path2d()
+	set_path(path)
+
+
+func _ensure_collision_body() -> void:
+	if _collision_body and is_instance_valid(_collision_body):
+		return
+	_collision_body = CharacterBody2D.new()
+	_collision_body.name = "ShipCollisionBody"
+	_collision_body.collision_layer = 1
+	_collision_body.collision_mask = 1
+	_collision_body.add_to_group("player_ship")
+	var shape_node: CollisionShape2D = CollisionShape2D.new()
+	shape_node.name = "CollisionShape2D"
+	var circle: CircleShape2D = CircleShape2D.new()
+	circle.radius = 12.0
+	shape_node.shape = circle
+	_collision_body.add_child(shape_node)
+	add_child(_collision_body)

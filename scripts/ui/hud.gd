@@ -11,6 +11,7 @@ extends CanvasLayer
 
 ## Emitida cuando el jugador envía una fórmula desde la entrada del HUD.
 signal formula_submitted(formula: String)
+signal request_plot(formula: String)
 
 ## Emitida cuando el jugador cambia los límites del dominio.
 signal domain_changed(min_x: float, max_x: float)
@@ -117,6 +118,7 @@ var _is_sanitizing_input: bool = false
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	_force_non_interactive_mouse_ignore(self)
 	_plot_button.pressed.connect(_on_plot_pressed)
 	_theory_button.pressed.connect(_on_theory_pressed)
 	_hint_button.pressed.connect(_on_hint_pressed)
@@ -488,8 +490,8 @@ func _generate_error_explanation(player: String, expected: String) -> String:
 	# Comparar valores en varios puntos de prueba para deducir el tipo de error
 	var diffs: PackedFloat64Array = PackedFloat64Array()
 	for x in [-3.0, -1.0, 0.0, 1.0, 3.0]:
-		var pv: float = MathEngine.evaluate(player, x)
-		var ev: float = MathEngine.evaluate(expected, x)
+		var pv: float = MathEngine.evaluate_value(player, x)
+		var ev: float = MathEngine.evaluate_value(expected, x)
 		if not is_nan(pv) and not is_nan(ev):
 			diffs.append(pv - ev)
 
@@ -543,6 +545,7 @@ func _on_plot_pressed() -> void:
 	if formula.is_empty():
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
+	request_plot.emit(formula)
 	formula_submitted.emit(formula)
 
 
@@ -559,7 +562,9 @@ func _on_back_pressed() -> void:
 
 
 func _on_formula_submitted(formula: String) -> void:
-	formula_submitted.emit(formula.strip_edges())
+	var sanitized: String = formula.strip_edges()
+	request_plot.emit(sanitized)
+	formula_submitted.emit(sanitized)
 
 
 func _on_formula_text_changed(new_text: String) -> void:
@@ -588,8 +593,7 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
-		# No marcar como handled para que la flecha llegue al LineEdit
-		# y mantenga la navegación normal del cursor sin interferencia.
+		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
 		get_viewport().set_input_as_handled()
@@ -688,6 +692,21 @@ func _is_allowed_math_code(code: int) -> bool:
 	if _ALLOWED_LETTERS.contains(ch):
 		return true
 	return false
+
+
+func _force_non_interactive_mouse_ignore(root: Node) -> void:
+	for child_node: Node in root.get_children():
+		_force_non_interactive_mouse_ignore(child_node)
+	if root is ColorRect:
+		var color_rect: ColorRect = root as ColorRect
+		color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return
+	if not (root is Control):
+		return
+	if root is BaseButton or root is LineEdit or root is SpinBox:
+		return
+	var control_node: Control = root as Control
+	control_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _on_answer_validated(correct: bool, feedback: String) -> void:
