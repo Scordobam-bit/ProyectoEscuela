@@ -105,6 +105,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
+const SAVE_PATH: String = "user://save_game.cfg"
 const SAVE_PATH: String = "user://save_data.cfg"
 
 # ---------------------------------------------------------------------------
@@ -269,7 +270,8 @@ func save_progress() -> void:
 	if load_err != OK and load_err != ERR_FILE_NOT_FOUND:
 		push_warning("GameManager: no se pudo leer '%s' antes de guardar (error %d). Se reescribirá." % [SAVE_PATH, load_err])
 	config.set_value("jugador", "sector_actual", current_sector)
-	config.set_value("jugador", "puntuacion_total", total_score)
+	config.set_value("jugador", "puntos_totales", total_score)
+	config.set_value("jugador", "niveles_desbloqueados", SaveSystem.unlocked_sectors.duplicate())
 	config.set_value("jugador", "pistas_usadas", hints_used)
 	config.set_value("jugador", "tutorial_completado", tutorial_completed)
 
@@ -296,7 +298,9 @@ func load_progress() -> void:
 		return   # Sin archivo de guardado previo — primera sesión
 
 	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
-	total_score         = config.get_value("jugador", "puntuacion_total",   0)
+	var legacy_score: int = int(config.get_value("jugador", "puntuacion_total", 0))
+	total_score         = int(config.get_value("jugador", "puntos_totales", legacy_score))
+	var unlocked_levels_data: Variant = config.get_value("jugador", "niveles_desbloqueados", [0])
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
 	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
 
@@ -305,6 +309,11 @@ func load_progress() -> void:
 		var key: String = "sector_%d" % sid
 		if config.has_section_key("desafios", key):
 			completed_challenges[sid] = config.get_value("desafios", key, [])
+
+	if unlocked_levels_data is Array:
+		for idx_variant in unlocked_levels_data:
+			var idx: int = clampi(int(idx_variant), 0, get_last_sector_index())
+			SaveSystem.unlock_sector(idx)
 
 
 ## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.

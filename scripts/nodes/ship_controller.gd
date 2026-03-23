@@ -56,6 +56,7 @@ var _last_delta: float = 0.016   # Delta en caché para uso en callbacks fuera d
 var _path_node: Path2D = null
 var _path_follow: PathFollow2D = null
 var _collision_body: CharacterBody2D = null
+var _owns_path_node: bool = false
 var _owns_runtime_path: bool = false
 var _path_connection_error_logged: bool = false
 
@@ -69,6 +70,7 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("player_ship")
+	_ensure_path_follow_ready()
 	_ensure_collision_body()
 	if plotter:
 		_connect_plotter(plotter)
@@ -210,6 +212,7 @@ func _on_plot_completed(points: PackedVector2Array) -> void:
 
 
 func set_path(path: Path2D) -> void:
+	if _owns_path_node and _path_node and is_instance_valid(_path_node):
 	if path == null:
 		return
 	if not is_inside_tree():
@@ -230,13 +233,16 @@ func set_path(path: Path2D) -> void:
 		_path_node.queue_free()
 		_owns_runtime_path = false
 	_path_node = path
+	_owns_path_node = false
 	_path_follow = null
 	_path_node.name = "TrajectoryPath"
+	var controller_owned_path: bool = _path_node.get_parent() == null
 	var host: Node = plotter.get_parent() if plotter and plotter.get_parent() else get_parent()
 	if host:
 		host.add_child(_path_node)
 	else:
 		add_child(_path_node)
+	_owns_path_node = controller_owned_path
 	_owns_runtime_path = true
 	if plotter:
 		_path_node.global_position = plotter.global_position
@@ -258,6 +264,7 @@ func follow_path(path: Path2D, restart: bool = true) -> void:
 func _rebuild_path_from_plotter() -> void:
 	_ensure_path_connection()
 	if not plotter:
+		push_warning("ShipController: plotter no asignado; no se pudo reconstruir trayectoria.")
 		return
 	if _points.size() < 2:
 		stop()
@@ -270,7 +277,18 @@ func _rebuild_path_from_plotter() -> void:
 	set_path(path)
 
 
+func _ensure_path_follow_ready() -> void:
+	if _path_follow and is_instance_valid(_path_follow):
+		return
+	var parent_follow: PathFollow2D = get_parent() as PathFollow2D
+	if parent_follow and parent_follow.is_inside_tree():
+		_path_follow = parent_follow
+
+
 func _ensure_collision_body() -> void:
+	if self is CharacterBody2D:
+		_collision_body = self as CharacterBody2D
+		return
 	if _collision_body and is_instance_valid(_collision_body):
 		return
 	_collision_body = CharacterBody2D.new()
