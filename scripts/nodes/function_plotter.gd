@@ -141,7 +141,7 @@ var _original_line_color: Color = Color(0.0, 1.0, 0.8, 1.0)
 
 func _ready() -> void:
 	_build_visuals()
-	if auto_plot and MathEngine:
+	if auto_plot and has_node("/root/MathEngine"):
 		plot()
 
 
