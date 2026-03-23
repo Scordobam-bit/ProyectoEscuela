@@ -26,6 +26,10 @@ func _ready() -> void:
 	var tests: Array[Callable] = [
 		test_evaluate_basic,
 		test_evaluate_sin,
+		test_evaluate_inverse_trig,
+		test_evaluate_ln_alias,
+		test_evaluate_log_with_base,
+		test_evaluate_power_operator_rewrite,
 		test_evaluate_rational_continuous_fraction,
 		test_evaluate_non_standard_ambiguous_division_as_rational,
 		test_compose_no_corrupt_exp,
@@ -89,6 +93,38 @@ func test_evaluate_basic() -> bool:
 func test_evaluate_sin() -> bool:
 	var result: float = MathEngine.evaluate("sin(x)", PI / 2.0)
 	return _assert(_approx_equal(result, 1.0, 1e-6), "evaluate('sin(x)', PI/2) ≈ 1",
+		"got %s" % result)
+
+
+func test_evaluate_inverse_trig() -> bool:
+	var asin_val: float = MathEngine.evaluate("asin(x)", 0.5)
+	var acos_val: float = MathEngine.evaluate("acos(x)", 0.5)
+	var atan_val: float = MathEngine.evaluate("atan(x)", 1.0)
+	var ok: bool = _approx_equal(asin_val, PI / 6.0, 1e-6) \
+		and _approx_equal(acos_val, PI / 3.0, 1e-6) \
+		and _approx_equal(atan_val, PI / 4.0, 1e-6)
+	return _assert(ok, "evaluate soporta asin/acos/atan",
+		"asin=%s acos=%s atan=%s" % [asin_val, acos_val, atan_val])
+
+
+func test_evaluate_ln_alias() -> bool:
+	var result: float = MathEngine.evaluate("ln(x)", MathEngine.EULER_E)
+	return _assert(_approx_equal(result, 1.0, 1e-6),
+		"evaluate('ln(x)', e) ≈ 1",
+		"got %s" % result)
+
+
+func test_evaluate_log_with_base() -> bool:
+	var result: float = MathEngine.evaluate("log(2, x)", 8.0)
+	return _assert(_approx_equal(result, 3.0, 1e-6),
+		"evaluate('log(2, x)', 8) == 3",
+		"got %s" % result)
+
+
+func test_evaluate_power_operator_rewrite() -> bool:
+	var result: float = MathEngine.evaluate("sin(x)^2", PI / 2.0)
+	return _assert(_approx_equal(result, 1.0, 1e-6),
+		"evaluate('sin(x)^2', PI/2) == 1",
 		"got %s" % result)
 
 

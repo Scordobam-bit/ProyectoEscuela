@@ -19,7 +19,8 @@ const DEFAULT_LAYOUT: Array = [
 	{
 		"title": "Funciones",
 		"buttons": [
-			["sin", "sin("], ["cos", "cos("], ["tan", "tan("], ["log", "log("], ["ln", "log("], ["abs", "abs("],
+			["sin", "sin("], ["cos", "cos("], ["tan", "tan("], ["asin", "asin("], ["acos", "acos("], ["atan", "atan("],
+			["log", "log("], ["log_b", "log(base, x)"], ["ln", "ln("], ["abs", "abs("],
 		],
 	},
 	{

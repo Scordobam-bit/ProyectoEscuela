@@ -376,16 +376,20 @@ donde  e ≈ 2.71828… (número de Euler)
 const MISSION_BRIEFINGS: Dictionary = {
 	"s0_tutorial": {
 		"title": "🛫 Sector 0 — Academia de Vuelo",
-		"content": """[b]Fase A — Controles[/b]
-Para avanzar, escribe una función [color=#ffcc00]f(x)[/color] que trace tu ruta.
-Usa [color=#ffcc00]Backspace[/color] para corregir y el botón [color=#ffcc00]Graficar[/color] para ejecutar tu vuelo.
+		"content": """[b]¿Qué es una función?[/b]
+Piensa en una [color=#00ffcc]máquina de procesado[/color]:
+entra un valor [b]x[/b], la máquina aplica una regla y sale un único [b]y[/b].
+
+[b]Fase A — Controles[/b]
+Escribe tu función [color=#ffcc00]f(x)[/color] en el panel de fórmula.
+Usa [color=#ffcc00]Backspace[/color] para corregir y [color=#ffcc00]EJECUTAR TRAYECTORIA[/color] para volar.
 
 [b]Fase B — Objetivo[/b]
-Llega al [color=#00ff66]portal verde[/color]. Si el portal está a una altura de [color=#ffcc00]5[/color], prueba escribiendo simplemente [color=#ffcc00]5[/color].
+Llega al [color=#00ff66]portal verde[/color]. Para empezar, usa una función constante:
+[color=#ffcc00]f(x) = 5[/color] (escribe solo [color=#ffcc00]5[/color]).
 
-[b]Fase C — Progresión[/b]
-Al completar esta academia se desbloquea el [color=#00ffcc]Sector 1[/color].
-Cada sector siguiente enseña un concepto nuevo: lineal, cuadrática y más."""
+[b]Pista rápida[/b]
+Si el portal está a altura [color=#ffcc00]5[/color], una función constante mantiene la nave en esa altura en todo x."""
 	},
 	# ── Tutoriales obligatorios por sector ─────────────────────────────────
 	"s1_tutorial": {

@@ -27,6 +27,14 @@ signal formula_evaluated(formula: String, x: float, result: float)
 
 const EULER_E: float = 2.718281828459045
 const GOLDEN_RATIO: float = 1.6180339887498948
+const _CHAR_CODE_0: int = 48
+const _CHAR_CODE_9: int = 57
+const _CHAR_CODE_UPPER_A: int = 65
+const _CHAR_CODE_UPPER_Z: int = 90
+const _CHAR_CODE_LOWER_A: int = 97
+const _CHAR_CODE_LOWER_Z: int = 122
+const _CHAR_CODE_UNDERSCORE: int = 95
+const _CHAR_CODE_DOT: int = 46
 
 # ---------------------------------------------------------------------------
 # Estado privado
@@ -79,6 +87,9 @@ func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloa
 ## Ejemplo educativo: "x/x+3" -> "(x)/(x+3)" y "x/x-3" -> "(x)/(x-3)".
 func _normalize_formula(formula: String) -> String:
 	var f: String = formula.strip_edges()
+	f = _rewrite_ln_alias(f)
+	f = _rewrite_log_with_base(f)
+	f = _rewrite_power_operator(f)
 	var simple_rational: RegEx = RegEx.new()
 	simple_rational.compile("^([\\w\\(\\)\\^\\*\\+\\-]+)\\/([\\w\\(\\)\\^\\*\\+\\-]+)([\\+\\-])([\\w\\(\\)\\^\\*\\+\\-]+)$")
 	var match: RegExMatch = simple_rational.search(f)
@@ -90,6 +101,194 @@ func _normalize_formula(formula: String) -> String:
 		if not numerator.is_empty() and not denominator_base.is_empty() and not denominator_tail.is_empty():
 			return "(%s)/(%s%s%s)" % [numerator, denominator_base, denominator_op, denominator_tail]
 	return f
+
+
+func _rewrite_ln_alias(formula: String) -> String:
+	var re: RegEx = RegEx.new()
+	re.compile("(?i)\\bln\\s*\\(")
+	return re.sub(formula, "log(", true)
+
+
+func _rewrite_log_with_base(formula: String) -> String:
+	var output: PackedStringArray = []
+	var i: int = 0
+	while i < formula.length():
+		if not _is_log_call_start(formula, i):
+			output.append(formula.substr(i, 1))
+			i += 1
+			continue
+		var open_paren: int = i + 3
+		var close_paren: int = _find_matching_paren(formula, open_paren)
+		if close_paren == -1:
+			output.append(formula.substr(i, 1))
+			i += 1
+			continue
+		var inner: String = formula.substr(open_paren + 1, close_paren - open_paren - 1)
+		var comma_idx: int = _find_top_level_comma(inner)
+		if comma_idx == -1:
+			output.append(formula.substr(i, close_paren - i + 1))
+			i = close_paren + 1
+			continue
+		var base_expr: String = _rewrite_log_with_base(inner.substr(0, comma_idx).strip_edges())
+		var value_expr: String = _rewrite_log_with_base(inner.substr(comma_idx + 1).strip_edges())
+		if base_expr.is_empty() or value_expr.is_empty():
+			output.append(formula.substr(i, close_paren - i + 1))
+			i = close_paren + 1
+			continue
+		output.append("(log(%s)/log(%s))" % [value_expr, base_expr])
+		i = close_paren + 1
+	return "".join(output)
+
+
+func _rewrite_power_operator(formula: String) -> String:
+	var rewritten: String = formula
+	var max_passes: int = 128
+	var pass: int = 0
+	while pass < max_passes:
+		pass += 1
+		var idx: int = rewritten.rfind("^")
+		if idx == -1:
+			break
+		var left_part: Dictionary = _extract_power_left(rewritten, idx - 1)
+		var right_part: Dictionary = _extract_power_right(rewritten, idx + 1)
+		if left_part.is_empty() or right_part.is_empty():
+			break
+		var left_expr: String = left_part["expr"]
+		var right_expr: String = right_part["expr"]
+		var start_idx: int = left_part["start"]
+		var end_idx: int = right_part["end"]
+		rewritten = rewritten.left(start_idx) + "pow(%s, %s)" % [left_expr, right_expr] + rewritten.substr(end_idx + 1)
+	return rewritten
+
+
+func _extract_power_left(formula: String, start_idx: int) -> Dictionary:
+	var i: int = start_idx
+	while i >= 0 and formula.unicode_at(i) <= 32:
+		i -= 1
+	if i < 0:
+		return {}
+	var ch: String = formula.substr(i, 1)
+	if ch == ")":
+		var open_idx: int = _find_matching_paren_reverse(formula, i)
+		if open_idx == -1:
+			return {}
+		var expr_start: int = open_idx
+		var fn_end: int = open_idx - 1
+		while fn_end >= 0 and formula.unicode_at(fn_end) <= 32:
+			fn_end -= 1
+		if fn_end >= 0 and _is_identifier_or_number_code(formula.unicode_at(fn_end)):
+			var fn_start: int = fn_end
+			while fn_start >= 0 and _is_identifier_or_number_code(formula.unicode_at(fn_start)):
+				fn_start -= 1
+			fn_start += 1
+			if fn_start <= fn_end:
+				expr_start = fn_start
+		return {"start": expr_start, "expr": formula.substr(expr_start, i - expr_start + 1)}
+	var begin: int = i
+	while begin >= 0 and _is_identifier_or_number_code(formula.unicode_at(begin)):
+		begin -= 1
+	begin += 1
+	if begin > i:
+		return {}
+	return {"start": begin, "expr": formula.substr(begin, i - begin + 1)}
+
+
+func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
+	var i: int = start_idx
+	while i < formula.length() and formula.unicode_at(i) <= 32:
+		i += 1
+	if i >= formula.length():
+		return {}
+	var sign: String = ""
+	if formula.substr(i, 1) == "-":
+		sign = "-"
+		i += 1
+		while i < formula.length() and formula.unicode_at(i) <= 32:
+			i += 1
+		if i >= formula.length():
+			return {}
+	var ch: String = formula.substr(i, 1)
+	if ch == "(":
+		var close_idx: int = _find_matching_paren(formula, i)
+		if close_idx == -1:
+			return {}
+		return {
+			"end": close_idx,
+			"expr": sign + formula.substr(i, close_idx - i + 1),
+		}
+	var end_idx: int = i
+	while end_idx < formula.length() and _is_identifier_or_number_code(formula.unicode_at(end_idx)):
+		end_idx += 1
+	end_idx -= 1
+	if end_idx < i:
+		return {}
+	return {
+		"end": end_idx,
+		"expr": sign + formula.substr(i, end_idx - i + 1),
+	}
+
+
+func _is_identifier_or_number_code(code: int) -> bool:
+	return (code >= _CHAR_CODE_0 and code <= _CHAR_CODE_9) \
+		or (code >= _CHAR_CODE_UPPER_A and code <= _CHAR_CODE_UPPER_Z) \
+		or (code >= _CHAR_CODE_LOWER_A and code <= _CHAR_CODE_LOWER_Z) \
+		or code == _CHAR_CODE_UNDERSCORE \
+		or code == _CHAR_CODE_DOT
+
+
+func _is_log_call_start(formula: String, index: int) -> bool:
+	if index < 0 or index + 3 >= formula.length():
+		return false
+	if formula.substr(index, 3).to_lower() != "log":
+		return false
+	if formula.substr(index + 3, 1) != "(":
+		return false
+	if index == 0:
+		return true
+	return not _is_identifier_or_number_code(formula.unicode_at(index - 1))
+
+
+func _find_matching_paren(formula: String, open_idx: int) -> int:
+	if open_idx < 0 or open_idx >= formula.length() or formula.substr(open_idx, 1) != "(":
+		return -1
+	var depth: int = 0
+	for i in range(open_idx, formula.length()):
+		var ch: String = formula.substr(i, 1)
+		if ch == "(":
+			depth += 1
+		elif ch == ")":
+			depth -= 1
+			if depth == 0:
+				return i
+	return -1
+
+
+func _find_matching_paren_reverse(formula: String, close_idx: int) -> int:
+	if close_idx < 0 or close_idx >= formula.length() or formula.substr(close_idx, 1) != ")":
+		return -1
+	var depth: int = 0
+	for i in range(close_idx, -1, -1):
+		var ch: String = formula.substr(i, 1)
+		if ch == ")":
+			depth += 1
+		elif ch == "(":
+			depth -= 1
+			if depth == 0:
+				return i
+	return -1
+
+
+func _find_top_level_comma(content: String) -> int:
+	var depth: int = 0
+	for i in range(content.length()):
+		var ch: String = content.substr(i, 1)
+		if ch == "(":
+			depth += 1
+		elif ch == ")":
+			depth -= 1
+		elif ch == "," and depth == 0:
+			return i
+	return -1
 
 
 ## Genera N valores x uniformemente espaciados en [x_min, x_max].
