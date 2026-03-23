@@ -198,6 +198,7 @@ func _start_challenge(index: int) -> void:
 
 	# Limpiar línea de referencia previa
 	if _plotter:
+		_plotter.clear_plot()
 		_plotter.reset_line_style()
 
 	if hud_node:

@@ -28,6 +28,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _lab_button:           Button             = $VBoxContainer/LabButton
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
+var _locked_sector_dialog: AcceptDialog = null
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -48,15 +49,27 @@ func _ready() -> void:
 # ---------------------------------------------------------------------------
 
 func _connect_buttons() -> void:
-	_sector0_button.pressed.connect( func() -> void: GameManager.go_to_sector(0))
-	_start_button.pressed.connect(   func() -> void: GameManager.go_to_sector(1))
-	_sector2_button.pressed.connect( func() -> void: GameManager.go_to_sector(2))
-	_sector3_button.pressed.connect( func() -> void: GameManager.go_to_sector(3))
-	_sector4_button.pressed.connect( func() -> void: GameManager.go_to_sector(4))
-	_sector5_button.pressed.connect( func() -> void: GameManager.go_to_sector(5))
+	_sector0_button.pressed.connect( func() -> void: _on_sector_pressed(0))
+	_start_button.pressed.connect(   func() -> void: _on_sector_pressed(1))
+	_sector2_button.pressed.connect( func() -> void: _on_sector_pressed(2))
+	_sector3_button.pressed.connect( func() -> void: _on_sector_pressed(3))
+	_sector4_button.pressed.connect( func() -> void: _on_sector_pressed(4))
+	_sector5_button.pressed.connect( func() -> void: _on_sector_pressed(5))
 	_lab_button.pressed.connect(_on_lab_pressed)
 	_clear_button.pressed.connect(_on_clear_pressed)
 	_confirm_dialog.confirmed.connect(_on_clear_confirmed)
+
+
+func _on_sector_pressed(sector_index: int) -> void:
+	if SaveSystem.is_sector_unlocked(sector_index):
+		GameManager.go_to_sector(sector_index)
+		return
+	if not is_instance_valid(_locked_sector_dialog):
+		_locked_sector_dialog = AcceptDialog.new()
+		_locked_sector_dialog.title = "Sector bloqueado"
+		_locked_sector_dialog.dialog_text = "Debes completar el sector anterior para ver esta pista"
+		add_child(_locked_sector_dialog)
+	_locked_sector_dialog.popup_centered()
 
 
 ## Abre el Laboratorio Estelar (modo sandbox de exploración libre).
@@ -110,7 +123,8 @@ func _apply_sector_state(button: Button, sector_index: int, base_text: String) -
 	else:
 		# Sector bloqueado: color gris + ícono de candado
 		button.text        = "🔒  " + base_text
-		button.disabled    = true
+		button.disabled    = false
+		button.tooltip_text = "Debes completar el sector anterior para ver esta pista"
 		button.add_theme_color_override("font_color",         COLOR_LOCKED)
 		button.add_theme_color_override("font_hover_color",   COLOR_LOCKED)
 		button.add_theme_color_override("font_pressed_color", COLOR_LOCKED)

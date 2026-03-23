@@ -68,6 +68,13 @@ func is_valid_formula(formula: String) -> bool:
 	return _expr.parse(_normalize_formula(formula), ["x"]) == OK
 
 
+## Devuelve la fórmula normalizada que realmente consume Expression.
+## Útil para componentes visuales (p. ej. FunctionPlotter) que deben
+## soportar la misma sintaxis amigable que evaluate().
+func normalize_formula(formula: String) -> String:
+	return _normalize_formula(formula)
+
+
 ## Evalúa una fórmula sobre un arreglo de valores x.
 ## Omite resultados NAN / Inf.
 func evaluate_range(formula: String, x_values: PackedFloat64Array) -> PackedFloat64Array:
