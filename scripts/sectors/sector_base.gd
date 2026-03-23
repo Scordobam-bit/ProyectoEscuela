@@ -316,9 +316,23 @@ func _connect_hud_buttons_in_code() -> void:
 	var theory_button: Button = hud_node.get_node_or_null(_HUD_THEORY_BUTTON_PATH)
 	if theory_button and not theory_button.pressed.is_connected(hud_node._on_theory_pressed):
 		theory_button.pressed.connect(hud_node._on_theory_pressed)
+	if theory_button:
+		theory_button.z_index = _MIN_HUD_LAYER + 80
+		_force_button_parent_ignore(theory_button)
 	var hint_button: Button = hud_node.get_node_or_null(_HUD_HINT_BUTTON_PATH)
 	if hint_button and not hint_button.pressed.is_connected(hud_node._on_hint_pressed):
 		hint_button.pressed.connect(hud_node._on_hint_pressed)
+	if hint_button:
+		hint_button.z_index = _MIN_HUD_LAYER + 80
+		_force_button_parent_ignore(hint_button)
+
+
+func _force_button_parent_ignore(button: Control) -> void:
+	var parent_node: Node = button.get_parent()
+	while parent_node and parent_node != hud_node:
+		if parent_node is Control:
+			(parent_node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent_node = parent_node.get_parent()
 
 
 func _connect_plotter() -> void:

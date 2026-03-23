@@ -2,8 +2,8 @@ extends Node
 
 const _SECTOR_HELP: Dictionary = {
 	0: {
-		"theory": "Una función f(x) es una relación donde a cada x le corresponde un único y.",
-		"hint": "El objetivo está a altura fija. Usa f(x) = 5.",
+		"theory": "Las funciones constantes tienen la forma f(x) = k. Su gráfica es una línea horizontal.",
+		"hint": "La nave está en y=5 y el portal también. Intenta graficar una función que mantenga esa altura.",
 		"domain": "Define un dominio [min, max] para ver la curva en la zona relevante.",
 	},
 	1: {
