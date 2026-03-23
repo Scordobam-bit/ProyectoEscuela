@@ -2,8 +2,6 @@ class_name Sector0Academia
 extends SectorBase
 
 const PLAYER_SHIP_GROUP: StringName = &"player_ship"
-const THEORY_TEXT: String = "Una función es una regla que asigna a cada valor de entrada (x) exactamente un valor de salida (y). En esta academia, tu fórmula define el camino de la nave."
-const HINT_TEXT: String = "El objetivo está a una altura constante. Prueba con una función constante como f(x) = 5 o similar para alcanzar el portal."
 const PORTAL_DEFAULT_COLOR: Color = Color(0.2, 1, 0.35, 0.8)
 const PORTAL_SUCCESS_COLOR: Color = Color(0.0, 1.0, 1.0, 1.0)
 
@@ -54,7 +52,7 @@ func _setup_challenges() -> void:
 			"expected_formula": "5",
 			"feedback_correct": "¡Academia completada! Sector 1 desbloqueado.",
 			"feedback_wrong": "Intenta una función constante que pase por y = 5.",
-			"solution_hint": HINT_TEXT,
+			"solution_hint": SectorDataManager.get_hint_text(0),
 			"score": 50,
 			"waypoints": [],
 		},
@@ -92,32 +90,19 @@ func _on_hud_request_plot(formula: String) -> void:
 			hud_node.show_feedback("¡Comando inválido! " + MathEngine.get_friendly_error_message(normalized_formula), "error")
 		return
 	if _plotter:
-		_plotter.formula = normalized_formula
-	var points: PackedVector2Array = _build_trajectory_points(normalized_formula)
+		_plotter.set_formula_and_plot(normalized_formula)
+	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
 	_apply_trajectory_line(points)
 	if points.size() < 2 and hud_node:
 		hud_node.show_feedback("No se pudo generar una trayectoria válida.", "error")
 
 
-func _build_trajectory_points(formula: String) -> PackedVector2Array:
+func _build_trajectory_points() -> PackedVector2Array:
 	var points: PackedVector2Array = PackedVector2Array()
-	if _plotter == null:
+	if _plotter == null or not _plotter.is_plot_valid():
 		return points
-	var trajectory_point_count: int = maxi(_plotter.sample_count, 2)
-	var step: float = (_plotter.domain_max - _plotter.domain_min) / float(trajectory_point_count - 1)
-	var use_y_clamp: bool = _plotter.y_clamp > 0.0
-	for i in range(trajectory_point_count):
-		var x: float = _plotter.domain_min + step * float(i)
-		var result: Dictionary = MathEngine.evaluate(formula, x)
-		if not result.get("ok", false):
-			continue
-		var y: float = float(result.get("value", NAN))
-		if is_nan(y) or is_inf(y):
-			continue
-		if use_y_clamp and absf(y) > _plotter.y_clamp:
-			continue
-		points.append(_plotter.math_to_screen(Vector2(x, y)))
+	points = _plotter.get_screen_points()
 	return points
 
 
@@ -189,17 +174,19 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 
 
 func _on_theory_requested() -> void:
+	var theory_text: String = SectorDataManager.get_theory_text(0)
 	if hud_node:
-		hud_node.show_feedback(THEORY_TEXT, "info")
-		hud_node.set_mission_text("Teoría", THEORY_TEXT)
+		hud_node.show_feedback(theory_text, "info")
+		hud_node.set_mission_text("Teoría", theory_text)
 	if theory_panel_node:
 		theory_panel_node.show_mission_briefing("s0_tutorial")
 
 
 func _on_hint_requested() -> void:
+	var hint_text: String = SectorDataManager.get_hint_text(0)
 	if hud_node:
-		hud_node.show_feedback("Pista: " + HINT_TEXT, "warning")
-		hud_node.set_mission_text("Pista", HINT_TEXT)
+		hud_node.show_feedback("Pista: " + hint_text, "warning")
+		hud_node.set_mission_text("Pista", hint_text)
 	GameManager.hints_used += 1
 
 
