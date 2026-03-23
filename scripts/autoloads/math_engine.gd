@@ -303,9 +303,9 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 		i += 1
 	if i >= formula.length():
 		return {}
-	var sign: String = ""
+	var math_sign: String = ""
 	if formula.substr(i, 1) == "-":
-		sign = "-"
+		math_sign = "-"
 		i += 1
 		while i < formula.length() and formula.unicode_at(i) <= 32:
 			i += 1
@@ -318,7 +318,7 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 			return {}
 		return {
 			"end": close_idx,
-			"expr": sign + formula.substr(i, close_idx - i + 1),
+			"expr": math_sign + formula.substr(i, close_idx - i + 1),
 		}
 	var end_idx: int = i
 	while end_idx < formula.length() and _is_identifier_or_number_code(formula.unicode_at(end_idx)):
@@ -336,7 +336,7 @@ func _extract_power_right(formula: String, start_idx: int) -> Dictionary:
 		end_idx = fn_close_idx
 	return {
 		"end": end_idx,
-		"expr": sign + formula.substr(i, end_idx - i + 1),
+		"expr": math_sign + formula.substr(i, end_idx - i + 1),
 	}
 
 

@@ -49,12 +49,6 @@ line_color = Color(1, 0.2, 0.4, 1)
 line_width = 2.5
 show_axes = true
 
-[node name="Ship" type="Node2D" parent="."]
-script = ExtResource("2")
-speed = 0.08
-auto_start = false
-rotate_to_direction = true
-
 [node name="TrajectoryPath" type="Path2D" parent="."]
 unique_name_in_owner = true
 position = Vector2(640, 360)
@@ -69,15 +63,20 @@ default_color = Color(1, 0.2, 0.4, 1)
 rotates = true
 loop = false
 
-[node name="ShipBody" type="CharacterBody2D" parent="TrajectoryPath/PathFollower" groups=["player_ship"]]
+[node name="Ship" type="CharacterBody2D" parent="TrajectoryPath/PathFollower" groups=["player_ship"]]
+script = ExtResource("2")
+unique_name_in_owner = true
+speed = 0.08
+auto_start = false
+rotate_to_direction = true
 collision_layer = 1
 collision_mask = 1
 
-[node name="ShipSprite" type="Polygon2D" parent="TrajectoryPath/PathFollower/ShipBody"]
+[node name="ShipSprite" type="Polygon2D" parent="TrajectoryPath/PathFollower/Ship"]
 polygon = PackedVector2Array(0, -14, -8, 10, 0, 5, 8, 10)
 color = Color(1, 0.7, 0, 0.92)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TrajectoryPath/PathFollower/ShipBody"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrajectoryPath/PathFollower/Ship"]
 shape = SubResource("CircleShape2D_ship")
 
 [node name="GoalPortal" type="Area2D" parent="."]

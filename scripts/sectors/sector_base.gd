@@ -34,8 +34,8 @@ signal challenge_started(challenge_index: int)
 # ---------------------------------------------------------------------------
 
 @onready var _plotter: FunctionPlotter = $FunctionPlotter
-@onready var _ship: ShipController = $Ship
-@onready var _meta_area: Area2D = get_node_or_null("MetaArea")
+@onready var _ship: ShipController = get_node_or_null("%Ship")
+@onready var _meta_area: Area2D = get_node_or_null("GoalPortal")
 @export var hud_node: HUD
 @export var theory_panel_node: TheoryPanel
 
@@ -356,8 +356,7 @@ func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
 	_goal_triggered = true
-	challenge_completed.emit()
-	GameManager.unlock_next_level()
+	_on_sector_complete()
 
 
 func _on_formula_submitted_hud(formula: String) -> void:

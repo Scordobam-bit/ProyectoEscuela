@@ -23,7 +23,7 @@ var _constant_function_pattern: RegEx = null
 @onready var _path_follower: PathFollow2D = get_node_or_null("TrajectoryPath/PathFollower")
 @onready var _goal_portal: Area2D = get_node_or_null("GoalPortal")
 @onready var _portal_visual: Polygon2D = get_node_or_null("GoalPortal/PortalVisual")
-@onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/ShipBody")
+@onready var _ship_body: Node2D = get_node_or_null("TrajectoryPath/PathFollower/Ship")
 
 @export_range(0.01, 1.0, 0.01) var path_follow_speed: float = 0.08
 
@@ -84,7 +84,7 @@ func _on_challenge_begin(_challenge_index: int) -> void:
 		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	if hud_node:
 		hud_node.set_domain(START_DOMAIN_MIN, START_DOMAIN_MAX)
-		hud_node.set_math_keyboard_visible(true)
+		hud_node.set_math_keyboard_visible(false)
 	if not GameManager.tutorial_completed:
 		_setup_tutorial_manager()
 		if _tutorial_manager:
@@ -143,6 +143,8 @@ func _apply_path_points(points: PackedVector2Array) -> void:
 		_path_follower.progress_ratio = 0.0
 		if points.is_empty() and _plotter:
 			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
+		elif not points.is_empty():
+			_path_follower.position = points[0]
 	_movement_active = points.size() >= 2
 
 
