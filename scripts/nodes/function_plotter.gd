@@ -346,7 +346,7 @@ func clear_plot() -> void:
 		_function_line.clear_points()
 	# Eliminar líneas de segmentos auxiliares creadas previamente
 	for child in get_children():
-		if child.name.begins_with("_SegLine"):
+		if _is_aux_segment_line(child):
 			child.queue_free()
 	_last_points = PackedVector2Array()
 	_plot_valid = false
@@ -497,7 +497,7 @@ func _safe_evaluate(x_val: float) -> float:
 func _render_segments(segments: Array[PackedVector2Array]) -> void:
 	# Eliminar líneas de segmentos auxiliares creadas previamente
 	for child in get_children():
-		if child.name.begins_with("_SegLine"):
+		if _is_aux_segment_line(child):
 			child.queue_free()
 
 	if segments.is_empty():
@@ -517,6 +517,7 @@ func _render_segments(segments: Array[PackedVector2Array]) -> void:
 		seg_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 		seg_line.end_cap_mode = Line2D.LINE_CAP_ROUND
 		seg_line.joint_mode = Line2D.LINE_JOINT_ROUND
+		seg_line.set_meta("is_aux_segment_line", true)
 		for pt in segments[i]:
 			seg_line.add_point(pt)
 		add_child(seg_line)
@@ -552,4 +553,11 @@ func _draw_axis_label(anchor: Vector2, text: String, is_x_axis: bool) -> void:
 		-1.0,
 		axis_label_font_size,
 		axis_label_color
+	)
+
+
+func _is_aux_segment_line(node: Node) -> bool:
+	return node is Line2D and (
+		node.has_meta("is_aux_segment_line")
+		or node.name.begins_with("_SegLine")
 	)

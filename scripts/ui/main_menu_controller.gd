@@ -28,6 +28,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _lab_button:           Button             = $VBoxContainer/LabButton
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
+var _locked_sector_dialog: AcceptDialog = null
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -63,12 +64,12 @@ func _on_sector_pressed(sector_index: int) -> void:
 	if SaveSystem.is_sector_unlocked(sector_index):
 		GameManager.go_to_sector(sector_index)
 		return
-	var locked_msg: AcceptDialog = AcceptDialog.new()
-	locked_msg.title = "Sector bloqueado"
-	locked_msg.dialog_text = "Debes completar el sector anterior para ver esta pista"
-	add_child(locked_msg)
-	locked_msg.popup_centered()
-	locked_msg.confirmed.connect(func() -> void: locked_msg.queue_free())
+	if not is_instance_valid(_locked_sector_dialog):
+		_locked_sector_dialog = AcceptDialog.new()
+		_locked_sector_dialog.title = "Sector bloqueado"
+		_locked_sector_dialog.dialog_text = "Debes completar el sector anterior para ver esta pista"
+		add_child(_locked_sector_dialog)
+	_locked_sector_dialog.popup_centered()
 
 
 ## Abre el Laboratorio Estelar (modo sandbox de exploración libre).
