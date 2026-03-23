@@ -121,6 +121,7 @@ var _is_sanitizing_input: bool = false
 
 func _ready() -> void:
 	_force_non_interactive_mouse_ignore(self)
+	_force_all_panels_mouse_ignore(self)
 	_plot_button.pressed.connect(_on_plot_pressed)
 	_theory_button.pressed.connect(_on_theory_pressed)
 	_hint_button.pressed.connect(_on_hint_pressed)
@@ -558,6 +559,8 @@ func _on_plot_pressed() -> void:
 	if formula.is_empty():
 		show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
+	var line_edit: LineEdit = _formula_input
+	print("[HUD] Botón Ejecutar presionado. Fórmula: ", line_edit.text)
 	print("[HUD DIAGNOSTIC] Botón presionado. Enviando: ", formula)
 	request_plot.emit(formula)
 	formula_submitted.emit(formula)
@@ -726,6 +729,13 @@ func _force_non_interactive_mouse_ignore(root: Node) -> void:
 		return
 	var control_node: Control = root as Control
 	control_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _force_all_panels_mouse_ignore(root: Node) -> void:
+	for child_node: Node in root.get_children():
+		_force_all_panels_mouse_ignore(child_node)
+	if root is PanelContainer:
+		(root as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _on_answer_validated(correct: bool, feedback: String) -> void:

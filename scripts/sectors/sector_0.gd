@@ -33,7 +33,10 @@ func _ready() -> void:
 	await super._ready()
 	if _hud_unique:
 		hud_node = _hud_unique
-		_connect_hud_plot_request(_hud_unique)
+		if _hud_unique.formula_submitted.is_connected(_on_formula_submitted_hud):
+			_hud_unique.formula_submitted.disconnect(_on_formula_submitted_hud)
+		if not _hud_unique.request_plot.is_connected(_on_hud_request_plot):
+			_hud_unique.request_plot.connect(_on_hud_request_plot)
 	elif hud_node:
 		_connect_hud_plot_request(hud_node)
 	_connect_goal_portal()
@@ -95,6 +98,7 @@ func _on_formula_submitted_sector(_formula: String) -> void:
 
 
 func _on_hud_request_plot(formula: String) -> void:
+	print("[SECTOR] Señal recibida correctamente. Iniciando graficación...")
 	print("[SECTOR DIAGNOSTIC] Señal recibida. Procesando fórmula...")
 	var normalized_formula: String = formula.strip_edges()
 	if normalized_formula.is_empty():
