@@ -9,7 +9,7 @@
 ##   • Mantener el listado de conceptos matemáticos dominados (Logros).
 ##   • Proporcionar una función de "Borrar Progreso" para reiniciar desde cero.
 ##
-## Archivo de guardado: user://save_game.cfg  (formato ConfigFile de Godot)
+## Archivo de guardado: user://save_data.cfg  (formato ConfigFile de Godot)
 extends Node
 
 # ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ signal sector_unlocked(sector_index: int)
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado en la carpeta de datos del usuario.
-const SAVE_FILE: String = "user://save_game.cfg"
+const SAVE_FILE: String = "user://save_data.cfg"
 
 ## Índice del primer sector (siempre desbloqueado).
 const FIRST_SECTOR: int = 0

@@ -38,6 +38,9 @@ const SAVE_FILE_PATH: String = "user://save_data.cfg"
 
 func _ready() -> void:
 	load_game()
+	if GameManager.scene_transition_failed.is_connected(_on_scene_transition_failed):
+		GameManager.scene_transition_failed.disconnect(_on_scene_transition_failed)
+	GameManager.scene_transition_failed.connect(_on_scene_transition_failed)
 	_connect_buttons()
 	_refresh_sector_states()
 
@@ -142,3 +145,12 @@ func _apply_sector_state(button: Button, sector_index: int, base_text: String) -
 ## Se llama cuando un sector nuevo es desbloqueado; refresca el menú.
 func _on_sector_unlocked(_sector_index: int) -> void:
 	_refresh_sector_states()
+
+
+func _on_scene_transition_failed(message: String, _target_scene: String) -> void:
+	if not is_instance_valid(_locked_sector_dialog):
+		_locked_sector_dialog = AcceptDialog.new()
+		add_child(_locked_sector_dialog)
+	_locked_sector_dialog.title = "Error de carga"
+	_locked_sector_dialog.dialog_text = message
+	_locked_sector_dialog.popup_centered()

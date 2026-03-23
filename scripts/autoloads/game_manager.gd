@@ -22,6 +22,7 @@ signal answer_validated(correct: bool, feedback: String)
 
 ## Emitida cuando el jugador modifica valores de inspección del HUD (p. ej. dominio).
 signal inspector_values_changed(sector_index: int, domain_min: float, domain_max: float)
+signal scene_transition_failed(message: String, target_scene: String)
 
 # ---------------------------------------------------------------------------
 # Definición de Sectores
@@ -86,6 +87,7 @@ const SECTOR_SCENE_PATHS: PackedStringArray = [
 	"res://scenes/sectors/sector_4_docking_station.tscn",
 	"res://scenes/sectors/sector_5_event_horizon.tscn",
 ]
+const MAIN_MENU_SCENE_PATH: String = "res://scenes/main_menu.tscn"
 
 # ---------------------------------------------------------------------------
 # Estado del Jugador
@@ -136,9 +138,15 @@ func go_to_sector(sector_index: int) -> void:
 	if data.is_empty():
 		push_warning("GameManager: índice de sector inválido %d" % sector_index)
 		return
+	var scene_path: String = str(data.get("scene", ""))
+	if not _is_scene_path_loadable(scene_path):
+		_handle_scene_load_failure(
+			"No se pudo cargar el sector solicitado. Regresando al menú principal.",
+			scene_path
+		)
+		return
 	current_sector = sector_index
 	sector_changed.emit(sector_index)
-	var scene_path: String = data["scene"]
 	SceneTransition.fade_to_scene(scene_path)
 
 
@@ -146,11 +154,13 @@ func unlock_next_level() -> void:
 	var next_sector: int = current_sector + 1
 	if next_sector >= 0 and next_sector < SECTOR_SCENE_PATHS.size():
 		current_sector = next_sector
+		save_progress()
 		sector_changed.emit(current_sector)
-		get_tree().change_scene_to_file(SECTOR_SCENE_PATHS[current_sector])
+		_try_transition_to_scene(SECTOR_SCENE_PATHS[current_sector])
 		return
 	current_sector = 0
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	save_progress()
+	_try_transition_to_scene(MAIN_MENU_SCENE_PATH)
 
 
 ## Devuelve el diccionario de datos del sector actual.
@@ -336,3 +346,31 @@ func _sync_from_save_system() -> void:
 					sector_challenge_count = s.get("challenge_count", 5)
 					break
 			completed_challenges[sid] = Array(range(sector_challenge_count))
+
+
+func _try_transition_to_scene(scene_path: String) -> void:
+	if not _is_scene_path_loadable(scene_path):
+		_handle_scene_load_failure(
+			"No se pudo cargar la siguiente escena. Tu progreso ya fue guardado.",
+			scene_path
+		)
+		return
+	SceneTransition.fade_to_scene(scene_path)
+
+
+func _is_scene_path_loadable(scene_path: String) -> bool:
+	if scene_path.is_empty():
+		return false
+	if not ResourceLoader.exists(scene_path, "PackedScene"):
+		return false
+	var scene_resource: PackedScene = load(scene_path) as PackedScene
+	return scene_resource != null
+
+
+func _handle_scene_load_failure(message: String, target_scene: String) -> void:
+	push_warning("GameManager: %s Ruta: %s" % [message, target_scene])
+	scene_transition_failed.emit(message, target_scene)
+	if target_scene == MAIN_MENU_SCENE_PATH:
+		return
+	if _is_scene_path_loadable(MAIN_MENU_SCENE_PATH):
+		SceneTransition.fade_to_scene(MAIN_MENU_SCENE_PATH)
