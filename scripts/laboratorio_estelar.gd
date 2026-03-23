@@ -567,7 +567,7 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 	if key_event.keycode in [KEY_ALT, KEY_CTRL, KEY_SHIFT, KEY_META, KEY_DELETE]:
 		get_viewport().set_input_as_handled()
 		return
-	if key_event.keycode < KEY_SPACE and key_event.keycode not in [KEY_BACKSPACE, KEY_ENTER, KEY_KP_ENTER]:
+	if key_event.keycode < KEY_SPACE and key_event.keycode != KEY_BACKSPACE:
 		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode == KEY_BACKSPACE:
@@ -600,6 +600,7 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 		return
 	if not _is_allowed_math_code(key_event.unicode):
 		get_viewport().set_input_as_handled()
+		return
 
 
 func _toggle_keyboard_visibility(visible: bool) -> void:

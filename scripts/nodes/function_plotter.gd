@@ -113,6 +113,11 @@ signal plot_failed(error_message: String)
 @export var axis_color: Color = Color(0.4, 0.4, 0.6, 0.7)
 @export var grid_color: Color = Color(0.32, 0.38, 0.55, 0.28)
 @export_range(10, 24, 1) var axis_label_font_size: int = 13
+@export var axis_tick_half_length: float = 4.0
+@export var axis_label_color: Color = Color(0.86, 0.9, 1.0, 0.95)
+@export var axis_label_offset: float = 8.0
+@export var axis_label_y_side_offset: float = 3.0
+const _DEFAULT_Y_EXTENT_UNITS: float = 15.0
 
 # ---------------------------------------------------------------------------
 # Miembros privados
@@ -148,7 +153,7 @@ func _draw() -> void:
 	var y_extent_px: float = float(y_units) * scale_factor
 	var min_x_tick: int = int(ceil(domain_min))
 	var max_x_tick: int = int(floor(domain_max))
-	var tick_half_len: float = 4.0
+	var tick_half_len: float = axis_tick_half_length
 	for x_tick in range(min_x_tick, max_x_tick + 1):
 		var x_pos: float = float(x_tick) * scale_factor
 		if x_tick != 0:
@@ -164,7 +169,7 @@ func _draw() -> void:
 			axis_color,
 			1.2
 		)
-		_draw_axis_label(Vector2(x_pos, 8.0), str(x_tick), true)
+		_draw_axis_label(Vector2(x_pos, axis_label_offset), str(x_tick), true)
 	for y_tick in range(-y_units, y_units + 1):
 		var y_pos: float = -float(y_tick) * scale_factor
 		if y_tick != 0:
@@ -180,7 +185,7 @@ func _draw() -> void:
 			axis_color,
 			1.2
 		)
-		_draw_axis_label(Vector2(8.0, y_pos), str(y_tick), false)
+		_draw_axis_label(Vector2(axis_label_offset, y_pos), str(y_tick), false)
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +227,7 @@ func _rebuild_axes() -> void:
 
 	var x0: float = domain_min * scale_factor
 	var x1: float = domain_max * scale_factor
-	var y_extent: float = (y_clamp if y_clamp > 0.0 else 15.0) * scale_factor
+	var y_extent: float = (y_clamp if y_clamp > 0.0 else _DEFAULT_Y_EXTENT_UNITS) * scale_factor
 
 	# Eje horizontal (X)
 	_x_axis_line = Line2D.new()
@@ -501,7 +506,7 @@ func _render_segments(segments: Array[PackedVector2Array]) -> void:
 
 
 func _get_y_extent_units() -> int:
-	var y_extent_units: int = int(ceil(y_clamp if y_clamp > 0.0 else 15.0))
+	var y_extent_units: int = int(ceil(y_clamp if y_clamp > 0.0 else _DEFAULT_Y_EXTENT_UNITS))
 	return maxi(y_extent_units, 1)
 
 
@@ -520,7 +525,7 @@ func _draw_axis_label(anchor: Vector2, text: String, is_x_axis: bool) -> void:
 		draw_pos.x -= text_size.x * 0.5
 		draw_pos.y += text_size.y
 	else:
-		draw_pos.x += 3.0
+		draw_pos.x += axis_label_y_side_offset
 		draw_pos.y += text_size.y * 0.5
 	draw_string(
 		fallback_font,
@@ -529,5 +534,5 @@ func _draw_axis_label(anchor: Vector2, text: String, is_x_axis: bool) -> void:
 		HORIZONTAL_ALIGNMENT_LEFT,
 		-1.0,
 		axis_label_font_size,
-		Color(0.86, 0.9, 1.0, 0.95)
+		axis_label_color
 	)
