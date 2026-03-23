@@ -41,6 +41,7 @@ const _CHAR_CODE_DOT: int = 46
 # ---------------------------------------------------------------------------
 
 var _expr: Expression = Expression.new()
+var _power_rightmost_caret_regex: RegEx = null
 
 # ---------------------------------------------------------------------------
 # Evaluación Principal
@@ -142,14 +143,16 @@ func _rewrite_log_with_base(formula: String) -> String:
 
 func _rewrite_power_operator(formula: String) -> String:
 	var rewritten: String = formula
-	var caret_pattern: RegEx = RegEx.new()
-	caret_pattern.compile("\\^")
+	if _power_rightmost_caret_regex == null:
+		_power_rightmost_caret_regex = RegEx.new()
+		_power_rightmost_caret_regex.compile("\\^(?!.*\\^)")
 	var max_passes: int = 128
-	for _pass_idx in range(max_passes):
-		var matches: Array[RegExMatch] = caret_pattern.search_all(rewritten)
-		if matches.is_empty():
+	# Límite de seguridad para evitar bucles infinitos en expresiones malformadas.
+	for _pass in range(max_passes):
+		var match: RegExMatch = _power_rightmost_caret_regex.search(rewritten)
+		if match == null:
 			break
-		var idx: int = matches[matches.size() - 1].get_start()
+		var idx: int = match.get_start()
 		var left_part: Dictionary = _extract_power_left(rewritten, idx - 1)
 		var right_part: Dictionary = _extract_power_right(rewritten, idx + 1)
 		if left_part.is_empty() or right_part.is_empty():
