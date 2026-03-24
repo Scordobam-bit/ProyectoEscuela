@@ -99,7 +99,7 @@ func _process(delta: float) -> void:
 			_moving = false
 			trajectory_completed.emit()
 			if not _reached_goal_emitted:
-				push_warning("Trayectoria Fallida")
+				push_warning("Trayectoria fallida")
 				reset()
 		return
 

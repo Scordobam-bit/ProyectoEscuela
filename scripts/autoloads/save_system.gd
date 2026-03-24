@@ -102,8 +102,6 @@ func mark_sector_complete(sector_index: int, persist_to_disk: bool = true) -> vo
 			unlocked_sectors.append(next)
 			unlocked_sectors.sort()
 			sector_unlocked.emit(next)
-			if persist_to_disk:
-				save_game_data()
 	if persist_to_disk:
 		save_game_data()
 
