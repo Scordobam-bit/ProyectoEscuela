@@ -30,7 +30,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
 @onready var _score_label:          Label              = $VBoxContainer/ScoreLabel
 var _notification_dialog: AcceptDialog = null
-const SAVE_FILE_PATH: String = "user://save_data.cfg"
+const SAVE_FILE_PATH: String = "user://save_game.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida

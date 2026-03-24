@@ -50,6 +50,10 @@ func _process(delta: float) -> void:
 	_path_follower.progress_ratio = minf(_path_follower.progress_ratio + path_follow_speed * delta, 1.0)
 	if _path_follower.progress_ratio >= 1.0:
 		_movement_active = false
+		if not _portal_triggered:
+			if is_instance_valid(hud_node):
+				hud_node.show_feedback("Error de trayectoria", "error")
+			_clear_trajectory_path()
 
 
 func _setup_challenges() -> void:
@@ -159,7 +163,8 @@ func _clear_trajectory_path() -> void:
 		_trajectory_path.curve = Curve2D.new()
 	_trajectory_path.curve.clear_points()
 	if _path_follower:
-		_path_follower.progress_ratio = 0.0
+		if _can_advance_path_follower():
+			_path_follower.progress_ratio = 0.0
 		if _plotter:
 			_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
 	if _ship_body:
