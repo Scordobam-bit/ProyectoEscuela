@@ -28,7 +28,7 @@ signal progress_updated(progress: float)
 
 ## Velocidad de movimiento a lo largo de la trayectoria (unidades de progreso por segundo, escala 0–1).
 @export_range(0.01, 1.0, 0.01) var speed: float = 0.1
-const SPEED_MULTIPLIER: float = 4.0
+const SPEED_MULTIPLIER: float = 2.0
 
 ## Si es true, la nave comienza a moverse automáticamente cuando se establece la trayectoria.
 @export var auto_start: bool = false
@@ -60,6 +60,7 @@ var _collision_body: CharacterBody2D = null
 var _owns_path_node: bool = false
 var _owns_runtime_path: bool = false
 var _path_connection_error_logged: bool = false
+var _goal_reached_by_signal: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -71,6 +72,8 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("player_ship")
+	if not reached_goal.is_connected(_on_reached_goal):
+		reached_goal.connect(_on_reached_goal)
 	_ensure_path_follow_ready()
 	_ensure_collision_body()
 	if plotter:
@@ -94,6 +97,9 @@ func _process(delta: float) -> void:
 		if not loop:
 			_moving = false
 			trajectory_completed.emit()
+			if not _goal_reached_by_signal:
+				push_warning("Trayectoria fallida")
+				reset()
 		return
 
 	_update_ship_position()
@@ -118,6 +124,7 @@ func start() -> void:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
 	_progress = 0.0
+	_goal_reached_by_signal = false
 	_teleport_to_curve_start()
 	_update_ship_position()
 	_moving = true
@@ -132,6 +139,7 @@ func stop() -> void:
 func reset(restart: bool = false) -> void:
 	_progress = 0.0
 	_moving = false
+	_goal_reached_by_signal = false
 	_update_ship_position()
 	if restart:
 		start()
@@ -380,3 +388,7 @@ func _teleport_to_curve_start() -> void:
 	target_node.global_position = world_start
 	if _collision_body and is_instance_valid(_collision_body):
 		_collision_body.global_position = world_start
+
+
+func _on_reached_goal() -> void:
+	_goal_reached_by_signal = true

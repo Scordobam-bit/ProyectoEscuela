@@ -103,7 +103,7 @@ color = Color(0.2, 1, 0.35, 0.8)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MetaArea"]
 shape = SubResource("CircleShape2D_goal")
 
-[node name="ObstacleTop" type="StaticBody2D" parent="."]
+[node name="ObstacleTop" type="StaticBody2D" parent="." groups=["Obstaculos"]]
 collision_layer = 1
 collision_mask = 1
 
@@ -111,7 +111,7 @@ collision_mask = 1
 position = Vector2(640, 70)
 shape = SubResource("RectangleShape2D_top_block")
 
-[node name="ObstacleTopSensor" type="Area2D" parent="." groups=["mission_obstacle"]]
+[node name="ObstacleTopSensor" type="Area2D" parent="." groups=["mission_obstacle", "Obstaculos"]]
 collision_layer = 1
 collision_mask = 1
 monitoring = true
@@ -121,7 +121,7 @@ monitorable = true
 position = Vector2(640, 70)
 shape = SubResource("RectangleShape2D_top_block")
 
-[node name="ObstacleBottom" type="StaticBody2D" parent="."]
+[node name="ObstacleBottom" type="StaticBody2D" parent="." groups=["Obstaculos"]]
 collision_layer = 1
 collision_mask = 1
 
@@ -129,7 +129,7 @@ collision_mask = 1
 position = Vector2(640, 450)
 shape = SubResource("RectangleShape2D_bottom_block")
 
-[node name="ObstacleBottomSensor" type="Area2D" parent="." groups=["mission_obstacle"]]
+[node name="ObstacleBottomSensor" type="Area2D" parent="." groups=["mission_obstacle", "Obstaculos"]]
 collision_layer = 1
 collision_mask = 1
 monitoring = true

@@ -197,6 +197,8 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 	_portal_triggered = true
 	_movement_active = false
 	_goal_triggered = true
+	if is_instance_valid(_ship):
+		_ship.reached_goal.emit()
 	if is_instance_valid(hud_node):
 		hud_node.set_controls_enabled(false)
 	if _portal_visual:
