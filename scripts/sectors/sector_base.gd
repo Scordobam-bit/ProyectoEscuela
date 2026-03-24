@@ -50,6 +50,7 @@ var _sector_ready_for_portal: bool = false
 
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
+const _RESET_WITHOUT_RESTART: bool = false
 const _HUD_PLOT_BUTTON_PATH: String = "%BtnEjecutar"
 const _HUD_THEORY_BUTTON_PATH: String = "%BtnTeoria"
 const _HUD_HINT_BUTTON_PATH: String = "%BtnPista"
@@ -444,7 +445,7 @@ func _on_formula_submitted_hud(formula: String) -> void:
 		var generated_path: Path2D = _plotter.build_path2d()
 		if generated_path and generated_path.curve:
 			path_length = generated_path.curve.get_baked_length()
-		_ship.reset(false)
+		_ship.reset(_RESET_WITHOUT_RESTART)
 		if path_length > 0.0:
 			_ship.start()
 		elif is_instance_valid(hud_node):

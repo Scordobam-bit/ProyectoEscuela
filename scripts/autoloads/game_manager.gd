@@ -327,13 +327,7 @@ func register_sector_victory(sector_index: int) -> void:
 ## 1) actualiza puntos y progreso en memoria, 2) persiste inmediatamente, 3) habilita transición segura.
 func process_sector_victory_atomic(sector_index: int, challenge_index: int, score: int) -> void:
 	complete_challenge(sector_index, challenge_index, score)
-	if sector_index not in SaveSystem.completed_sectors:
-		SaveSystem.completed_sectors.append(sector_index)
-		SaveSystem.completed_sectors.sort()
-	var next_sector: int = sector_index + 1
-	if next_sector <= get_last_sector_index() and next_sector not in SaveSystem.unlocked_sectors:
-		SaveSystem.unlocked_sectors.append(next_sector)
-		SaveSystem.unlocked_sectors.sort()
+	SaveSystem.mark_sector_complete(sector_index, false)
 	SaveSystem.total_score = total_score
 	SaveSystem.tutorial_completed = tutorial_completed
 	save_progress()

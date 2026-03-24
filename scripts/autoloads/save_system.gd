@@ -91,15 +91,21 @@ func is_sector_unlocked(sector_index: int) -> bool:
 ## Marca un sector como completado y desbloquea el siguiente.
 ## Llama a save_game_data() directamente al final, y también de forma
 ## indirecta a través de unlock_sector() cuando hay un sector siguiente.
-func mark_sector_complete(sector_index: int) -> void:
+func mark_sector_complete(sector_index: int, persist_to_disk: bool = true) -> void:
 	if sector_index not in completed_sectors:
 		completed_sectors.append(sector_index)
 		completed_sectors.sort()
 	# Desbloquear el sector siguiente automáticamente
 	var next: int = sector_index + 1
 	if next <= MAX_SECTOR_INDEX:
-		unlock_sector(next)
-	save_game_data()
+		if next not in unlocked_sectors:
+			unlocked_sectors.append(next)
+			unlocked_sectors.sort()
+			sector_unlocked.emit(next)
+			if persist_to_disk:
+				save_game_data()
+	if persist_to_disk:
+		save_game_data()
 
 
 ## Devuelve true si el sector dado ha sido completado.
