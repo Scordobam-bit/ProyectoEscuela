@@ -205,7 +205,7 @@ func _update_ship_position() -> void:
 		target_node.rotation = _target_rotation
 
 
-func _can_set_progress_ratio() -> bool:
+func _is_path_ready_for_progress_ratio() -> bool:
 	if not _has_parent_path_hierarchy():
 		return false
 	if _path_node.curve == null:
@@ -244,7 +244,7 @@ func set_path(path: Path2D) -> void:
 		if source_curve:
 			for point_idx in range(source_curve.point_count):
 				_path_node.curve.add_point(source_curve.get_point_position(point_idx))
-		if _can_set_progress_ratio():
+		if _is_path_ready_for_progress_ratio():
 			_path_follow.progress_ratio = _progress
 		return
 	if _path_node and is_instance_valid(_path_node) and _owns_runtime_path:
@@ -269,7 +269,7 @@ func set_path(path: Path2D) -> void:
 	_path_follow.rotates = false
 	_path_follow.loop = false
 	_path_node.add_child(_path_follow)
-	if _can_set_progress_ratio():
+	if _is_path_ready_for_progress_ratio():
 		_path_follow.progress_ratio = _progress
 
 

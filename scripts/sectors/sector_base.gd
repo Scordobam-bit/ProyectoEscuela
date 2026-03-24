@@ -383,7 +383,7 @@ func _on_formula_submitted_hud(formula: String) -> void:
 			hud_node.show_feedback("¡Comando inválido! " + detailed_error, "error")
 		return
 
-	if _plotter:
+	if is_instance_valid(_plotter):
 		if is_instance_valid(hud_node):
 			var domain: Array[float] = hud_node.get_domain()
 			if domain.size() >= 2:
@@ -392,7 +392,7 @@ func _on_formula_submitted_hud(formula: String) -> void:
 		_plotter.set_formula_and_plot(formula)
 
 	# Verificar colisión con obstáculos antes de validar la fórmula
-	if _obstacle_manager and _plotter and _plotter.is_plot_valid():
+	if _obstacle_manager and is_instance_valid(_plotter) and _plotter.is_plot_valid():
 		var trajectory_points: PackedVector2Array = _plotter.get_screen_points()
 		if _obstacle_manager.check_trajectory_collision(trajectory_points):
 			var hit_name: String = _obstacle_manager.get_last_hit_name()
@@ -402,7 +402,7 @@ func _on_formula_submitted_hud(formula: String) -> void:
 				_ship.reset()
 			return  # No validar la fórmula si impacta un obstáculo
 
-	if _ship and _plotter and _plotter.is_plot_valid():
+	if _ship and is_instance_valid(_plotter) and _plotter.is_plot_valid():
 		_ship.reset(true)
 
 	_on_formula_submitted_sector(formula)
