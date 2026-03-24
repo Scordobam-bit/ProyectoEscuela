@@ -141,7 +141,7 @@ func _create_star_layer(
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(motion_scale.x * 1000) + star_count
 
-	for _ in range(star_count):
+	for _star_index in range(star_count):
 		var star: Polygon2D = Polygon2D.new()
 		var r: float = rng.randf_range(min_radius, max_radius)
 		star.polygon = PackedVector2Array([

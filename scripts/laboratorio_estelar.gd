@@ -624,12 +624,12 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 		return
 
 
-func _toggle_keyboard_visibility(visible: bool) -> void:
+func _toggle_keyboard_visibility(p_visible: bool) -> void:
 	var keyboard_panel: Control = _hud_layer.get_node_or_null("BottomPanel/KeyboardPanel")
 	if keyboard_panel:
-		keyboard_panel.visible = visible
+		keyboard_panel.visible = p_visible
 	if _keyboard_toggle_button:
-		_keyboard_toggle_button.button_pressed = visible
+		_keyboard_toggle_button.button_pressed = p_visible
 
 
 func _insert_at_cursor(input: LineEdit, text: String) -> void:
