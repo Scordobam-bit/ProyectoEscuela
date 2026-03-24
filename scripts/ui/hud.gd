@@ -562,7 +562,6 @@ func _on_plot_pressed() -> void:
 		return
 	print("[HUD] Botón Ejecutar presionado. Fórmula: ", _formula_input.text)
 	request_plot.emit(formula)
-	formula_submitted.emit(formula)
 
 
 func _on_theory_pressed() -> void:
@@ -579,8 +578,9 @@ func _on_back_pressed() -> void:
 
 func _on_formula_submitted(formula: String) -> void:
 	var sanitized: String = formula.strip_edges()
+	if sanitized.is_empty():
+		return
 	request_plot.emit(sanitized)
-	formula_submitted.emit(sanitized)
 
 
 func _on_formula_focus_entered() -> void:
@@ -617,10 +617,6 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 	var key_event: InputEventKey = event as InputEventKey
 	if not key_event.pressed or key_event.echo:
 		return
-	if key_event.keycode == KEY_ENTER or key_event.keycode == KEY_KP_ENTER:
-		_on_plot_pressed()
-		get_viewport().set_input_as_handled()
-		return
 	if key_event.keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
 		get_viewport().set_input_as_handled()
 		return
@@ -631,9 +627,14 @@ func _on_formula_gui_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode == KEY_BACKSPACE:
-		var sel_from: int = _formula_input.get_selection_from_column()
-		var sel_to: int = _formula_input.get_selection_to_column()
-		if sel_from != sel_to:
+		# Evita manipular selección/caret de LineEdit cuando no tiene foco,
+		# lo que evita errores internos del motor al borrar sin contexto activo.
+		if not _formula_input.has_focus():
+			get_viewport().set_input_as_handled()
+			return
+		if _formula_input.has_selection():
+			var sel_from: int = _formula_input.get_selection_from_column()
+			var sel_to: int = _formula_input.get_selection_to_column()
 			var current_text: String = _formula_input.text
 			var from_col: int = mini(sel_from, sel_to)
 			var to_col: int = maxi(sel_from, sel_to)

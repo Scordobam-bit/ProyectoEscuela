@@ -28,7 +28,7 @@ signal progress_updated(progress: float)
 
 ## Velocidad de movimiento a lo largo de la trayectoria (unidades de progreso por segundo, escala 0–1).
 @export_range(0.01, 1.0, 0.01) var speed: float = 0.1
-const SPEED_MULTIPLIER: float = 2.0
+const SPEED_MULTIPLIER: float = 4.0
 
 ## Si es true, la nave comienza a moverse automáticamente cuando se establece la trayectoria.
 @export var auto_start: bool = false

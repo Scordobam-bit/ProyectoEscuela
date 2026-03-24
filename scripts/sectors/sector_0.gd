@@ -35,12 +35,8 @@ func _ready() -> void:
 	await super._ready()
 	if _hud_unique:
 		hud_node = _hud_unique
-		if _hud_unique.formula_submitted.is_connected(_on_formula_submitted_hud):
-			_hud_unique.formula_submitted.disconnect(_on_formula_submitted_hud)
-		if not _hud_unique.request_plot.is_connected(_on_hud_request_plot):
-			_hud_unique.request_plot.connect(_on_hud_request_plot)
-	elif hud_node:
-		_connect_hud_plot_request(hud_node)
+		if _hud_unique.request_plot.is_connected(_on_hud_request_plot):
+			_hud_unique.request_plot.disconnect(_on_hud_request_plot)
 	_connect_goal_portal()
 
 
@@ -101,6 +97,10 @@ func _setup_obstacles_for_challenge(_challenge_index: int) -> void:
 
 func _on_formula_submitted_sector(_formula: String) -> void:
 	pass
+
+
+func plot_formula(formula: String) -> void:
+	_on_hud_request_plot(formula)
 
 
 func _on_hud_request_plot(formula: String) -> void:
@@ -248,13 +248,6 @@ func _ensure_constant_function_text(message: String) -> String:
 	if trimmed.is_empty():
 		return CONSTANT_FUNCTION_TOKEN
 	return trimmed + " " + CONSTANT_FUNCTION_REMINDER
-
-
-func _connect_hud_plot_request(target_hud: HUD) -> void:
-	if target_hud.formula_submitted.is_connected(_on_formula_submitted_hud):
-		target_hud.formula_submitted.disconnect(_on_formula_submitted_hud)
-	if not target_hud.request_plot.is_connected(_on_hud_request_plot):
-		target_hud.request_plot.connect(_on_hud_request_plot)
 
 
 func _validate_ship_start_alignment(formula: String) -> void:
