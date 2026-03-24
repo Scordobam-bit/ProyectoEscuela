@@ -383,23 +383,23 @@ func _connect_goal_area() -> void:
 
 
 func _connect_mission_obstacle_areas() -> void:
-	var obstacles: Array[Node] = []
-	obstacles.append_array(get_tree().get_nodes_in_group("mission_obstacle"))
-	obstacles.append_array(get_tree().get_nodes_in_group("Obstaculos"))
 	var connected_obstacles: Dictionary = {}
-	for obstacle_node: Node in obstacles:
-		if not (obstacle_node is Area2D):
-			continue
-		var obstacle_area: Area2D = obstacle_node as Area2D
-		if connected_obstacles.has(obstacle_area.get_instance_id()):
-			continue
-		connected_obstacles[obstacle_area.get_instance_id()] = true
-		if obstacle_area.get_tree() != get_tree():
-			continue
-		if not is_ancestor_of(obstacle_area):
-			continue
-		if not obstacle_area.body_entered.is_connected(_on_mission_obstacle_body_entered):
-			obstacle_area.body_entered.connect(_on_mission_obstacle_body_entered)
+	var obstacle_groups: PackedStringArray = ["mission_obstacle", "Obstaculos"]
+	for group_name: String in obstacle_groups:
+		var obstacles: Array[Node] = get_tree().get_nodes_in_group(group_name)
+		for obstacle_node: Node in obstacles:
+			if not (obstacle_node is Area2D):
+				continue
+			var obstacle_area: Area2D = obstacle_node as Area2D
+			if connected_obstacles.has(obstacle_area.get_instance_id()):
+				continue
+			connected_obstacles[obstacle_area.get_instance_id()] = true
+			if obstacle_area.get_tree() != get_tree():
+				continue
+			if not is_ancestor_of(obstacle_area):
+				continue
+			if not obstacle_area.body_entered.is_connected(_on_mission_obstacle_body_entered):
+				obstacle_area.body_entered.connect(_on_mission_obstacle_body_entered)
 
 
 func _on_meta_area_body_entered(body: Node) -> void:

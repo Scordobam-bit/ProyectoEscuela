@@ -61,7 +61,7 @@ var _collision_body: CharacterBody2D = null
 var _owns_path_node: bool = false
 var _owns_runtime_path: bool = false
 var _path_connection_error_logged: bool = false
-var _reached_goal_emitted: bool = false
+var _goal_reached_by_signal: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -98,7 +98,7 @@ func _process(delta: float) -> void:
 		if not loop:
 			_moving = false
 			trajectory_completed.emit()
-			if not _reached_goal_emitted:
+			if not _goal_reached_by_signal:
 				push_warning("Trayectoria fallida")
 				reset()
 		return
@@ -125,7 +125,7 @@ func start() -> void:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
 	_progress = 0.0
-	_reached_goal_emitted = false
+	_goal_reached_by_signal = false
 	_teleport_to_curve_start()
 	_update_ship_position()
 	_moving = true
@@ -140,7 +140,7 @@ func stop() -> void:
 func reset(restart: bool = false) -> void:
 	_progress = 0.0
 	_moving = false
-	_reached_goal_emitted = false
+	_goal_reached_by_signal = false
 	_update_ship_position()
 	if restart:
 		start()
@@ -392,4 +392,4 @@ func _teleport_to_curve_start() -> void:
 
 
 func _on_reached_goal() -> void:
-	_reached_goal_emitted = true
+	_goal_reached_by_signal = true
