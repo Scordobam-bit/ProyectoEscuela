@@ -73,6 +73,7 @@ func _ready() -> void:
 		hud_node.layer = _MIN_HUD_LAYER
 	_connect_hud_buttons_in_code()
 	_connect_goal_area()
+	_connect_mission_obstacle_areas()
 	_force_cartesian_axes_visible()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
@@ -316,8 +317,8 @@ func _connect_hud() -> void:
 		return
 	if hud_node.formula_submitted.is_connected(_on_formula_submitted_hud):
 		hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
-	if not hud_node.request_plot.is_connected(_on_formula_submitted_hud):
-		hud_node.request_plot.connect(_on_formula_submitted_hud)
+	if not hud_node.request_plot.is_connected(plot_formula):
+		hud_node.request_plot.connect(plot_formula)
 	if sector_index >= 1 and is_instance_valid(_plotter):
 		var line_edit: LineEdit = hud_node.get_node_or_null("HUDPanel/Margin/VBox/FormulaRow/FormulaInput")
 		if is_instance_valid(line_edit) and not line_edit.text_submitted.is_connected(_on_formula_text_submitted):
@@ -377,6 +378,20 @@ func _connect_goal_area() -> void:
 		_meta_area.body_entered.connect(_on_meta_area_body_entered)
 
 
+func _connect_mission_obstacle_areas() -> void:
+	var obstacles: Array[Node] = get_tree().get_nodes_in_group("mission_obstacle")
+	for obstacle_node: Node in obstacles:
+		if not (obstacle_node is Area2D):
+			continue
+		var obstacle_area: Area2D = obstacle_node as Area2D
+		if obstacle_area.get_tree() != get_tree():
+			continue
+		if not is_ancestor_of(obstacle_area):
+			continue
+		if not obstacle_area.body_entered.is_connected(_on_mission_obstacle_body_entered):
+			obstacle_area.body_entered.connect(_on_mission_obstacle_body_entered)
+
+
 func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
@@ -411,16 +426,17 @@ func _on_formula_submitted_hud(formula: String) -> void:
 		var trajectory_points: PackedVector2Array = _plotter.get_screen_points()
 		if _obstacle_manager.check_trajectory_collision(trajectory_points):
 			var hit_name: String = _obstacle_manager.get_last_hit_name()
-			if is_instance_valid(hud_node):
-				hud_node.show_mission_failed(hit_name)
-			if _ship:
-				_ship.reset()
+			_on_mission_failed(hit_name)
 			return  # No validar la fórmula si impacta un obstáculo
 
 	if _ship and is_instance_valid(_plotter) and _plotter.is_plot_valid():
 		_ship.reset(true)
 
 	_on_formula_submitted_sector(formula)
+
+
+func plot_formula(formula: String) -> void:
+	_on_formula_submitted_hud(formula)
 
 
 func _on_formula_text_submitted(formula: String) -> void:
@@ -470,11 +486,18 @@ func _on_theory_requested() -> void:
 	if is_instance_valid(hud_node) and not sector_theory.is_empty():
 		hud_node.set_mission_text("Teoría", sector_theory)
 	if is_instance_valid(theory_panel_node):
+		var prev_mode: Node.ProcessMode = theory_panel_node.process_mode
+		theory_panel_node.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+		var was_paused: bool = get_tree().paused
+		get_tree().paused = true
 		var tutorial_key: String = _get_sector_tutorial_key()
 		if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
 			theory_panel_node.show_mission_briefing(tutorial_key)
 		else:
 			theory_panel_node.show_sector_theory(sector_index)
+		await theory_panel_node.panel_closed
+		get_tree().paused = was_paused
+		theory_panel_node.process_mode = prev_mode
 
 
 func _on_hint_requested() -> void:
@@ -486,9 +509,16 @@ func _on_hint_requested() -> void:
 		if is_instance_valid(hud_node):
 			hud_node.show_feedback("Pista: " + hint, "warning")
 		if is_instance_valid(theory_panel_node):
+			var prev_mode: Node.ProcessMode = theory_panel_node.process_mode
+			theory_panel_node.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+			var was_paused: bool = get_tree().paused
+			get_tree().paused = true
 			var tutorial_key: String = _get_sector_tutorial_key()
 			if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
 				theory_panel_node.show_mission_briefing(tutorial_key)
+				await theory_panel_node.panel_closed
+			get_tree().paused = was_paused
+			theory_panel_node.process_mode = prev_mode
 		GameManager.hints_used += 1
 
 
@@ -534,3 +564,22 @@ func _on_ship_trajectory_completed() -> void:
 		hud_node.show_feedback("Trayectoria Fallida", "error")
 	if is_instance_valid(_ship):
 		_ship.reset()
+
+
+func _on_mission_obstacle_body_entered(body: Node) -> void:
+	if body == null or not body.is_in_group("player_ship"):
+		return
+	_on_mission_failed("Obstáculo")
+
+
+func _on_mission_failed(obstacle_name: String = "") -> void:
+	_goal_triggered = false
+	_sector_ready_for_portal = false
+	if is_instance_valid(_ship):
+		_ship.stop()
+		_ship.reset()
+	if is_instance_valid(hud_node):
+		if obstacle_name.is_empty():
+			hud_node.show_feedback("⚠ MISIÓN FALLIDA — Impacto detectado.", "mission_failed")
+		else:
+			hud_node.show_mission_failed(obstacle_name)

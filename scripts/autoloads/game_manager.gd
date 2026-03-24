@@ -117,6 +117,9 @@ const SAVE_PATH: String = "user://save_game.cfg"
 func _ready() -> void:
 	session_start_time = Time.get_ticks_msec() / 1000.0
 	_initialise_progress()
+	if not FileAccess.file_exists(SAVE_PATH):
+		_apply_new_game_defaults()
+		save_to_disk()
 	load_progress()   # Cargar progreso guardado al iniciar
 
 	# Sincronizar estado con SaveSystem
@@ -146,6 +149,7 @@ func go_to_sector(sector_index: int) -> void:
 		)
 		return
 	current_sector = sector_index
+	save_to_disk()
 	sector_changed.emit(sector_index)
 	SceneTransition.fade_to_scene(scene_path)
 
@@ -161,7 +165,7 @@ func unlock_next_level() -> void:
 			)
 			return
 		current_sector = next_sector
-		save_progress()
+		save_to_disk()
 		sector_changed.emit(current_sector)
 		SceneTransition.fade_to_scene(next_scene_path)
 		return
@@ -171,7 +175,7 @@ func unlock_next_level() -> void:
 			MAIN_MENU_SCENE_PATH
 		)
 		return
-	save_progress()
+	save_to_disk()
 	SceneTransition.fade_to_scene(MAIN_MENU_SCENE_PATH)
 
 
@@ -304,6 +308,13 @@ func save_progress() -> void:
 	var err: Error = config.save(SAVE_PATH)
 	if err != OK:
 		push_warning("GameManager: no se pudo guardar el progreso en '%s' (error %d)" % [SAVE_PATH, err])
+
+
+## Guarda el progreso actual en disco delegando en save_progress().
+## Alias semántico para persistencia previa a transiciones de escena.
+## Mantiene explícita la intención de "guardar en disco antes de cambiar de sector".
+func save_to_disk() -> void:
+	save_progress()
 
 
 ## Registra una victoria de sector y persiste progreso/desbloqueo de forma centralizada.

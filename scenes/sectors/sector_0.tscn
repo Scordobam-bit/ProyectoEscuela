@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/nodes/function_plotter.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/nodes/ship_controller.gd" id="4"]
@@ -12,6 +12,12 @@ radius = 12.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_goal"]
 radius = 8.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_top_block"]
+size = Vector2(1280, 140)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bottom_block"]
+size = Vector2(1280, 540)
 
 [node name="Sector0" type="Node2D"]
 script = ExtResource("2")
@@ -96,6 +102,42 @@ color = Color(0.2, 1, 0.35, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MetaArea"]
 shape = SubResource("CircleShape2D_goal")
+
+[node name="ObstacleTop" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ObstacleTop"]
+position = Vector2(640, 70)
+shape = SubResource("RectangleShape2D_top_block")
+
+[node name="ObstacleTopSensor" type="Area2D" parent="." groups=["mission_obstacle"]]
+collision_layer = 1
+collision_mask = 1
+monitoring = true
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ObstacleTopSensor"]
+position = Vector2(640, 70)
+shape = SubResource("RectangleShape2D_top_block")
+
+[node name="ObstacleBottom" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ObstacleBottom"]
+position = Vector2(640, 450)
+shape = SubResource("RectangleShape2D_bottom_block")
+
+[node name="ObstacleBottomSensor" type="Area2D" parent="." groups=["mission_obstacle"]]
+collision_layer = 1
+collision_mask = 1
+monitoring = true
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ObstacleBottomSensor"]
+position = Vector2(640, 450)
+shape = SubResource("RectangleShape2D_bottom_block")
 
 [node name="HUD_Layer" type="CanvasLayer" parent="."]
 layer = 20
