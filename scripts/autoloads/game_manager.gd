@@ -375,6 +375,7 @@ func load_progress() -> void:
 				requested_unlocks.append(idx)
 			elif idx < 0:
 				save_is_corrupted = true
+				push_warning("GameManager: nivel desbloqueado inválido en guardado: %s" % [str(level_variant)])
 
 	# Validar consistencia de progresión ANTES de aplicar desbloqueos al SaveSystem:
 	# si Sector 0 no está completado, ningún sector mayor debe venir desbloqueado.

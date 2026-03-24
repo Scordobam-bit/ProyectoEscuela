@@ -273,17 +273,18 @@ func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	level_completed.emit(sector_index)
 
-	# Puntaje del desafío que activó el cierre del sector (se persiste atómicamente).
-	var challenge_score: int = 0
+	# Puntaje del desafío activo que activó el cierre del sector (se persiste atómicamente).
+	var active_challenge_score: int = 0
 	if _current_challenge >= 0 and _current_challenge < _challenges.size():
-		challenge_score = int(_challenges[_current_challenge].get("score", 0))
-	GameManager.process_sector_victory_atomic(sector_index, _current_challenge, challenge_score)
+		active_challenge_score = int(_challenges[_current_challenge].get("score", 0))
+	GameManager.process_sector_victory_atomic(sector_index, _current_challenge, active_challenge_score)
 
 	# Calcular puntuación acumulada del sector para el panel de resultados.
-	var score_earned: int = challenge_score
+	var score_earned: int = active_challenge_score
 	if GameManager.completed_challenges.has(sector_index):
+		score_earned = 0
 		for ci: int in GameManager.completed_challenges[sector_index]:
-			if ci != _current_challenge and ci < _challenges.size():
+			if ci < _challenges.size():
 				score_earned += _challenges[ci].get("score", 100)
 
 	# Mostrar panel de "¡Misión Cumplida!" con resumen pedagógico

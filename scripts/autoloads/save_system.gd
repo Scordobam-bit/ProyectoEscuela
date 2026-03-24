@@ -38,8 +38,8 @@ const SAVE_FILE: String = "user://save_game.cfg"
 ## Índice del primer sector (siempre desbloqueado).
 const FIRST_SECTOR: int = 0
 
-## Número total de sectores de Planet Waves. Actualizar si se agregan sectores futuros.
-const TOTAL_SECTORS: int = 5
+## Índice máximo válido de sector (inclusive): Sector 0..5.
+const MAX_SECTOR_INDEX: int = 5
 
 # ---------------------------------------------------------------------------
 # Estado del Jugador
@@ -97,7 +97,7 @@ func mark_sector_complete(sector_index: int) -> void:
 		completed_sectors.sort()
 	# Desbloquear el sector siguiente automáticamente
 	var next: int = sector_index + 1
-	if next <= TOTAL_SECTORS:
+	if next <= MAX_SECTOR_INDEX:
 		unlock_sector(next)
 	save_game_data()
 
@@ -188,6 +188,7 @@ func load_game_data(path: String = SAVE_FILE) -> void:
 
 	var loaded_score: Variant = config.get_value("jugador", "puntuacion_total", 0)
 	var loaded_tutorial: Variant = config.get_value("jugador", "tutorial_completado", false)
+	# El puntaje del juego es entero; si un guardado legado trae float, se normaliza a int.
 	total_score = int(loaded_score) if loaded_score is int or loaded_score is float else 0
 	tutorial_completed = bool(loaded_tutorial) if loaded_tutorial is bool else false
 
@@ -198,7 +199,7 @@ func load_game_data(path: String = SAVE_FILE) -> void:
 		if not (idx_variant is int or idx_variant is float):
 			continue
 		var idx: int = int(idx_variant)
-		if idx >= FIRST_SECTOR and idx <= TOTAL_SECTORS and idx not in unlocked_sectors:
+		if idx >= FIRST_SECTOR and idx <= MAX_SECTOR_INDEX and idx not in unlocked_sectors:
 			unlocked_sectors.append(idx)
 	if FIRST_SECTOR not in unlocked_sectors:
 		unlocked_sectors.append(FIRST_SECTOR)   # Sector 0 siempre desbloqueado
@@ -211,7 +212,7 @@ func load_game_data(path: String = SAVE_FILE) -> void:
 		if not (idx_variant is int or idx_variant is float):
 			continue
 		var idx: int = int(idx_variant)
-		if idx >= FIRST_SECTOR and idx <= TOTAL_SECTORS and idx not in completed_sectors:
+		if idx >= FIRST_SECTOR and idx <= MAX_SECTOR_INDEX and idx not in completed_sectors:
 			completed_sectors.append(idx)
 	completed_sectors.sort()
 
