@@ -75,12 +75,13 @@ func _ready() -> void:
 
 ## Desbloquea un sector para que sea accesible desde el menú principal.
 ## Si el sector ya está desbloqueado, no hace nada.
-func unlock_sector(sector_index: int) -> void:
+func unlock_sector(sector_index: int, persist_to_disk: bool = true) -> void:
 	if sector_index not in unlocked_sectors:
 		unlocked_sectors.append(sector_index)
 		unlocked_sectors.sort()
 		sector_unlocked.emit(sector_index)
-		save_game_data()
+		if persist_to_disk:
+			save_game_data()
 
 
 ## Devuelve true si el sector dado está desbloqueado.
@@ -98,10 +99,7 @@ func mark_sector_complete(sector_index: int, persist_to_disk: bool = true) -> vo
 	# Desbloquear el sector siguiente automáticamente
 	var next: int = sector_index + 1
 	if next <= MAX_SECTOR_INDEX:
-		if next not in unlocked_sectors:
-			unlocked_sectors.append(next)
-			unlocked_sectors.sort()
-			sector_unlocked.emit(next)
+		unlock_sector(next, false)
 	if persist_to_disk:
 		save_game_data()
 

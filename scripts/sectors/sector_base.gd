@@ -51,6 +51,7 @@ var _sector_ready_for_portal: bool = false
 ## Gestor de obstáculos del sector (instanciado programáticamente).
 var _obstacle_manager: GestorObstaculos = null
 const _RESTART_AFTER_RESET: bool = false
+const _DEFAULT_PLOT_FORMULA: String = "x"
 const _HUD_PLOT_BUTTON_PATH: String = "%BtnEjecutar"
 const _HUD_THEORY_BUTTON_PATH: String = "%BtnTeoria"
 const _HUD_HINT_BUTTON_PATH: String = "%BtnPista"
@@ -461,7 +462,7 @@ func plot_formula(formula: String) -> void:
 func _on_hud_request_plot(formula: String) -> void:
 	var sanitized_formula: String = formula.strip_edges()
 	if sanitized_formula.is_empty():
-		sanitized_formula = "x"
+		sanitized_formula = _DEFAULT_PLOT_FORMULA
 	_on_formula_submitted_hud(sanitized_formula)
 
 
