@@ -60,6 +60,7 @@ var _collision_body: CharacterBody2D = null
 var _owns_path_node: bool = false
 var _owns_runtime_path: bool = false
 var _path_connection_error_logged: bool = false
+var _reached_goal_emitted: bool = false
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -71,6 +72,8 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("player_ship")
+	if not reached_goal.is_connected(_on_reached_goal):
+		reached_goal.connect(_on_reached_goal)
 	_ensure_path_follow_ready()
 	_ensure_collision_body()
 	if plotter:
@@ -84,7 +87,7 @@ func _process(delta: float) -> void:
 	if not _moving or _points.size() < 2:
 		return
 
-	_progress += speed * SPEED_MULTIPLIER * delta
+	_progress += speed * SPEED_MULTIPLIER * 2.0 * delta
 	_progress = clampf(_progress, 0.0, 1.0)
 	progress_updated.emit(_progress)
 
@@ -94,6 +97,9 @@ func _process(delta: float) -> void:
 		if not loop:
 			_moving = false
 			trajectory_completed.emit()
+			if not _reached_goal_emitted:
+				push_warning("Trayectoria Fallida")
+				reset()
 		return
 
 	_update_ship_position()
@@ -118,6 +124,7 @@ func start() -> void:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
 	_progress = 0.0
+	_reached_goal_emitted = false
 	_teleport_to_curve_start()
 	_update_ship_position()
 	_moving = true
@@ -132,6 +139,7 @@ func stop() -> void:
 func reset(restart: bool = false) -> void:
 	_progress = 0.0
 	_moving = false
+	_reached_goal_emitted = false
 	_update_ship_position()
 	if restart:
 		start()
@@ -380,3 +388,7 @@ func _teleport_to_curve_start() -> void:
 	target_node.global_position = world_start
 	if _collision_body and is_instance_valid(_collision_body):
 		_collision_body.global_position = world_start
+
+
+func _on_reached_goal() -> void:
+	_reached_goal_emitted = true

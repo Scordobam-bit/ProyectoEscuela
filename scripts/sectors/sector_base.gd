@@ -253,7 +253,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		theory_panel_node.show_mission_briefing(key)
 		await theory_panel_node.panel_closed
 	get_tree().paused = false
-	theory_panel_node.process_mode = prev_mode as ProcessMode
+	theory_panel_node.process_mode = prev_mode
 
 
 func _advance_challenge() -> void:
@@ -317,8 +317,10 @@ func _connect_hud() -> void:
 		return
 	if hud_node.formula_submitted.is_connected(_on_formula_submitted_hud):
 		hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
-	if not hud_node.request_plot.is_connected(plot_formula):
-		hud_node.request_plot.connect(plot_formula)
+	if hud_node.request_plot.is_connected(plot_formula):
+		hud_node.request_plot.disconnect(plot_formula)
+	if not hud_node.request_plot.is_connected(_on_hud_request_plot):
+		hud_node.request_plot.connect(_on_hud_request_plot)
 	if sector_index >= 1 and is_instance_valid(_plotter):
 		var line_edit: LineEdit = hud_node.get_node_or_null("HUDPanel/Margin/VBox/FormulaRow/FormulaInput")
 		if is_instance_valid(line_edit) and not line_edit.text_submitted.is_connected(_on_formula_text_submitted):
@@ -379,11 +381,17 @@ func _connect_goal_area() -> void:
 
 
 func _connect_mission_obstacle_areas() -> void:
-	var obstacles: Array[Node] = get_tree().get_nodes_in_group("mission_obstacle")
+	var obstacles: Array[Node] = []
+	obstacles.append_array(get_tree().get_nodes_in_group("mission_obstacle"))
+	obstacles.append_array(get_tree().get_nodes_in_group("Obstaculos"))
+	var connected_obstacles: Dictionary = {}
 	for obstacle_node: Node in obstacles:
 		if not (obstacle_node is Area2D):
 			continue
 		var obstacle_area: Area2D = obstacle_node as Area2D
+		if connected_obstacles.has(obstacle_area.get_instance_id()):
+			continue
+		connected_obstacles[obstacle_area.get_instance_id()] = true
 		if obstacle_area.get_tree() != get_tree():
 			continue
 		if not is_ancestor_of(obstacle_area):
@@ -400,6 +408,8 @@ func _on_meta_area_body_entered(body: Node) -> void:
 			hud_node.show_feedback("Completa todos los desafíos antes de entrar al portal.", "warning")
 		return
 	_goal_triggered = true
+	if is_instance_valid(_ship):
+		_ship.reached_goal.emit()
 	challenge_completed.emit()
 	_on_sector_complete()
 
@@ -430,13 +440,28 @@ func _on_formula_submitted_hud(formula: String) -> void:
 			return  # No validar la fórmula si impacta un obstáculo
 
 	if _ship and is_instance_valid(_plotter) and _plotter.is_plot_valid():
-		_ship.reset(true)
+		var path_length: float = 0.0
+		var generated_path: Path2D = _plotter.build_path2d()
+		if generated_path and generated_path.curve:
+			path_length = generated_path.curve.get_baked_length()
+		_ship.reset(false)
+		if path_length > 0.0:
+			_ship.start()
+		elif is_instance_valid(hud_node):
+			hud_node.show_feedback("No se pudo generar una trayectoria válida.", "error")
 
 	_on_formula_submitted_sector(formula)
 
 
 func plot_formula(formula: String) -> void:
-	_on_formula_submitted_hud(formula)
+	_on_hud_request_plot(formula)
+
+
+func _on_hud_request_plot(formula: String) -> void:
+	var sanitized_formula: String = formula.strip_edges()
+	if sanitized_formula.is_empty():
+		sanitized_formula = "x"
+	_on_formula_submitted_hud(sanitized_formula)
 
 
 func _on_formula_text_submitted(formula: String) -> void:
