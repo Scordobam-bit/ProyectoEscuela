@@ -28,8 +28,7 @@ signal progress_updated(progress: float)
 
 ## Velocidad de movimiento a lo largo de la trayectoria (unidades de progreso por segundo, escala 0–1).
 @export_range(0.01, 1.0, 0.01) var speed: float = 0.1
-const SPEED_MULTIPLIER: float = 4.0
-const PROGRESS_SPEED_FACTOR: float = 2.0
+const SPEED_MULTIPLIER: float = 2.0
 
 ## Si es true, la nave comienza a moverse automáticamente cuando se establece la trayectoria.
 @export var auto_start: bool = false
@@ -88,7 +87,7 @@ func _process(delta: float) -> void:
 	if not _moving or _points.size() < 2:
 		return
 
-	_progress += speed * SPEED_MULTIPLIER * PROGRESS_SPEED_FACTOR * delta
+	_progress += speed * SPEED_MULTIPLIER * delta
 	_progress = clampf(_progress, 0.0, 1.0)
 	progress_updated.emit(_progress)
 
