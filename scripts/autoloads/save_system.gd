@@ -205,6 +205,15 @@ func load_game_data(path: String = SAVE_FILE) -> void:
 			completed_sectors.append(idx)
 	completed_sectors.sort()
 
+	# Regla de bloqueo estricta: Sector 1 solo se habilita si Sector 0 está completado.
+	# Si el guardado llega inconsistente (sectores abiertos sin completar Academia),
+	# se fuerza estado inicial para evitar acceso prematuro.
+	if FIRST_SECTOR not in completed_sectors:
+		unlocked_sectors = [FIRST_SECTOR]
+	elif 1 not in unlocked_sectors:
+		unlocked_sectors.append(1)
+		unlocked_sectors.sort()
+
 	var loaded_concepts: Array = config.get_value("logros", "conceptos_dominados", [])
 	mastered_concepts.clear()
 	for c: String in loaded_concepts:
