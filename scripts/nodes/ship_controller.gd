@@ -88,13 +88,12 @@ func _process(delta: float) -> void:
 	_progress = clampf(_progress, 0.0, 1.0)
 	progress_updated.emit(_progress)
 
-	if _progress >= 1.0:
+	if is_equal_approx(_progress, 1.0) or _progress >= 1.0:
 		_progress = 1.0 if not loop else 0.0
 		_update_ship_position()
 		if not loop:
 			_moving = false
 			trajectory_completed.emit()
-			reached_goal.emit()
 		return
 
 	_update_ship_position()
@@ -118,11 +117,8 @@ func start() -> void:
 	if _points.size() < 2:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
-	if _path_node and is_instance_valid(_path_node) and _path_node.curve and _path_node.curve.point_count > 0:
-		var start_point: Vector2 = _path_node.curve.get_point_position(0)
-		if _path_follow and is_instance_valid(_path_follow):
-			_path_follow.position = start_point
 	_progress = 0.0
+	_teleport_to_curve_start()
 	_update_ship_position()
 	_moving = true
 
@@ -370,3 +366,17 @@ func _report_path_connection_issue(message: String) -> void:
 		return
 	_path_connection_error_logged = true
 	push_warning("ShipController: " + message)
+
+
+func _teleport_to_curve_start() -> void:
+	if not _path_node or not is_instance_valid(_path_node):
+		return
+	if _path_node.curve == null or _path_node.curve.point_count == 0:
+		return
+	var world_start: Vector2 = _path_node.to_global(_path_node.curve.get_point_position(0))
+	if _path_follow and is_instance_valid(_path_follow):
+		_path_follow.progress_ratio = 0.0
+	var target_node: Node2D = ship_sprite if ship_sprite else self
+	target_node.global_position = world_start
+	if _collision_body and is_instance_valid(_collision_body):
+		_collision_body.global_position = world_start

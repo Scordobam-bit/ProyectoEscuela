@@ -115,7 +115,7 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	if hud_node and MathEngine.is_valid_formula(formula):
+	if is_instance_valid(hud_node) and MathEngine.is_valid_formula(formula):
 		# Mostrar comparación evaluada en un punto de prueba
 		var sample_x: float = 1.0
 		var player_y: float = MathEngine.evaluate_value(formula, sample_x)

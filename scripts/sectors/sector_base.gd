@@ -73,6 +73,7 @@ func _ready() -> void:
 		hud_node.layer = _MIN_HUD_LAYER
 	_connect_hud_buttons_in_code()
 	_connect_goal_area()
+	_force_cartesian_axes_visible()
 	RenderingServer.set_default_clear_color(background_color)
 	_setup_world_environment()
 	_setup_parallax_stars()
@@ -137,7 +138,7 @@ func _create_star_layer(
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(motion_scale.x * 1000) + star_count
 
-	for _i in range(star_count):
+	for _ in range(star_count):
 		var star: Polygon2D = Polygon2D.new()
 		var r: float = rng.randf_range(min_radius, max_radius)
 		star.polygon = PackedVector2Array([
@@ -251,7 +252,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		theory_panel_node.show_mission_briefing(key)
 		await theory_panel_node.panel_closed
 	get_tree().paused = false
-	theory_panel_node.process_mode = prev_mode as Node.ProcessMode
+	theory_panel_node.process_mode = prev_mode as ProcessMode
 
 
 func _advance_challenge() -> void:
@@ -271,12 +272,17 @@ func _advance_challenge() -> void:
 func _on_sector_complete() -> void:
 	sector_complete.emit(sector_index)
 	level_completed.emit(sector_index)
-	GameManager.complete_challenge(sector_index, _current_challenge)
-	GameManager.register_sector_victory(sector_index)
 
-	# Calcular puntuación ganada en este sector
-	var score_earned: int = 0
+	# Puntaje del desafío activo que activó el cierre del sector (se persiste atómicamente).
+	var active_challenge_score: int = 0
+	if _current_challenge >= 0 and _current_challenge < _challenges.size():
+		active_challenge_score = int(_challenges[_current_challenge].get("score", 0))
+	GameManager.process_sector_victory_atomic(sector_index, _current_challenge, active_challenge_score)
+
+	# Calcular puntuación acumulada del sector para el panel de resultados.
+	var score_earned: int = active_challenge_score
 	if GameManager.completed_challenges.has(sector_index):
+		score_earned = 0
 		for ci: int in GameManager.completed_challenges[sector_index]:
 			if ci < _challenges.size():
 				score_earned += _challenges[ci].get("score", 100)
@@ -312,6 +318,10 @@ func _connect_hud() -> void:
 		hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
 	if not hud_node.request_plot.is_connected(_on_formula_submitted_hud):
 		hud_node.request_plot.connect(_on_formula_submitted_hud)
+	if sector_index >= 1 and is_instance_valid(_plotter):
+		var line_edit: LineEdit = hud_node.get_node_or_null("HUDPanel/Margin/VBox/FormulaRow/FormulaInput")
+		if is_instance_valid(line_edit) and not line_edit.text_submitted.is_connected(_on_formula_text_submitted):
+			line_edit.text_submitted.connect(_on_formula_text_submitted)
 	hud_node.domain_changed.connect(_on_domain_changed)
 	hud_node.theory_requested.connect(_on_theory_requested)
 	hud_node.hint_requested.connect(_on_hint_requested)
@@ -349,10 +359,12 @@ func _force_button_parent_ignore(button: Control) -> void:
 
 
 func _connect_plotter() -> void:
-	if not _plotter:
+	if not is_instance_valid(_plotter):
 		return
+	if sector_index >= 1 and _plotter.formula.strip_edges().is_empty():
+		_plotter.formula = "x"
 	_plotter.plot_failed.connect(_on_plot_failed)
-	if _ship:
+	if is_instance_valid(_ship):
 		_ship.attach_to_plotter(_plotter)
 		if not _ship.trajectory_completed.is_connected(_on_ship_trajectory_completed):
 			_ship.trajectory_completed.connect(_on_ship_trajectory_completed)
@@ -411,14 +423,37 @@ func _on_formula_submitted_hud(formula: String) -> void:
 	_on_formula_submitted_sector(formula)
 
 
+func _on_formula_text_submitted(formula: String) -> void:
+	if not is_instance_valid(_plotter):
+		return
+	var sanitized: String = formula.strip_edges()
+	if sanitized.is_empty():
+		return
+	if is_instance_valid(hud_node):
+		var domain: Array[float] = hud_node.get_domain()
+		if domain.size() >= 2:
+			_plotter.domain_min = domain[0]
+			_plotter.domain_max = domain[1]
+	_plotter.set_formula_and_plot(sanitized)
+
+
 func _on_domain_changed(min_x: float, max_x: float) -> void:
 	if _plotter:
 		_plotter.domain_min = min_x
 		_plotter.domain_max = max_x
 	GameManager.notify_inspector_values_changed(sector_index, min_x, max_x)
-	if _ship:
+	if is_instance_valid(_ship):
 		var domain_span: float = max_x - min_x
 		_ship.speed = clampf(0.04 + domain_span * 0.006, 0.04, 0.2)
+
+
+func _force_cartesian_axes_visible() -> void:
+	var axis_x: CanvasItem = get_node_or_null("CartesianPlane/AxisX")
+	if is_instance_valid(axis_x):
+		axis_x.visible = true
+	var axis_y: CanvasItem = get_node_or_null("CartesianPlane/AxisY")
+	if is_instance_valid(axis_y):
+		axis_y.visible = true
 
 
 func _on_plot_failed(error_message: String) -> void:
@@ -497,5 +532,5 @@ func _on_ship_trajectory_completed() -> void:
 		return
 	if is_instance_valid(hud_node):
 		hud_node.show_feedback("Trayectoria Fallida", "error")
-	if _ship:
+	if is_instance_valid(_ship):
 		_ship.reset()

@@ -312,6 +312,14 @@ func register_sector_victory(sector_index: int) -> void:
 	save_progress()
 
 
+## Transacción atómica de victoria:
+## 1) actualiza puntos y progreso en memoria, 2) persiste inmediatamente, 3) habilita transición segura.
+func process_sector_victory_atomic(sector_index: int, challenge_index: int, score: int) -> void:
+	complete_challenge(sector_index, challenge_index, score)
+	SaveSystem.mark_sector_complete(sector_index)
+	save_progress()
+
+
 ## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
 func load_progress() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -363,8 +371,11 @@ func load_progress() -> void:
 	if unlocked_levels_data is Array:
 		for level_variant in unlocked_levels_data:
 			var idx: int = _level_variant_to_index(level_variant)
-			if idx >= 0:
+			if idx >= 0 and idx not in requested_unlocks:
 				requested_unlocks.append(idx)
+			elif idx < 0:
+				save_is_corrupted = true
+				push_warning("GameManager: nivel desbloqueado inválido en guardado: %s" % [str(level_variant)])
 
 	# Validar consistencia de progresión ANTES de aplicar desbloqueos al SaveSystem:
 	# si Sector 0 no está completado, ningún sector mayor debe venir desbloqueado.
