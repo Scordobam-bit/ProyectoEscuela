@@ -493,6 +493,6 @@ func _on_ship_trajectory_completed() -> void:
 	if _goal_triggered:
 		return
 	if is_instance_valid(hud_node):
-		hud_node.show_feedback("Error de trayectoria", "error")
+		hud_node.show_feedback("Trayectoria Fallida", "error")
 	if _ship:
 		_ship.reset()

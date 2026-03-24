@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 		_movement_active = false
 		if not _portal_triggered:
 			if is_instance_valid(hud_node):
-				hud_node.show_feedback("Error de trayectoria", "error")
+				hud_node.show_feedback("Trayectoria Fallida", "error")
 			_clear_trajectory_path()
 
 
