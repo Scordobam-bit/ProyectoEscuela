@@ -28,6 +28,7 @@ signal progress_updated(progress: float)
 
 ## Velocidad de movimiento a lo largo de la trayectoria (unidades de progreso por segundo, escala 0–1).
 @export_range(0.01, 1.0, 0.01) var speed: float = 0.1
+const SPEED_MULTIPLIER: float = 2.0
 
 ## Si es true, la nave comienza a moverse automáticamente cuando se establece la trayectoria.
 @export var auto_start: bool = false
@@ -83,7 +84,7 @@ func _process(delta: float) -> void:
 	if not _moving or _points.size() < 2:
 		return
 
-	_progress += speed * delta
+	_progress += speed * SPEED_MULTIPLIER * delta
 	_progress = clampf(_progress, 0.0, 1.0)
 	progress_updated.emit(_progress)
 
@@ -117,6 +118,8 @@ func start() -> void:
 	if _points.size() < 2:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
+	_progress = 0.0
+	_update_ship_position()
 	_moving = true
 
 
@@ -202,6 +205,16 @@ func _update_ship_position() -> void:
 		target_node.rotation = _target_rotation
 
 
+func _is_path_ready_for_progress_ratio() -> bool:
+	if not _has_parent_path_hierarchy():
+		return false
+	if _path_node.curve == null:
+		return false
+	if _path_node.curve.point_count < 2:
+		return false
+	return _path_node.curve.get_baked_length() > 0.0
+
+
 func _on_plot_completed(points: PackedVector2Array) -> void:
 	_points = points
 	_rebuild_path_from_plotter()
@@ -231,7 +244,7 @@ func set_path(path: Path2D) -> void:
 		if source_curve:
 			for point_idx in range(source_curve.point_count):
 				_path_node.curve.add_point(source_curve.get_point_position(point_idx))
-		if _can_use_path_follow():
+		if _is_path_ready_for_progress_ratio():
 			_path_follow.progress_ratio = _progress
 		return
 	if _path_node and is_instance_valid(_path_node) and _owns_runtime_path:
@@ -256,7 +269,7 @@ func set_path(path: Path2D) -> void:
 	_path_follow.rotates = false
 	_path_follow.loop = false
 	_path_node.add_child(_path_follow)
-	if _can_use_path_follow():
+	if _is_path_ready_for_progress_ratio():
 		_path_follow.progress_ratio = _progress
 
 

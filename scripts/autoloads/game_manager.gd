@@ -108,7 +108,7 @@ var tutorial_completed: bool = false
 # ---------------------------------------------------------------------------
 
 ## Ruta del archivo de guardado de progreso.
-const SAVE_PATH: String = "user://save_data.cfg"
+const SAVE_PATH: String = "user://save_game.cfg"
 
 # ---------------------------------------------------------------------------
 # Ciclo de Vida
@@ -161,8 +161,8 @@ func unlock_next_level() -> void:
 			)
 			return
 		current_sector = next_sector
-		sector_changed.emit(current_sector)
 		save_progress()
+		sector_changed.emit(current_sector)
 		SceneTransition.fade_to_scene(next_scene_path)
 		return
 	if not _is_scene_path_loadable(MAIN_MENU_SCENE_PATH):
@@ -293,7 +293,7 @@ func save_progress() -> void:
 		push_warning("GameManager: no se pudo leer '%s' antes de guardar (error %d). Se reescribirá." % [SAVE_PATH, load_err])
 	config.set_value("jugador", "sector_actual", current_sector)
 	config.set_value("jugador", "puntos_totales", total_score)
-	config.set_value("jugador", "niveles_desbloqueados", SaveSystem.unlocked_sectors.duplicate())
+	config.set_value("jugador", "niveles_desbloqueados", _get_unlocked_level_names())
 	config.set_value("jugador", "pistas_usadas", hints_used)
 	config.set_value("jugador", "tutorial_completado", tutorial_completed)
 
@@ -314,6 +314,16 @@ func register_sector_victory(sector_index: int) -> void:
 
 ## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
 func load_progress() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		total_score = 0
+		current_sector = 0
+		hints_used = 0
+		tutorial_completed = false
+		SaveSystem.total_score = 0
+		SaveSystem.unlocked_sectors = [0]
+		SaveSystem.completed_sectors = []
+		return
+
 	var config: ConfigFile = ConfigFile.new()
 	var err: Error = config.load(SAVE_PATH)
 	if err != OK:
@@ -322,7 +332,7 @@ func load_progress() -> void:
 	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
 	var legacy_score: int = int(config.get_value("jugador", "puntuacion_total", 0))
 	total_score         = int(config.get_value("jugador", "puntos_totales", legacy_score))
-	var unlocked_levels_data: Variant = config.get_value("jugador", "niveles_desbloqueados", [0])
+	var unlocked_levels_data: Variant = config.get_value("jugador", "niveles_desbloqueados", ["Sector 0"])
 	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
 	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
 
@@ -333,9 +343,10 @@ func load_progress() -> void:
 			completed_challenges[sid] = config.get_value("desafios", key, [])
 
 	if unlocked_levels_data is Array:
-		for idx_variant in unlocked_levels_data:
-			var idx: int = clampi(int(idx_variant), 0, get_last_sector_index())
-			SaveSystem.unlock_sector(idx)
+		for level_variant in unlocked_levels_data:
+			var idx: int = _level_variant_to_index(level_variant)
+			if idx >= 0:
+				SaveSystem.unlock_sector(idx)
 
 
 ## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.
@@ -373,3 +384,27 @@ func _handle_scene_load_failure(message: String, target_scene: String) -> void:
 		return
 	if _is_scene_path_loadable(MAIN_MENU_SCENE_PATH):
 		SceneTransition.fade_to_scene(MAIN_MENU_SCENE_PATH)
+
+
+func _get_unlocked_level_names() -> Array[String]:
+	var level_names: Array[String] = []
+	for sector_idx in SaveSystem.unlocked_sectors:
+		level_names.append("Sector %d" % sector_idx)
+	if level_names.is_empty():
+		level_names.append("Sector 0")
+	return level_names
+
+
+func _level_variant_to_index(level_variant: Variant) -> int:
+	if level_variant is int or level_variant is float:
+		return clampi(int(level_variant), 0, get_last_sector_index())
+	var level_text: String = str(level_variant).strip_edges()
+	if level_text.is_empty():
+		return -1
+	if level_text.is_valid_int():
+		return clampi(level_text.to_int(), 0, get_last_sector_index())
+	if level_text.begins_with("Sector "):
+		var suffix: String = level_text.substr("Sector ".length())
+		if suffix.is_valid_int():
+			return clampi(suffix.to_int(), 0, get_last_sector_index())
+	return -1

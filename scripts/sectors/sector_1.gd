@@ -135,6 +135,9 @@ func _on_challenge_begin(challenge_index: int) -> void:
 		_plotter.domain_min = -10.0
 		_plotter.domain_max = 10.0
 		_plotter.scale_factor = 40.0
+	if _ship:
+		_ship.stop()
+		_ship.reset()
 
 	# Desafío 0 — calibración: configurar la guía de inicio rápido
 	if challenge_index == 0 and not GameManager.tutorial_completed:

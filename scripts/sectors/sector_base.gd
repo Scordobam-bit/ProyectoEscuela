@@ -69,7 +69,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	# Garantiza que paneles informativos (Teoría/Pista) del HUD no queden
 	# ocultos detrás del fondo/parallax en escenas de sector.
-	if hud_node and hud_node.layer < _MIN_HUD_LAYER:
+	if is_instance_valid(hud_node) and hud_node.layer < _MIN_HUD_LAYER:
 		hud_node.layer = _MIN_HUD_LAYER
 	_connect_hud_buttons_in_code()
 	_connect_goal_area()
@@ -180,7 +180,7 @@ func _setup_challenges() -> void:
 
 
 ## Llamado cuando comienza un nuevo desafío. Sobrescribir para configurar visuales.
-func _on_challenge_begin(challenge_index: int) -> void:
+func _on_challenge_begin(_challenge_index: int) -> void:
 	pass
 
 
@@ -214,7 +214,7 @@ func _start_challenge(index: int) -> void:
 		_plotter.clear_plot()
 		_plotter.reset_line_style()
 
-	if hud_node:
+	if is_instance_valid(hud_node):
 		var ch: Dictionary = _challenges[index]
 		hud_node.set_formula_hint(ch.get("hint", "Ingresa la fórmula…"))
 		hud_node.show_feedback(ch.get("instruction", ""), "info")
@@ -229,14 +229,14 @@ func _start_challenge(index: int) -> void:
 	# Mostrar briefing inicial de misión antes del primer desafío
 	if index == 0:
 		await _show_mission_briefing_for_challenge(index)
-	if hud_node:
+	if is_instance_valid(hud_node):
 		hud_node.set_controls_enabled(true)
 
 	_on_challenge_begin(index)
 
 
 func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
-	if not theory_panel_node:
+	if not is_instance_valid(theory_panel_node):
 		return
 	var prev_mode: int = theory_panel_node.process_mode
 	theory_panel_node.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -262,7 +262,7 @@ func _advance_challenge() -> void:
 			challenge_completed.emit()
 			_on_sector_complete()
 			return
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback("¡Desafíos completados! Navega al portal para cerrar el sector.", "success")
 	else:
 		_start_challenge(next)
@@ -306,7 +306,7 @@ func _on_sector_complete() -> void:
 # ---------------------------------------------------------------------------
 
 func _connect_hud() -> void:
-	if not hud_node:
+	if not is_instance_valid(hud_node):
 		return
 	hud_node.formula_submitted.connect(_on_formula_submitted_hud)
 	hud_node.domain_changed.connect(_on_domain_changed)
@@ -315,7 +315,7 @@ func _connect_hud() -> void:
 
 
 func _connect_hud_buttons_in_code() -> void:
-	if not hud_node:
+	if not is_instance_valid(hud_node):
 		return
 	if not hud_node.is_node_ready():
 		await hud_node.ready
@@ -351,6 +351,8 @@ func _connect_plotter() -> void:
 	_plotter.plot_failed.connect(_on_plot_failed)
 	if _ship:
 		_ship.attach_to_plotter(_plotter)
+		if not _ship.trajectory_completed.is_connected(_on_ship_trajectory_completed):
+			_ship.trajectory_completed.connect(_on_ship_trajectory_completed)
 
 
 func _connect_goal_area() -> void:
@@ -364,7 +366,7 @@ func _on_meta_area_body_entered(body: Node) -> void:
 	if _goal_triggered or body == null or not body.is_in_group("player_ship"):
 		return
 	if not _sector_ready_for_portal:
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback("Completa todos los desafíos antes de entrar al portal.", "warning")
 		return
 	_goal_triggered = true
@@ -376,26 +378,31 @@ func _on_formula_submitted_hud(formula: String) -> void:
 	print("[SECTOR] Botón Ejecutar recibido en sector %d. Fórmula: %s" % [sector_index, formula])
 	# Validar la sintaxis antes de graficar — mostrar mensaje educativo si falla
 	if not MathEngine.is_valid_formula(formula):
-		if hud_node:
+		if is_instance_valid(hud_node):
 			var detailed_error: String = MathEngine.get_friendly_error_message(formula)
 			hud_node.show_feedback("¡Comando inválido! " + detailed_error, "error")
 		return
 
-	if _plotter:
-		_plotter.formula = formula
+	if is_instance_valid(_plotter):
+		if is_instance_valid(hud_node):
+			var domain: Array[float] = hud_node.get_domain()
+			if domain.size() >= 2:
+				_plotter.domain_min = domain[0]
+				_plotter.domain_max = domain[1]
+		_plotter.set_formula_and_plot(formula)
 
 	# Verificar colisión con obstáculos antes de validar la fórmula
-	if _obstacle_manager and _plotter and _plotter.is_plot_valid():
+	if _obstacle_manager and is_instance_valid(_plotter) and _plotter.is_plot_valid():
 		var trajectory_points: PackedVector2Array = _plotter.get_screen_points()
 		if _obstacle_manager.check_trajectory_collision(trajectory_points):
 			var hit_name: String = _obstacle_manager.get_last_hit_name()
-			if hud_node:
+			if is_instance_valid(hud_node):
 				hud_node.show_mission_failed(hit_name)
 			if _ship:
 				_ship.reset()
 			return  # No validar la fórmula si impacta un obstáculo
 
-	if _ship and _plotter and _plotter.is_plot_valid():
+	if _ship and is_instance_valid(_plotter) and _plotter.is_plot_valid():
 		_ship.reset(true)
 
 	_on_formula_submitted_sector(formula)
@@ -412,7 +419,7 @@ func _on_domain_changed(min_x: float, max_x: float) -> void:
 
 
 func _on_plot_failed(error_message: String) -> void:
-	if hud_node:
+	if is_instance_valid(hud_node):
 		hud_node.show_feedback("⚠ " + error_message, "error")
 
 
@@ -422,9 +429,9 @@ func _get_sector_tutorial_key() -> String:
 
 func _on_theory_requested() -> void:
 	var sector_theory: String = SectorDataManager.get_theory_text(sector_index)
-	if hud_node and not sector_theory.is_empty():
+	if is_instance_valid(hud_node) and not sector_theory.is_empty():
 		hud_node.set_mission_text("Teoría", sector_theory)
-	if theory_panel_node:
+	if is_instance_valid(theory_panel_node):
 		var tutorial_key: String = _get_sector_tutorial_key()
 		if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
 			theory_panel_node.show_mission_briefing(tutorial_key)
@@ -434,13 +441,13 @@ func _on_theory_requested() -> void:
 
 func _on_hint_requested() -> void:
 	var sector_hint: String = SectorDataManager.get_hint_text(sector_index)
-	if hud_node and not sector_hint.is_empty():
+	if is_instance_valid(hud_node) and not sector_hint.is_empty():
 		hud_node.set_mission_text("Pista", sector_hint)
 	if _current_challenge < _challenges.size():
 		var hint: String = _challenges[_current_challenge].get("solution_hint", "Sin pista disponible.")
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback("Pista: " + hint, "warning")
-		if theory_panel_node:
+		if is_instance_valid(theory_panel_node):
 			var tutorial_key: String = _get_sector_tutorial_key()
 			if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
 				theory_panel_node.show_mission_briefing(tutorial_key)
@@ -478,5 +485,14 @@ func _validate_formula_against_current(player_formula: String) -> void:
 			_plotter.mark_as_error()
 			_plotter.show_reference_line(expected, Color(0.0, 1.0, 0.3, 0.7))
 		# Generar explicación automática del error
-		if hud_node and not expected.is_empty():
+		if is_instance_valid(hud_node) and not expected.is_empty():
 			hud_node.show_auto_error_explanation(player_formula, expected)
+
+
+func _on_ship_trajectory_completed() -> void:
+	if _goal_triggered:
+		return
+	if is_instance_valid(hud_node):
+		hud_node.show_feedback("Trayectoria Fallida", "error")
+	if _ship:
+		_ship.reset()
