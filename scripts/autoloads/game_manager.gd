@@ -315,38 +315,74 @@ func register_sector_victory(sector_index: int) -> void:
 ## Carga el progreso guardado desde disco. Si no existe el archivo, no hace nada.
 func load_progress() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
-		total_score = 0
-		current_sector = 0
-		hints_used = 0
-		tutorial_completed = false
-		SaveSystem.total_score = 0
-		SaveSystem.unlocked_sectors = [0]
-		SaveSystem.completed_sectors = []
+		_apply_new_game_defaults()
+		save_progress()
 		return
 
 	var config: ConfigFile = ConfigFile.new()
 	var err: Error = config.load(SAVE_PATH)
 	if err != OK:
-		return   # Sin archivo de guardado previo — primera sesión
+		_apply_new_game_defaults()
+		save_progress()
+		return
 
-	current_sector      = config.get_value("jugador", "sector_actual",     current_sector)
+	var save_is_corrupted: bool = false
+	var loaded_current_sector: Variant = config.get_value("jugador", "sector_actual", current_sector)
+	if not (loaded_current_sector is int or loaded_current_sector is float):
+		save_is_corrupted = true
 	var legacy_score: int = int(config.get_value("jugador", "puntuacion_total", 0))
-	total_score         = int(config.get_value("jugador", "puntos_totales", legacy_score))
+	var loaded_total_score: Variant = config.get_value("jugador", "puntos_totales", legacy_score)
+	if not (loaded_total_score is int or loaded_total_score is float):
+		save_is_corrupted = true
 	var unlocked_levels_data: Variant = config.get_value("jugador", "niveles_desbloqueados", ["Sector 0"])
-	hints_used          = config.get_value("jugador", "pistas_usadas",      0)
-	tutorial_completed  = config.get_value("jugador", "tutorial_completado", false)
+	if not (unlocked_levels_data is Array):
+		save_is_corrupted = true
+	var loaded_hints_used: Variant = config.get_value("jugador", "pistas_usadas", 0)
+	if not (loaded_hints_used is int or loaded_hints_used is float):
+		save_is_corrupted = true
+	var loaded_tutorial_completed: Variant = config.get_value("jugador", "tutorial_completado", false)
+	if not (loaded_tutorial_completed is bool):
+		save_is_corrupted = true
+
+	current_sector = clampi(int(loaded_current_sector), 0, get_last_sector_index())
+	total_score = maxi(int(loaded_total_score), 0)
+	hints_used = maxi(int(loaded_hints_used), 0)
+	tutorial_completed = bool(loaded_tutorial_completed)
 
 	for sector_data in SECTORS:
 		var sid: int = sector_data["index"]
 		var key: String = "sector_%d" % sid
 		if config.has_section_key("desafios", key):
-			completed_challenges[sid] = config.get_value("desafios", key, [])
+			var loaded_challenges: Variant = config.get_value("desafios", key, [])
+			if loaded_challenges is Array:
+				completed_challenges[sid] = loaded_challenges
+			else:
+				save_is_corrupted = true
 
+	var requested_unlocks: Array[int] = []
 	if unlocked_levels_data is Array:
 		for level_variant in unlocked_levels_data:
 			var idx: int = _level_variant_to_index(level_variant)
 			if idx >= 0:
-				SaveSystem.unlock_sector(idx)
+				requested_unlocks.append(idx)
+
+	if 0 not in SaveSystem.completed_sectors:
+		for unlock_idx: int in requested_unlocks:
+			if unlock_idx > 0:
+				save_is_corrupted = true
+				break
+
+	if save_is_corrupted:
+		_apply_new_game_defaults()
+		save_progress()
+		return
+
+	for unlock_idx: int in requested_unlocks:
+		if unlock_idx == 0 or 0 in SaveSystem.completed_sectors:
+			SaveSystem.unlock_sector(unlock_idx)
+
+	if 0 not in SaveSystem.completed_sectors:
+		SaveSystem.unlocked_sectors = [0]
 
 
 ## Sincroniza el estado interno de GameManager con lo que SaveSystem ya cargó.
@@ -408,3 +444,17 @@ func _level_variant_to_index(level_variant: Variant) -> int:
 		if suffix.is_valid_int():
 			return clampi(suffix.to_int(), 0, get_last_sector_index())
 	return -1
+
+
+func _apply_new_game_defaults() -> void:
+	total_score = 0
+	current_sector = 0
+	hints_used = 0
+	tutorial_completed = false
+	for sector_data in SECTORS:
+		var sid: int = sector_data["index"]
+		completed_challenges[sid] = []
+	SaveSystem.total_score = 0
+	SaveSystem.unlocked_sectors = [0]
+	SaveSystem.completed_sectors = []
+	SaveSystem.tutorial_completed = false
