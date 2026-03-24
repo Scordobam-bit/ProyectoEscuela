@@ -592,24 +592,24 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode == KEY_BACKSPACE:
-		var sel_from: int = input.get_selection_from_column()
-		var sel_to: int = input.get_selection_to_column()
-		if sel_from != sel_to:
+		if input.has_selection():
+			var sel_from: int = input.get_selection_from_column()
+			var sel_to: int = input.get_selection_to_column()
 			var current_text: String = input.text
-			var from_col: int = mini(sel_from, sel_to)
-			var to_col: int = maxi(sel_from, sel_to)
+			var from_col: int = clampi(mini(sel_from, sel_to), 0, current_text.length())
+			var to_col: int = clampi(maxi(sel_from, sel_to), 0, current_text.length())
 			input.text = current_text.left(from_col) + current_text.substr(to_col)
-			input.caret_column = from_col
+			input.caret_column = clampi(from_col, 0, input.text.length())
 			input.deselect()
 			get_viewport().set_input_as_handled()
 			return
-		var caret: int = input.caret_column
+		var text: String = input.text
+		var caret: int = clampi(input.caret_column, 0, text.length())
 		if caret <= 0:
 			get_viewport().set_input_as_handled()
 			return
-		var text: String = input.text
 		input.text = text.left(caret - 1) + text.substr(caret)
-		input.caret_column = caret - 1
+		input.caret_column = clampi(caret - 1, 0, input.text.length())
 		get_viewport().set_input_as_handled()
 		return
 	if key_event.keycode == KEY_SLASH or key_event.unicode == int('/'):
