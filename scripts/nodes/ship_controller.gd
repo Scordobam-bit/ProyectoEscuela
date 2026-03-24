@@ -118,6 +118,10 @@ func start() -> void:
 	if _points.size() < 2:
 		push_warning("ShipController: no hay puntos de trayectoria disponibles.")
 		return
+	if _path_node and is_instance_valid(_path_node) and _path_node.curve and _path_node.curve.point_count > 0:
+		var start_point: Vector2 = _path_node.curve.get_point_position(0)
+		if _path_follow and is_instance_valid(_path_follow):
+			_path_follow.position = start_point
 	_progress = 0.0
 	_update_ship_position()
 	_moving = true

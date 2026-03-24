@@ -238,7 +238,7 @@ func _start_challenge(index: int) -> void:
 func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 	if not is_instance_valid(theory_panel_node):
 		return
-	var prev_mode: int = theory_panel_node.process_mode
+	var prev_mode: Node.ProcessMode = theory_panel_node.process_mode
 	theory_panel_node.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	get_tree().paused = true
 	# Permitir que cada desafío defina su propia clave de briefing, con la convención
@@ -251,7 +251,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		theory_panel_node.show_mission_briefing(key)
 		await theory_panel_node.panel_closed
 	get_tree().paused = false
-	theory_panel_node.process_mode = prev_mode
+	theory_panel_node.process_mode = prev_mode as Node.ProcessMode
 
 
 func _advance_challenge() -> void:
@@ -308,7 +308,10 @@ func _on_sector_complete() -> void:
 func _connect_hud() -> void:
 	if not is_instance_valid(hud_node):
 		return
-	hud_node.formula_submitted.connect(_on_formula_submitted_hud)
+	if hud_node.formula_submitted.is_connected(_on_formula_submitted_hud):
+		hud_node.formula_submitted.disconnect(_on_formula_submitted_hud)
+	if not hud_node.request_plot.is_connected(_on_formula_submitted_hud):
+		hud_node.request_plot.connect(_on_formula_submitted_hud)
 	hud_node.domain_changed.connect(_on_domain_changed)
 	hud_node.theory_requested.connect(_on_theory_requested)
 	hud_node.hint_requested.connect(_on_hint_requested)
