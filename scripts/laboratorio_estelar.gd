@@ -603,11 +603,12 @@ func _on_formula_input_gui_input(event: InputEvent, input: LineEdit) -> void:
 			input.deselect()
 			get_viewport().set_input_as_handled()
 			return
-		var text: String = input.text
-		var caret: int = clampi(input.caret_column, 0, text.length())
-		if caret <= 0:
+		var caret_raw: int = input.caret_column
+		if caret_raw <= 0:
 			get_viewport().set_input_as_handled()
 			return
+		var text: String = input.text
+		var caret: int = mini(caret_raw, text.length())
 		input.text = text.left(caret - 1) + text.substr(caret)
 		input.caret_column = clampi(caret - 1, 0, input.text.length())
 		get_viewport().set_input_as_handled()
