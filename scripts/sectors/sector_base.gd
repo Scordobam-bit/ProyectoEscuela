@@ -61,6 +61,11 @@ const _THEORY_HINT_Z_OFFSET: int = 80
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	if not has_node("/root/GameManager") or not has_node("/root/MathEngine"):
+		await get_tree().process_frame
+		if not has_node("/root/GameManager") or not has_node("/root/MathEngine"):
+			push_warning("SectorBase: servicios globales no listos (GameManager/MathEngine).")
+			return
 	await get_tree().process_frame
 	# Garantiza que paneles informativos (Teoría/Pista) del HUD no queden
 	# ocultos detrás del fondo/parallax en escenas de sector.
