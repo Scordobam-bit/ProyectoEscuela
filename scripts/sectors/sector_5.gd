@@ -165,7 +165,7 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	if hud_node and MathEngine.is_valid_formula(formula):
+	if is_instance_valid(hud_node) and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
 				# Mostrar verificación de inyectividad de la función de referencia
@@ -216,7 +216,7 @@ func _check_and_warn_injectivity(formula: String) -> bool:
 		d_max = _plotter.domain_max
 	var result: Dictionary = MathEngine.check_injectivity(formula, d_min, d_max)
 	if not result["injective"]:
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback(
 				"⚠ Error de Simetría: La trayectoria actual no es inyectiva y "
 				+ "no posee inversa en este dominio.\n"

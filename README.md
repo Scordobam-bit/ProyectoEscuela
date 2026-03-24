@@ -48,7 +48,8 @@ Juego educativo en Godot 4.x donde la trayectoria de la nave se define con funci
 4. **Movimiento de nave**
    - `ShipController` sigue la trayectoria con `PathFollow2D`.
    - La nave se añade al grupo `player_ship`.
-   - Al terminar el recorrido, emite `reached_goal`.
+   - Antes de iniciar el vuelo, la nave se teletransporta al primer punto de la curva para evitar saltos visuales.
+   - Al terminar el recorrido sin colisión con el portal, emite `trajectory_completed` para que el sector gestione "Trayectoria Fallida" y reset.
 
 5. **Colisión y desbloqueo**
    - Cada sector usa `MetaArea` (`Area2D`) para detectar entrada de cuerpos del grupo `player_ship`.

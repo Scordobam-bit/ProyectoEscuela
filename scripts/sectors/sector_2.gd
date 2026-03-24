@@ -124,7 +124,7 @@ func _setup_obstacles_for_challenge(challenge_index: int) -> void:
 # ---------------------------------------------------------------------------
 
 func _on_formula_submitted_sector(formula: String) -> void:
-	if hud_node and MathEngine.is_valid_formula(formula):
+	if is_instance_valid(hud_node) and MathEngine.is_valid_formula(formula):
 		match _current_challenge:
 			1:
 				# Mostrar información del vértice

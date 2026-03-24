@@ -86,7 +86,7 @@ func _on_challenge_begin(_challenge_index: int) -> void:
 		_plotter.scale_factor = 40.0
 	if _path_follower and _plotter:
 		_path_follower.position = _plotter.math_to_screen(SHIP_START_MATH)
-	if hud_node:
+	if is_instance_valid(hud_node):
 		hud_node.set_domain(START_DOMAIN_MIN, START_DOMAIN_MAX)
 		hud_node.set_math_keyboard_visible(false)
 	if not GameManager.tutorial_completed:
@@ -107,15 +107,15 @@ func _on_hud_request_plot(formula: String) -> void:
 	print("[SECTOR] Señal recibida correctamente. Iniciando graficación...")
 	var normalized_formula: String = formula.strip_edges()
 	if normalized_formula.is_empty():
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback("Por favor ingresa una fórmula primero.", "warning")
 		return
 	if not MathEngine.is_valid_formula(normalized_formula):
-		if hud_node:
+		if is_instance_valid(hud_node):
 			hud_node.show_feedback("¡Comando inválido! " + MathEngine.get_friendly_error_message(normalized_formula), "error")
 		return
 	if _plotter:
-		var domain: Array[float] = hud_node.get_domain() if hud_node else [_plotter.domain_min, _plotter.domain_max]
+		var domain: Array[float] = hud_node.get_domain() if is_instance_valid(hud_node) else [_plotter.domain_min, _plotter.domain_max]
 		_plotter.domain_min = domain[0]
 		_plotter.domain_max = domain[1]
 		_plotter.set_formula_and_plot(normalized_formula)
@@ -123,7 +123,7 @@ func _on_hud_request_plot(formula: String) -> void:
 	var points: PackedVector2Array = _build_trajectory_points()
 	_apply_path_points(points)
 	_apply_trajectory_line(points)
-	if points.size() < 2 and hud_node:
+	if points.size() < 2 and is_instance_valid(hud_node):
 		hud_node.show_feedback("No se pudo generar una trayectoria válida.", "error")
 
 
@@ -197,7 +197,7 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 	_portal_triggered = true
 	_movement_active = false
 	_goal_triggered = true
-	if hud_node:
+	if is_instance_valid(hud_node):
 		hud_node.set_controls_enabled(false)
 	if _portal_visual:
 		var tween: Tween = create_tween()
@@ -206,14 +206,13 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 		tween.tween_property(_portal_visual, "color", PORTAL_SUCCESS_COLOR, PORTAL_ANIMATION_TIME)
 		tween.parallel().tween_property(_portal_visual, "scale", PORTAL_ANIMATION_SCALE, PORTAL_ANIMATION_TIME)
 		tween.tween_property(_portal_visual, "scale", Vector2.ONE, PORTAL_ANIMATION_TIME)
-	if hud_node:
+	if is_instance_valid(hud_node):
 		hud_node.show_feedback("¡Misión Cumplida! Portal asegurado.", "success")
 	challenge_completed.emit()
 	var score: int = 50
 	if _current_challenge >= 0 and _current_challenge < _challenges.size():
 		score = int(_challenges[_current_challenge].get("score", score))
-	GameManager.complete_challenge(sector_index, _current_challenge, score)
-	GameManager.register_sector_victory(sector_index)
+	GameManager.process_sector_victory_atomic(sector_index, _current_challenge, score)
 	await get_tree().create_timer(0.6).timeout
 	GameManager.unlock_next_level()
 
@@ -221,7 +220,7 @@ func _on_goal_portal_body_entered(body: Node) -> void:
 func _on_theory_requested() -> void:
 	var theory_text: String = _ensure_constant_function_text(SectorDataManager.get_theory_text(0))
 	_show_constant_function_help("Teoría", theory_text, "info")
-	if theory_panel_node:
+	if is_instance_valid(theory_panel_node):
 		theory_panel_node.show_mission_briefing("s0_tutorial")
 
 
@@ -232,7 +231,7 @@ func _on_hint_requested() -> void:
 
 
 func _show_constant_function_help(title: String, message: String, feedback_type: String) -> void:
-	if not hud_node:
+	if not is_instance_valid(hud_node):
 		return
 	var feedback_message: String = message
 	if title == HINT_TITLE:
@@ -288,7 +287,7 @@ func _setup_tutorial_manager() -> void:
 	_tutorial_manager = TutorialManager.new()
 	_tutorial_manager.name = "TutorialManager"
 	add_child(_tutorial_manager)
-	if hud_node:
+	if is_instance_valid(hud_node):
 		_tutorial_manager.setup(hud_node)
 	_tutorial_manager.guide_completed.connect(_on_tutorial_guide_finished)
 	_tutorial_manager.guide_skipped.connect(_on_tutorial_guide_finished)
