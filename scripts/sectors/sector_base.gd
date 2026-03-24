@@ -251,7 +251,7 @@ func _show_mission_briefing_for_challenge(challenge_index: int) -> void:
 		theory_panel_node.show_mission_briefing(key)
 		await theory_panel_node.panel_closed
 	get_tree().paused = false
-	theory_panel_node.process_mode = prev_mode as ProcessMode
+	theory_panel_node.process_mode = prev_mode as Node.ProcessMode
 
 
 func _advance_challenge() -> void:

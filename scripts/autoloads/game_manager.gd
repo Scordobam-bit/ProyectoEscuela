@@ -366,6 +366,8 @@ func load_progress() -> void:
 			if idx >= 0:
 				requested_unlocks.append(idx)
 
+	# Validar consistencia de progresión ANTES de aplicar desbloqueos al SaveSystem:
+	# si Sector 0 no está completado, ningún sector mayor debe venir desbloqueado.
 	if 0 not in SaveSystem.completed_sectors:
 		for unlock_idx: int in requested_unlocks:
 			if unlock_idx > 0:
