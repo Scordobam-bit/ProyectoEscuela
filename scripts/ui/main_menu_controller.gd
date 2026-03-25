@@ -14,6 +14,181 @@ const COLOR_COMPLETED: Color = Color(0.2, 0.9, 0.3)
 const COLOR_UNLOCKED:  Color = Color(0.85, 0.85, 0.85)
 ## Color del botón para sectores bloqueados (requieren completar el anterior).
 const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
+const TUTORIAL_TEXT: String = """Sector 1: cinturon de asteroides
+
+🎯Objetivo:
+
+Concepto clave:
+f(x) = mx + b
+
+m es la pendiente (inclinacion)
+
+b es el punto inicial
+
+Interpretacion en el juego:
+
+La nave se mueve en linea recta inclinada
+
+Puede subir o bajar dependiendo de m
+
+🕹️Que hacer:
+
+Ajustar la pendiente (m)
+
+Definir el punto inicial (b)
+
+Trazar la ruta evitando obstaculos
+
+⚠️Errores comunes:
+
+Pendiente incorrecta (chocar
+
+Mal punto inicial
+
+💡Tip/pista:
+Si la nave sube muy rapidoo, reduce m. Si no alcanza el objetivo, ajusta b.
+
+Sector 2: pozos gravitatorios
+
+🎯Objetivo:
+
+📘Concepto cave:
+ax² + bx + c
+
+Interpretacion:
+
+La nave se mueve en parabola
+
+Puede abrir hacia arriba o abajo
+
+🔑Elementos importantes:
+
+Vertice → punto mas alto o bajo
+
+Raices → donde toca el eje x
+
+🕹️Que hacer:
+
+Ajustar la forma de la parabola
+
+Evitar caer en pozos gravitatorios
+
+Usar la curva a tu favor
+
+⚠️Errores comunes:
+
+Parabola muy abierta o cerrada
+
+No controlar el vertice
+
+💡Tip/pista:
+El vertice define el punto clave de tu trayectoria.
+
+Sector 3: sintonizador de pulsares
+
+🎯Objetivo:
+
+📘Concepto clave:
+Transformaciones:
+
+Desplazamientos
+
+Escalamiento
+
+Reflexion
+
+Interpretacion:
+
+Mover la trayectoria
+
+Estirarla o comprimirla
+
+Invertirla
+
+🕹️Que hacer:
+
+Analizar la señal objetivo
+
+Ajusta la funcion base
+
+Hacer coincidir ambas
+
+⚠️Errores comunes:
+
+Confundir desplazamientos
+
+No entender el eje de referencia
+
+💡Tip/pista:
+Mover en x no es igual que mover en y.
+
+Sector 4: estacion de acoplamiento
+
+🎯Objetivo:
+
+📘Concepto clave:
+
+y = e^x → crecimiento acelerado
+
+y = ln(x) → crecimiento controlado
+
+Interpretacion:
+
+Exponencial → la nave acelera rapidamente
+
+Logaritmica → desacelera progresivamente
+
+🕹️Que hacer:
+
+Elegir el tipo de funcion correcto
+
+Ajustar la velocidad de aproximacion
+
+Acoplar sin colisionar
+
+⚠️Errores comunes:
+
+Usar exponencial cuando necesitas suavidad
+
+No controlar el ritmo de cambio
+
+💡Tip/pista:
+Si vas demasiado rapido, necesitas una funcion mas suave.
+
+Sector 5: horizonte de sucesos
+
+🎯Objetivo:
+
+📘Concepto clave:
+
+Funcion inversa f⁻¹(x)
+
+Prueba de la linea horizontal
+
+Funciones trigonometricas
+
+Interpretacion:
+
+Debes "deshacer" una funcion
+
+Encontrar el camino de regreso
+
+🕹️Que hacer:
+
+Verificar si la funcion tiene inversa
+
+Calcularla
+
+Usarla para escapar
+
+⚠️Errores comunes:
+
+No verificar si es invertible
+
+Errores algebraicos
+
+💡Tip/pista:
+Si una funcion repite valores, no tiene inversa."""
 
 # ---------------------------------------------------------------------------
 # Referencias de Nodos
@@ -25,9 +200,11 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _sector3_button:       Button             = $VBoxContainer/Sector3Button
 @onready var _sector4_button:       Button             = $VBoxContainer/Sector4Button
 @onready var _sector5_button:       Button             = $VBoxContainer/Sector5Button
+@onready var _tutorial_button:      Button             = $VBoxContainer/TutorialButton
 @onready var _lab_button:           Button             = $VBoxContainer/LabButton
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
+@onready var _tutorial_dialog:      AcceptDialog       = $TutorialDialog
 @onready var _score_label:          Label              = $VBoxContainer/ScoreLabel
 var _notification_dialog: AcceptDialog = null
 const SAVE_FILE_PATH: String = "user://save_game.cfg"
@@ -41,6 +218,7 @@ func _ready() -> void:
 	GameManager.scene_transition_failed.connect(_on_scene_transition_failed)
 	_connect_buttons()
 	_refresh_sector_states()
+	_tutorial_dialog.dialog_text = TUTORIAL_TEXT
 
 	# Actualizar el menú si el progreso cambia durante la sesión
 	SaveSystem.progress_loaded.connect(_refresh_sector_states)
@@ -64,6 +242,7 @@ func _connect_buttons() -> void:
 	_sector3_button.pressed.connect( func() -> void: _on_sector_pressed(3))
 	_sector4_button.pressed.connect( func() -> void: _on_sector_pressed(4))
 	_sector5_button.pressed.connect( func() -> void: _on_sector_pressed(5))
+	_tutorial_button.pressed.connect(_on_tutorial_button_pressed)
 	_lab_button.pressed.connect(_on_lab_pressed)
 	_clear_button.pressed.connect(_on_clear_pressed)
 	_confirm_dialog.confirmed.connect(_on_clear_confirmed)
@@ -79,6 +258,10 @@ func _on_sector_pressed(sector_index: int) -> void:
 ## Abre el Laboratorio Estelar (modo sandbox de exploración libre).
 func _on_lab_pressed() -> void:
 	SceneTransition.fade_to_scene("res://scenes/laboratorio_estelar.tscn")
+
+
+func _on_tutorial_button_pressed() -> void:
+	_tutorial_dialog.popup_centered()
 
 
 ## Muestra el diálogo de confirmación para borrar el progreso.
