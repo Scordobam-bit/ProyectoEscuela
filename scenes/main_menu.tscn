@@ -133,6 +133,7 @@ title = "Tutorial"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="TutorialDialog"]
 layout_mode = 2
+custom_minimum_size = Vector2(560, 420)
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -140,188 +141,189 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="TutorialDialog/ScrollContainer/VBoxContainer"]
+[node name="TutorialLabel" type="Label" parent="TutorialDialog/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(560, 0)
 size_flags_horizontal = 3
 autowrap_mode = 3
-text = """Sector 1: cinturon de asteroides
+text = """Sector 1: Cinturón de asteroides
 
-🎯Objetivo:
+🎯 Objetivo:
 Evitar asteroides usando funciones lineales.
 
 Concepto clave:
 f(x) = mx + b
 
-m es la pendiente (inclinacion)
+m es la pendiente (inclinación)
 
 b es el punto inicial
 
-Interpretacion en el juego:
+Interpretación en el juego:
 
-La nave se mueve en linea recta inclinada
+La nave se mueve en línea recta inclinada.
 
-Puede subir o bajar dependiendo de m
+Puede subir o bajar dependiendo de m.
 
-🕹️Que hacer:
+🕹️ Qué hacer:
 
-Ajustar la pendiente (m)
+Ajustar la pendiente (m).
 
-Definir el punto inicial (b)
+Definir el punto inicial (b).
 
-Trazar la ruta evitando obstaculos
+Trazar la ruta evitando obstáculos.
 
-⚠️Errores comunes:
+⚠️ Errores comunes:
 
-Pendiente incorrecta (chocar
+Pendiente incorrecta (choque).
 
-Mal punto inicial
+Mal punto inicial.
 
 💡Tip/pista:
-Si la nave sube muy rapido, reduce m. Si no alcanza el objetivo, ajusta b.
+Si la nave sube muy rápido, reduce m. Si no alcanza el objetivo, ajusta b.
 
-Sector 2: pozos gravitatorios
+Sector 2: Pozos gravitatorios
 
-🎯Objetivo:
-Usar funciones cuadraticas para navegar curvas.
+🎯 Objetivo:
+Usar funciones cuadráticas para navegar curvas.
 
-📘Concepto clave:
+📘 Concepto clave:
 ax² + bx + c
 
-Interpretacion:
+Interpretación:
 
-La nave se mueve en parabola
+La nave se mueve en parábola.
 
-Puede abrir hacia arriba o abajo
+Puede abrir hacia arriba o hacia abajo.
 
-🔑Elementos importantes:
+🔑 Elementos importantes:
 
-Vertice → punto mas alto o bajo
+Vértice → punto más alto o bajo.
 
-Raices → donde toca el eje x
+Raíces → donde toca el eje x.
 
-🕹️Que hacer:
+🕹️ Qué hacer:
 
-Ajustar la forma de la parabola
+Ajustar la forma de la parábola.
 
-Evitar caer en pozos gravitatorios
+Evitar caer en pozos gravitatorios.
 
-Usar la curva a tu favor
+Usar la curva a tu favor.
 
-⚠️Errores comunes:
+⚠️ Errores comunes:
 
-Parabola muy abierta o cerrada
+Parábola muy abierta o cerrada.
 
-No controlar el vertice
+No controlar el vértice.
 
 💡Tip/pista:
-El vertice define el punto clave de tu trayectoria.
+El vértice define el punto clave de tu trayectoria.
 
-Sector 3: sintonizador de pulsares
+Sector 3: Sintonizador de púlsares
 
-🎯Objetivo:
+🎯 Objetivo:
 Modificar funciones para coincidir con señales.
 
-📘Concepto clave:
+📘 Concepto clave:
 Transformaciones:
 
-Desplazamientos
+Desplazamientos.
 
-Escalamiento
+Escalamiento.
 
-Reflexion
+Reflexión.
 
-Interpretacion:
+Interpretación:
 
-Mover la trayectoria
+Mover la trayectoria.
 
-Estirarla o comprimirla
+Estirarla o comprimirla.
 
-Invertirla
+Invertirla.
 
-🕹️Que hacer:
+🕹️ Qué hacer:
 
-Analizar la señal objetivo
+Analizar la señal objetivo.
 
-Ajusta la funcion base
+Ajustar la función base.
 
-Hacer coincidir ambas
+Hacer coincidir ambas.
 
-⚠️Errores comunes:
+⚠️ Errores comunes:
 
-Confundir desplazamientos
+Confundir desplazamientos.
 
-No entender el eje de referencia
+No entender el eje de referencia.
 
 💡Tip/pista:
 Mover en x no es igual que mover en y.
 
-Sector 4: estacion de acoplamiento
+Sector 4: Estación de acoplamiento
 
-🎯Objetivo:
-Usar funciones exponenciales y logaritmicas.
+🎯 Objetivo:
+Usar funciones exponenciales y logarítmicas.
 
-📘Concepto clave:
+📘 Concepto clave:
 
-y = e^x → crecimiento acelerado
+y = e^x → crecimiento acelerado.
 
-y = ln(x) → crecimiento controlado
+y = ln(x) → crecimiento controlado.
 
-Interpretacion:
+Interpretación:
 
-Exponencial → la nave acelera rapidamente
+Exponencial → la nave acelera rápidamente.
 
-Logaritmica → desacelera progresivamente
+Logarítmica → desacelera progresivamente.
 
-🕹️Que hacer:
+🕹️ Qué hacer:
 
-Elegir el tipo de funcion correcto
+Elegir el tipo de función correcto.
 
-Ajustar la velocidad de aproximacion
+Ajustar la velocidad de aproximación.
 
-Acoplar sin colisionar
+Acoplar sin colisionar.
 
-⚠️Errores comunes:
+⚠️ Errores comunes:
 
-Usar exponencial cuando necesitas suavidad
+Usar exponencial cuando necesitas suavidad.
 
-No controlar el ritmo de cambio
-
-💡Tip/pista:
-Si vas demasiado rapido, necesitas una funcion mas suave.
-
-Sector 5: horizonte de sucesos
-
-🎯Objetivo:
-Escapar usando funciones inversas y analisis avanzado.
-
-📘Concepto clave:
-
-Funcion inversa f⁻¹(x)
-
-Prueba de la linea horizontal
-
-Funciones trigonometricas
-
-Interpretacion:
-
-Debes "deshacer" una funcion
-
-Encontrar el camino de regreso
-
-🕹️Que hacer:
-
-Verificar si la funcion tiene inversa
-
-Calcularla
-
-Usarla para escapar
-
-⚠️Errores comunes:
-
-No verificar si es invertible
-
-Errores algebraicos
+No controlar el ritmo de cambio.
 
 💡Tip/pista:
-Si una funcion repite valores, no tiene inversa.
+Si vas demasiado rápido, necesitas una función más suave.
+
+Sector 5: Horizonte de sucesos
+
+🎯 Objetivo:
+Escapar usando funciones inversas y análisis avanzado.
+
+📘 Concepto clave:
+
+Función inversa f⁻¹(x).
+
+Prueba de la línea horizontal.
+
+Funciones trigonométricas.
+
+Interpretación:
+
+Debes "deshacer" una función.
+
+Encontrar el camino de regreso.
+
+🕹️ Qué hacer:
+
+Verificar si la función tiene inversa.
+
+Calcularla.
+
+Usarla para escapar.
+
+⚠️ Errores comunes:
+
+No verificar si es invertible.
+
+Errores algebraicos.
+
+💡Tip/pista:
+Si una función repite valores, no tiene inversa.
 """
