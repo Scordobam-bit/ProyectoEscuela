@@ -30,6 +30,7 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 @onready var _clear_button:         Button             = $VBoxContainer/ClearProgressButton
 @onready var _confirm_dialog:       ConfirmationDialog = $ConfirmClearDialog
 @onready var _tutorial_dialog:      AcceptDialog       = $TutorialDialog
+@onready var _tutorial_scroll:      ScrollContainer    = $TutorialDialog/ScrollContainer
 @onready var _score_label:          Label              = $VBoxContainer/ScoreLabel
 var _notification_dialog: AcceptDialog = null
 const SAVE_FILE_PATH: String = "user://save_game.cfg"
@@ -86,6 +87,8 @@ func _on_lab_pressed() -> void:
 
 func _on_tutorial_button_pressed() -> void:
 	_tutorial_dialog.popup_centered()
+	# Forzar la actualización del scroll al abrir
+	_tutorial_scroll.get_v_scroll_bar().value = 0
 
 
 ## Muestra el diálogo de confirmación para borrar el progreso.
