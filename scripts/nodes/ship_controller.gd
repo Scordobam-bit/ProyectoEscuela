@@ -13,8 +13,8 @@ extends Node2D
 # ---------------------------------------------------------------------------
 
 ## Emitida cuando la nave llega al final de la trayectoria.
-signal trajectory_completed
-signal reached_goal
+signal trajectory_completed()
+signal reached_goal()
 
 ## Emitida cada fotograma con el progreso actual [0, 1].
 signal progress_updated(progress: float)
@@ -392,4 +392,3 @@ func _teleport_to_curve_start() -> void:
 
 func _on_reached_goal() -> void:
 	_goal_reached_by_signal = true
-
