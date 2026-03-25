@@ -145,6 +145,7 @@ size_flags_horizontal = 3
 layout_mode = 2
 custom_minimum_size = Vector2(560, 0)
 size_flags_horizontal = 3
+size_flags_vertical = 3
 autowrap_mode = 3
 text = """Sector 1: Cinturón de asteroides
 
@@ -178,7 +179,7 @@ Pendiente incorrecta (choque).
 
 Mal punto inicial.
 
-💡Tip/pista:
+💡 Tip/pista:
 Si la nave sube muy rápido, reduce m. Si no alcanza el objetivo, ajusta b.
 
 Sector 2: Pozos gravitatorios
@@ -215,7 +216,7 @@ Parábola muy abierta o cerrada.
 
 No controlar el vértice.
 
-💡Tip/pista:
+💡 Tip/pista:
 El vértice define el punto clave de tu trayectoria.
 
 Sector 3: Sintonizador de púlsares
@@ -254,7 +255,7 @@ Confundir desplazamientos.
 
 No entender el eje de referencia.
 
-💡Tip/pista:
+💡 Tip/pista:
 Mover en x no es igual que mover en y.
 
 Sector 4: Estación de acoplamiento
@@ -288,7 +289,7 @@ Usar exponencial cuando necesitas suavidad.
 
 No controlar el ritmo de cambio.
 
-💡Tip/pista:
+💡 Tip/pista:
 Si vas demasiado rápido, necesitas una función más suave.
 
 Sector 5: Horizonte de sucesos
@@ -324,6 +325,6 @@ No verificar si es invertible.
 
 Errores algebraicos.
 
-💡Tip/pista:
+💡 Tip/pista:
 Si una función repite valores, no tiene inversa.
 """
