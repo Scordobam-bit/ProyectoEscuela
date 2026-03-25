@@ -17,175 +17,137 @@ const COLOR_LOCKED:    Color = Color(0.4, 0.4, 0.4)
 const TUTORIAL_TEXT: String = """Sector 1: cinturon de asteroides
 
 🎯Objetivo:
+Evitar asteroides usando funciones lineales.
 
 Concepto clave:
 f(x) = mx + b
-
-m es la pendiente (inclinacion)
-
-b es el punto inicial
+- m es la pendiente (inclinacion)
+- b es el punto inicial
 
 Interpretacion en el juego:
-
-La nave se mueve en linea recta inclinada
-
-Puede subir o bajar dependiendo de m
+- La nave se mueve en linea recta inclinada
+- Puede subir o bajar dependiendo de m
 
 🕹️Que hacer:
-
-Ajustar la pendiente (m)
-
-Definir el punto inicial (b)
-
-Trazar la ruta evitando obstaculos
+1. Ajustar la pendiente (m)
+2. Definir el punto inicial (b)
+3. Trazar la ruta evitando obstaculos
 
 ⚠️Errores comunes:
-
-Pendiente incorrecta (chocar
-
-Mal punto inicial
+- Pendiente incorrecta (chocar
+- Mal punto inicial
 
 💡Tip/pista:
 Si la nave sube muy rapidoo, reduce m. Si no alcanza el objetivo, ajusta b.
 
+
 Sector 2: pozos gravitatorios
 
 🎯Objetivo:
+Usar funciones cuadraticas para navegar curvas.
 
-📘Concepto cave:
+📘Concepto clave:
 ax² + bx + c
 
 Interpretacion:
-
-La nave se mueve en parabola
-
-Puede abrir hacia arriba o abajo
+- La nave se mueve en parabola
+- Puede abrir hacia arriba o abajo
 
 🔑Elementos importantes:
-
-Vertice → punto mas alto o bajo
-
-Raices → donde toca el eje x
+- Vertice → punto mas alto o bajo
+- Raices → donde toca el eje x
 
 🕹️Que hacer:
-
-Ajustar la forma de la parabola
-
-Evitar caer en pozos gravitatorios
-
-Usar la curva a tu favor
+1. Ajustar la forma de la parabola
+2. Evitar caer en pozos gravitatorios
+3. Usar la curva a tu favor
 
 ⚠️Errores comunes:
-
-Parabola muy abierta o cerrada
-
-No controlar el vertice
+- Parabola muy abierta o cerrada
+- No controlar el vertice
 
 💡Tip/pista:
 El vertice define el punto clave de tu trayectoria.
 
+
 Sector 3: sintonizador de pulsares
 
 🎯Objetivo:
+Modificar funciones para coincidir con señales.
 
 📘Concepto clave:
 Transformaciones:
 
-Desplazamientos
-
-Escalamiento
-
-Reflexion
+- Desplazamientos
+- Escalamiento
+- Reflexion
 
 Interpretacion:
-
-Mover la trayectoria
-
-Estirarla o comprimirla
-
-Invertirla
+- Mover la trayectoria
+- Estirarla o comprimirla
+- Invertirla
 
 🕹️Que hacer:
-
-Analizar la señal objetivo
-
-Ajusta la funcion base
-
-Hacer coincidir ambas
+1. Analizar la señal objetivo
+2. Ajusta la funcion base
+3. Hacer coincidir ambas
 
 ⚠️Errores comunes:
-
-Confundir desplazamientos
-
-No entender el eje de referencia
+- Confundir desplazamientos
+- No entender el eje de referencia
 
 💡Tip/pista:
 Mover en x no es igual que mover en y.
 
+
 Sector 4: estacion de acoplamiento
 
 🎯Objetivo:
+Usar funciones exponenciales y logaritmicas.
 
 📘Concepto clave:
-
-y = e^x → crecimiento acelerado
-
-y = ln(x) → crecimiento controlado
+- y = e^x → crecimiento acelerado
+- y = ln(x) → crecimiento controlado
 
 Interpretacion:
-
-Exponencial → la nave acelera rapidamente
-
-Logaritmica → desacelera progresivamente
+- Exponencial → la nave acelera rapidamente
+- Logaritmica → desacelera progresivamente
 
 🕹️Que hacer:
-
-Elegir el tipo de funcion correcto
-
-Ajustar la velocidad de aproximacion
-
-Acoplar sin colisionar
+1. Elegir el tipo de funcion correcto
+2. Ajustar la velocidad de aproximacion
+3. Acoplar sin colisionar
 
 ⚠️Errores comunes:
-
-Usar exponencial cuando necesitas suavidad
-
-No controlar el ritmo de cambio
+- Usar exponencial cuando necesitas suavidad
+- No controlar el ritmo de cambio
 
 💡Tip/pista:
 Si vas demasiado rapido, necesitas una funcion mas suave.
 
+
 Sector 5: horizonte de sucesos
 
 🎯Objetivo:
+Escapar usando funciones inversas y analisis avanzado.
 
 📘Concepto clave:
-
-Funcion inversa f⁻¹(x)
-
-Prueba de la linea horizontal
-
-Funciones trigonometricas
+- Funcion inversa f⁻¹(x)
+- Prueba de la linea horizontal
+- Funciones trigonometricas
 
 Interpretacion:
-
-Debes "deshacer" una funcion
-
-Encontrar el camino de regreso
+- Debes "deshacer" una funcion
+- Encontrar el camino de regreso
 
 🕹️Que hacer:
-
-Verificar si la funcion tiene inversa
-
-Calcularla
-
-Usarla para escapar
+1. Verificar si la funcion tiene inversa
+2. Calcularla
+3. Usarla para escapar
 
 ⚠️Errores comunes:
-
-No verificar si es invertible
-
-Errores algebraicos
+- No verificar si es invertible
+- Errores algebraicos
 
 💡Tip/pista:
 Si una funcion repite valores, no tiene inversa."""
