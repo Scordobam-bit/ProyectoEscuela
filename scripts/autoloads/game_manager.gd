@@ -484,3 +484,12 @@ func _apply_new_game_defaults() -> void:
 	SaveSystem.unlocked_sectors = [0]
 	SaveSystem.completed_sectors = []
 	SaveSystem.tutorial_completed = false
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F11:
+		var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+		if current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)

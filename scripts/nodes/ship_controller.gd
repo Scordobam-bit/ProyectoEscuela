@@ -287,6 +287,15 @@ func follow_path(path: Path2D, restart: bool = true) -> void:
 		reset(true)
 
 
+## Sigue la trayectoria actualmente graficada por la fórmula dada.
+func follow_trajectory(trajectory_formula: String) -> void:
+	if plotter:
+		plotter.set_formula_and_plot(trajectory_formula)
+	_load_points()
+	if _points.size() >= 2:
+		reset(true)
+
+
 func _rebuild_path_from_plotter() -> void:
 	_ensure_path_connection()
 	if not plotter:

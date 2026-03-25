@@ -328,8 +328,10 @@ func _connect_hud() -> void:
 		if is_instance_valid(line_edit) and not line_edit.text_submitted.is_connected(_on_formula_text_submitted):
 			line_edit.text_submitted.connect(_on_formula_text_submitted)
 	hud_node.domain_changed.connect(_on_domain_changed)
-	hud_node.theory_requested.connect(_on_theory_requested)
-	hud_node.hint_requested.connect(_on_hint_requested)
+	if not hud_node.theory_requested.is_connected(_on_theory_requested):
+		hud_node.theory_requested.connect(_on_theory_requested)
+	if not hud_node.hint_requested.is_connected(_on_hint_requested):
+		hud_node.hint_requested.connect(_on_hint_requested)
 
 
 func _connect_hud_buttons_in_code() -> void:
@@ -464,7 +466,10 @@ func _on_hud_request_plot(formula: String) -> void:
 	var sanitized_formula: String = formula.strip_edges()
 	if sanitized_formula.is_empty():
 		sanitized_formula = _DEFAULT_PLOT_FORMULA
-	_on_formula_submitted_hud(sanitized_formula)
+	if is_instance_valid(_plotter):
+		_plotter.plot_trajectory(sanitized_formula)
+	if is_instance_valid(_ship):
+		_ship.follow_trajectory(sanitized_formula)
 
 
 func _on_formula_text_submitted(formula: String) -> void:
@@ -523,6 +528,7 @@ func _on_theory_requested() -> void:
 			theory_panel_node.show_mission_briefing(tutorial_key)
 		else:
 			theory_panel_node.show_sector_theory(sector_index)
+		theory_panel_node.show()
 		await theory_panel_node.panel_closed
 		get_tree().paused = was_paused
 		theory_panel_node.process_mode = prev_mode
@@ -544,7 +550,10 @@ func _on_hint_requested() -> void:
 			var tutorial_key: String = _get_sector_tutorial_key()
 			if TheoryPanel.MISSION_BRIEFINGS.has(tutorial_key):
 				theory_panel_node.show_mission_briefing(tutorial_key)
-				await theory_panel_node.panel_closed
+			else:
+				theory_panel_node.show_sector_theory(sector_index)
+			theory_panel_node.show()
+			await theory_panel_node.panel_closed
 			get_tree().paused = was_paused
 			theory_panel_node.process_mode = prev_mode
 		GameManager.hints_used += 1
