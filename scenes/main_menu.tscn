@@ -112,7 +112,7 @@ custom_minimum_size = Vector2(0, 8)
 
 [node name="VersionLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "Alpha 1  |  Godot 4.6  |  GDScript 2.0  |  5 Sectores"
+text = "Alpha 1  |  5 Sectores"
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="VBoxContainer"]
