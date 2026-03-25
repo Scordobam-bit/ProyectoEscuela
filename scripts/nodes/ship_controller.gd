@@ -392,3 +392,4 @@ func _teleport_to_curve_start() -> void:
 
 func _on_reached_goal() -> void:
 	_goal_reached_by_signal = true
+
