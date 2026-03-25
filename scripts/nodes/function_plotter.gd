@@ -334,6 +334,11 @@ func set_formula_and_plot(new_formula: String) -> void:
 		plot()
 
 
+## API explícita para ejecutar una trayectoria a partir de una fórmula.
+func plot_trajectory(trajectory_formula: String) -> void:
+	set_formula_and_plot(trajectory_formula)
+
+
 ## Establece el dominio y vuelve a graficar (envoltura de conveniencia).
 func set_domain(min_x: float, max_x: float) -> void:
 	domain_min = min_x
