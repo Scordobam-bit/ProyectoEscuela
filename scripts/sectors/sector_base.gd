@@ -359,7 +359,8 @@ func _force_button_parent_ignore(button: Control) -> void:
 	var parent_node: Node = button.get_parent()
 	while parent_node and parent_node != hud_node:
 		if parent_node is Control:
-			(parent_node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var parent_control: Control = parent_node as Control
+			parent_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		parent_node = parent_node.get_parent()
 
 
